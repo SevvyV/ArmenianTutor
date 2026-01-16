@@ -9,7 +9,7 @@ if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
 st.title("🇦🇲 Elite Western Armenian Tutor")
-st.caption("Version 9.0 • Stable Voice Logic (2026)")
+st.caption("Version 10.0 • Verified Audio Playback")
 
 # 2. Key Verification
 if "GOOGLE_API_KEY" in st.secrets:
@@ -40,7 +40,7 @@ if audio_data:
             # Package the user's voice
             audio_part = types.Part.from_bytes(data=audio_data.read(), mime_type="audio/wav")
             
-            # STEP 1: ANALYSIS (Using the listening model)
+            # STEP 1: ANALYSIS (Using the multimodal listening model)
             analysis_response = client.models.generate_content(
                 model="gemini-3-flash-preview", 
                 config={'system_instruction': ELITE_INSTRUCTIONS},
@@ -55,12 +55,11 @@ if audio_data:
                 st.success("Tutor's Response:")
                 st.markdown(analysis_response.text)
                 
-                # STEP 2: VOICE GENERATION (Updated for 2026 SDK)
-                # We extract ONLY the first line (Armenian Script) to speak aloud
+                # STEP 2: VOICE GENERATION
+                # Extract only the Armenian sentence (the first line) for speech
                 armenian_text = analysis_response.text.split("\n")[0]
                 
                 with st.spinner("Generating native audio..."):
-                    # Use the specialized TTS model
                     tts_response = client.models.generate_content(
                         model="gemini-2.5-flash-preview-tts",
                         contents=f"Say this clearly in Western Armenian: {armenian_text}",
@@ -69,17 +68,19 @@ if audio_data:
                         )
                     )
                     
-                    # Logic to safely extract and play the audio
+                    # FIX: Drilling down into the 2026 data structure
+                    # We check candidates -> content -> parts -> inline_data
                     try:
-                        # Drilling down to the inline data path for 2026
                         audio_part = tts_response.candidates[0].content.parts[0]
-                        if hasattr(audio_part, 'inline_data'):
+                        if audio_part.inline_data:
+                            # Extract the raw bytes from the response
                             audio_bytes = audio_part.inline_data.data
+                            # Display the audio player with the correct format
                             st.audio(audio_bytes, format="audio/wav")
                         else:
-                            st.warning("Audio was generated but is not in the expected format.")
+                            st.warning("Audio data was generated but is currently empty.")
                     except (AttributeError, IndexError):
-                        st.warning("Tutor's voice engine is warming up. Please try another sentence.")
+                        st.warning("The tutor's voice is warming up. Please try another sentence.")
             
         except Exception as e:
             st.error(f"Technical Error: {e}")
@@ -94,4 +95,4 @@ with st.sidebar:
         st.info(msg["content"][:100] + "...")
 
 st.divider()
-st.caption("Hybrid System: Gemini 3 Flash (Listen) + Gemini 2.5 TTS (Speak)")
+st.caption("Hybrid System: Gemini 3 Flash + Gemini 2.5 TTS")
