@@ -9,12 +9,11 @@ import re
 st.set_page_config(page_title="HyeTutor2.0beta", page_icon="🇦🇲", layout="wide")
 
 st.title("🇦🇲 HyeTutor2.0beta")
-st.caption("Version 4.0 • Hard-Wired Pronouns • Stable Audio Stream")
+st.caption("Version 4.1 • Hard-Wired Pronouns & Stabilized Audio")
 
-# --- PERMANENT PRONOUNS ---
+# --- PERMANENT DATA (NEVER DELETED) ---
 PRONOUNS = ["Ես", "Դուն", "Ան", "Մենք", "Դուք", "Անոնք"]
 
-# --- DATA: FOUNDATIONS & TOP 50 ---
 FOUNDATIONS = {
     "📅 Days of the Week": "Երկուշաբթի, Երեքշաբթի, Չորեքշաբթի, Հինգշաբթի, Ուրբաթ, Շաբաթ, Կիրակի",
     "🔢 Numbers (1-10)": "Մէկ, Երկու, Երեք, Չորս, Հինգ, Վեց, Եօթը, Ութը, Ինը, Տասը",
@@ -27,7 +26,7 @@ TOP_50_VERBS = ["be", "have", "do", "say", "go", "can", "get", "would", "make", 
 api_key = st.secrets["GOOGLE_API_KEY"]
 client = genai.Client(api_key=api_key)
 
-# 3. Robust Audio Utility
+# 3. Audio Utility Functions
 def create_wav_file(pcm_data):
     buf = io.BytesIO()
     with wave.open(buf, 'wb') as wf:
@@ -37,22 +36,21 @@ def create_wav_file(pcm_data):
         wf.writeframes(pcm_data)
     return buf.getvalue()
 
-def get_audio_stream(text_to_speak, slow_mode=False):
-    """Directly fetches audio bytes for the speaker."""
-    speed = "slowly" if slow_mode else "naturally"
+def get_stable_audio(text_to_speak, slow_mode=False):
+    """Directly fetches audio using the stable 2026 path."""
+    speed = "slowly" if slow_mode else "clearly"
     try:
         response = client.models.generate_content(
             model="gemini-2.5-flash-lite-preview-tts",
             contents=f"Say this {speed} in Western Armenian: {text_to_speak}",
             config=types.GenerateContentConfig(response_modalities=["AUDIO"])
         )
-        # Extract binary data safely
-        audio_part = response.candidates[0].content.parts[0]
-        if hasattr(audio_part, 'inline_data'):
-            return create_wav_file(audio_part.inline_data.data)
-    except:
+        # Deep path extraction for binary integrity
+        audio_bytes = response.candidates[0].content.parts[0].inline_data.data
+        return create_wav_file(audio_bytes)
+    except Exception as e:
+        st.error(f"Audio Error: {e}")
         return None
-    return None
 
 # 4. Sidebar: Master Navigation
 with st.sidebar:
@@ -79,42 +77,43 @@ with st.sidebar:
         st.cache_data.clear()
         st.rerun()
 
-# 5. Hybrid Verb Logic (Pronouns Hard-Wired)
+# 5. Hybrid Verb Engine (Hard-Wired Pronouns)
 @st.cache_data
-def get_verb_only(verb_name, tense_name):
-    """Asks the AI for ONLY the 6 conjugated verbs without pronouns."""
-    prompt = f"Provide the 6 Western Armenian conjugated forms for the verb '{verb_name}' in {tense_name} tense. Return ONLY a comma-separated list of the verbs. No pronouns, no English."
+def get_verbs_only(verb_name, tense_name):
+    prompt = f"Provide ONLY the 6 conjugated Western Armenian forms for '{verb_name}' in {tense_name} tense. NO PRONOUNS. Comma-separated."
     response = client.models.generate_content(model="gemini-3-flash-preview", contents=prompt)
-    verbs = response.text.strip().split(",")
-    return [v.strip() for v in verbs if v.strip()]
+    raw_verbs = response.text.strip().split(",")
+    return [v.strip() for v in raw_verbs if v.strip()]
 
-# 6. Main Lesson Area
+# 6. Main Interaction Area
 if main_mode == "Foundations":
     st.header(mode_label)
     st.write(f"### {selected_content}")
-    if st.button(f"🔊 Listen"):
-        audio_bytes = get_audio_stream(selected_content, slow_mode=slow_audio)
-        if audio_bytes: st.audio(audio_bytes, format="audio/wav")
+    if st.button("🔊 Listen"):
+        audio = get_stable_audio(selected_content, slow_mode=slow_audio)
+        if audio: st.audio(audio, format="audio/wav")
 
 else:
     if sub_selection:
-        with st.spinner("Tutor is thinking..."):
-            verbs_only = get_verb_only(sub_selection, tense)
-            # HARD-WIRING STEP: Pair hard-coded pronouns with AI-generated verbs
-            full_conjugation = [f"{p} {v}" for p, v in zip(PRONOUNS, verbs_only)]
+        with st.spinner("Conjugating..."):
+            verbs = get_verbs_only(sub_selection, tense)
+            # HARD-WIRING: Ensure 6 pronouns always exist
+            display_list = [f"{PRONOUNS[i]} {verbs[i]}" for i in range(min(len(PRONOUNS), len(verbs)))]
         
         st.header(f"Verb: {sub_selection}")
         cols = st.columns(3)
-        for i, item in enumerate(full_conjugation):
+        for i, item in enumerate(display_list):
             cols[i % 3].write(f"🔹 **{item}**")
             
         if st.button("🔊 Listen"):
-            audio_bytes = get_audio_stream(", ".join(full_conjugation), slow_mode=slow_audio)
-            if audio_bytes: st.audio(audio_bytes, format="audio/wav")
+            # Stitching for the voice engine too
+            audio_text = ", ".join(display_list)
+            audio = get_stable_audio(audio_text, slow_mode=slow_audio)
+            if audio: st.audio(audio, format="audio/wav")
 
 st.divider()
 
-# 7. Practice Interaction
+# 7. Feedback Loop
 audio_data = st.audio_input("Practice and get feedback")
 if audio_data:
     with st.status("Analyzing..."):
@@ -124,9 +123,9 @@ if audio_data:
             config={'system_instruction': f"Analyze pronunciation of {mode_label}."},
             contents=[audio_part]
         )
-        st.success("Tutor's Evaluation:")
+        st.success("Tutor's Feedback:")
         st.markdown(analysis.text)
-        # Speak feedback
-        clean_fb = re.sub(r'[*#]', '', analysis.text.split("\n")[0])
-        fb_audio = get_audio_stream(clean_fb)
+        # Speak the first feedback sentence
+        fb_text = analysis.text.split("\n")[0]
+        fb_audio = get_stable_audio(fb_text)
         if fb_audio: st.audio(fb_audio, format="audio/wav")
