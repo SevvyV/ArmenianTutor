@@ -9,7 +9,7 @@ if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
 st.title("🇦🇲 Elite Western Armenian Tutor")
-st.caption("Version 12.0 • API v1beta / Model Path Updated")
+st.caption("Version 13.0 • Verified Spoken Audio")
 
 # 2. Key Verification
 if "GOOGLE_API_KEY" in st.secrets:
@@ -25,10 +25,9 @@ ELITE_INSTRUCTIONS = """
 IDENTITY: Elite Western Armenian Language Tutor.
 OPERATING MODE: Spoken-first, natural pacing.
 OUTPUT FORMAT:
-  1. Armenian Script (Հայերէն)
-  2. Phonetic English
-  3. English Translation
-  4. Brief Tutor Note
+  Armenian Script (First line only)
+  Phonetic English
+  English Translation
 """
 
 # 4. Interaction UI
@@ -37,11 +36,10 @@ audio_data = st.audio_input("Tap the mic to speak with your tutor")
 if audio_data:
     with st.status("Elite Tutor is analyzing...", expanded=False) as status:
         try:
-            # Package the user's voice
+            # Package the user's voice for Gemini 3 Flash (Listener)
             audio_part = types.Part.from_bytes(data=audio_data.read(), mime_type="audio/wav")
             
-            # STEP 1: ANALYSIS (Using the multimodal listening model)
-            # 2026 Stable model for multimodal input
+            # STEP 1: ANALYSIS
             analysis_response = client.models.generate_content(
                 model="gemini-3-flash-preview", 
                 config={'system_instruction': ELITE_INSTRUCTIONS},
@@ -49,37 +47,41 @@ if audio_data:
             )
             
             if analysis_response.text:
-                status.update(label="Response generated. Crafting voice...", state="complete")
+                status.update(label="Response generated. Preparing tutor's voice...", state="complete")
                 st.session_state.chat_history.append({"role": "assistant", "content": analysis_response.text})
                 
                 # Display the Text
                 st.success("Tutor's Response:")
                 st.markdown(analysis_response.text)
                 
-                # STEP 2: VOICE GENERATION
-                # Extract the Armenian text (the first line)
-                armenian_text = analysis_response.text.split("\n")[0]
+                # STEP 2: VOICE GENERATION (Using the specialized 2.5 TTS)
+                # We strictly take only the Armenian script line for the voice engine
+                clean_armenian = analysis_response.text.split("\n")[0].strip()
                 
-                with st.spinner("Generating native audio..."):
-                    # Use the precise 2026 preview TTS model ID
+                with st.spinner("Tutor is speaking..."):
                     tts_response = client.models.generate_content(
                         model="gemini-2.5-flash-preview-tts",
-                        contents=f"Say this clearly in Western Armenian: {armenian_text}",
+                        contents=f"Say this clearly in Western Armenian: {clean_armenian}",
                         config=types.GenerateContentConfig(
                             response_modalities=["AUDIO"]
                         )
                     )
                     
-                    # Drilling down into the 2026 structure (Candidates -> Content -> Parts)
+                    # 2026 Logic: Navigating the nested content for audio bytes
                     try:
-                        audio_part = tts_response.candidates[0].content.parts[0]
-                        if audio_part.inline_data:
-                            audio_bytes = audio_part.inline_data.data
-                            st.audio(audio_bytes, format="audio/wav")
-                        else:
-                            st.warning("Audio processing complete, but data was empty.")
+                        # Extracting audio from the 'inline_data' part of the response
+                        raw_parts = tts_response.candidates[0].content.parts
+                        audio_found = False
+                        for part in raw_parts:
+                            if hasattr(part, 'inline_data') and part.inline_data:
+                                st.audio(part.inline_data.data, format="audio/wav")
+                                audio_found = True
+                                break
+                        
+                        if not audio_found:
+                            st.warning("Voice data was silent. Please try another sentence.")
                     except (AttributeError, IndexError):
-                        st.warning("The tutor's voice is warming up. Please try again in 10 seconds.")
+                        st.info("Tutor is clearing their throat. Please try your sentence again.")
             
         except Exception as e:
             st.error(f"Technical Error: {e}")
@@ -94,4 +96,4 @@ with st.sidebar:
         st.info(msg["content"][:100] + "...")
 
 st.divider()
-st.caption("Hybrid System: Gemini 3 Flash (Analysis) + Gemini 2.5 TTS (Voice)")
+st.caption("Hybrid System: Gemini 3 Flash + Gemini 2.5 TTS (V13.0)")
