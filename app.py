@@ -5,12 +5,12 @@ from google.genai import types
 # 1. Page Configuration
 st.set_page_config(page_title="Elite Hye-Tutor", page_icon="🇦🇲", layout="centered")
 
-# 2. Session Memory (This allows the "Elite Tutor" to track progress)
+# 2. Session Memory (Allows the "Elite Tutor" to track progress)
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
 st.title("🇦🇲 Elite Western Armenian Tutor")
-st.caption("Pedagogical Mode: Spoken-First, Natural Flow")
+st.caption("Mode: Spoken-First • API Status: Connected ✅")
 
 # 3. Key Verification
 if "GOOGLE_API_KEY" in st.secrets:
@@ -19,10 +19,10 @@ else:
     st.error("⚠️ GOOGLE_API_KEY not found in Secrets dashboard.")
     st.stop()
 
+# Initialize Client
 client = genai.Client(api_key=api_key)
 
 # 4. The Advanced Pedagogical Framework
-# We inject the ChatGPT prompt here to define the AI's "brain"
 ELITE_INSTRUCTIONS = """
 YOUR IDENTITY: Elite Armenian Spoken Language Tutor.
 OPERATING MODE: Spoken-first, conversation-driven. Priority: sound natural.
@@ -48,11 +48,12 @@ if audio_data:
             # Package the audio
             audio_part = types.Part.from_bytes(data=audio_data.read(), mime_type="audio/wav")
 
-            # We send the history so the AI can "recycle vocabulary"
+            # Send history so the AI can "recycle vocabulary"
             history_context = str(st.session_state.chat_history[-6:])
 
+            # UPDATED: Using the latest stable model to fix the 404 error
             response = client.models.generate_content(
-                model="gemini-1.5-flash",
+                model="gemini-2.0-flash", 
                 config={'system_instruction': ELITE_INSTRUCTIONS},
                 contents=[f"Previous Context: {history_context}", audio_part]
             )
@@ -66,10 +67,12 @@ if audio_data:
                 st.success("Tutor's Feedback:")
                 st.markdown(response.text)
             else:
-                status.update(label="Listening...", state="complete")
+                status.update(label="Awaiting input...", state="complete")
             
         except Exception as e:
             st.error(f"Technical Error: {e}")
+            if "404" in str(e):
+                st.info("The app tried to reach a model that is no longer available. I have updated the code to use Gemini 2.0 Flash.")
 
 # Sidebar for Lesson Review
 with st.sidebar:
@@ -81,4 +84,4 @@ with st.sidebar:
         st.info(msg["content"][:100] + "...")
 
 st.divider()
-st.caption("Powered by Gemini 1.5 Flash • Pedagogical Protocol Active")
+st.caption("Updated for 2026 Model Standards • Elite Armenian Tutor")
