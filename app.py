@@ -1,6 +1,7 @@
 import streamlit as st
 from google import genai
 from google.genai import types
+import time
 
 # 1. Page Configuration
 st.set_page_config(page_title="Elite Hye-Tutor", page_icon="🇦🇲", layout="centered")
@@ -9,7 +10,7 @@ if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
 st.title("🇦🇲 Elite Western Armenian Tutor")
-st.caption("2026 Stable Engine • Status: Paid Tier Enabled")
+st.caption("Pedagogical Mode: Spoken-First • Voice Output Enabled 🔊")
 
 # 2. Key Verification
 if "GOOGLE_API_KEY" in st.secrets:
@@ -20,27 +21,29 @@ else:
 
 client = genai.Client(api_key=api_key)
 
-# 3. Instruction Protocol (Your Advanced ChatGPT Prompt)
+# 3. Instruction Protocol (Elite Tutor Framework)
 ELITE_INSTRUCTIONS = """
 IDENTITY: Elite Western Armenian Language Tutor.
 OPERATING MODE: Spoken-first, natural pacing.
-PRONUNCIATION: Focus on consonant aspiration and rolled 'ռ'.
-OUTPUT: Armenian Script, Phonetic English, English Translation.
+DIALECT: Western Armenian.
+OUTPUT FORMAT:
+  1. Armenian Script (Հայերէն)
+  2. Phonetic English
+  3. English Translation
 """
 
 # 4. Interaction UI
-audio_data = st.audio_input("Speak to your tutor")
+audio_data = st.audio_input("Tap the mic to speak with your tutor")
 
 if audio_data:
-    with st.status("Elite Tutor is analyzing...", expanded=False) as status:
+    with st.status("Elite Tutor is analyzing and speaking...", expanded=False) as status:
         try:
-            # Package the audio
+            # Package the user's voice
             audio_part = types.Part.from_bytes(data=audio_data.read(), mime_type="audio/wav")
             
-            # Use the exact 2026 model name: gemini-3-flash-preview
-            # This model is a "thinking" model optimized for speed
+            # Step 1: Generate the Text Response
             response = client.models.generate_content(
-                model="gemini-3-flash-preview", 
+                model="gemini-2.5-flash-preview-tts", 
                 config={'system_instruction': ELITE_INSTRUCTIONS},
                 contents=[audio_part]
             )
@@ -48,15 +51,29 @@ if audio_data:
             if response.text:
                 status.update(label="Tutor is ready!", state="complete")
                 st.session_state.chat_history.append({"role": "assistant", "content": response.text})
-                st.success("Tutor's Response:")
+                
+                # Display the Text
+                st.success("Tutor's Feedback:")
                 st.markdown(response.text)
-            else:
-                status.update(label="No audio detected", state="complete")
+                
+                # Step 2: Generate the Voice Output
+                # We strip just the Armenian text (first line) to speak it aloud
+                armenian_text = response.text.split("\n")[0]
+                
+                tts_response = client.models.generate_content(
+                    model="gemini-2.5-flash-preview-tts",
+                    contents=f"Say this clearly in Western Armenian: {armenian_text}",
+                    config=types.GenerateContentConfig(
+                        response_modalities=["AUDIO"]
+                    )
+                )
+                
+                # Display the Audio Player
+                if tts_response.data:
+                    st.audio(tts_response.data, format="audio/wav")
             
         except Exception as e:
             st.error(f"Technical Error: {e}")
-            if "404" in str(e):
-                st.info("Ensure the model name is 'gemini-3-flash-preview' in your code.")
 
 # Sidebar for Lesson Review
 with st.sidebar:
@@ -64,8 +81,8 @@ with st.sidebar:
     if st.button("Clear Session"):
         st.session_state.chat_history = []
         st.rerun()
-    for msg in st.session_state.chat_history[-5:]:
+    for msg in st.session_state.chat_history[-3:]:
         st.info(msg["content"][:100] + "...")
 
 st.divider()
-st.caption("Model: Gemini 3 Flash Preview • Updated January 15, 2026")
+st.caption("Model: Gemini 2.5 Flash TTS • Stability: Paid Tier")
