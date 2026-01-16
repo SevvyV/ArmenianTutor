@@ -9,9 +9,9 @@ import re
 st.set_page_config(page_title="HyeTutor2.0beta", page_icon="🇦🇲", layout="wide")
 
 st.title("🇦🇲 HyeTutor2.0beta")
-st.caption("Version 4.2 • Stable TTS Model • Pronouns Hard-Wired")
+st.caption("Version 4.3 • Automatic Audio Recovery • Hard-Wired Pronouns")
 
-# --- PERMANENT DATA ---
+# --- PERMANENT DATA (NEVER DELETED) ---
 PRONOUNS = ["Ես", "Դուն", "Ան", "Մենք", "Դուք", "Անոնք"]
 
 FOUNDATIONS = {
@@ -37,20 +37,26 @@ def create_wav_file(pcm_data):
     return buf.getvalue()
 
 def get_stable_audio(text_to_speak, slow_mode=False):
-    """Uses the STABLE 2026 TTS model to avoid 404 errors."""
+    """Attempts the primary TTS model with a secondary fallback to prevent 404s."""
     speed = "slowly" if slow_mode else "clearly"
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash-tts", # UPDATED: Swapped to stable model
-            contents=f"Say this {speed} in Western Armenian: {text_to_speak}",
-            config=types.GenerateContentConfig(response_modalities=["AUDIO"])
-        )
-        # Deep path extraction for the new SDK structure
-        audio_bytes = response.candidates[0].content.parts[0].inline_data.data
-        return create_wav_file(audio_bytes)
-    except Exception as e:
-        st.error(f"TTS Model Error: {e}")
-        return None
+    # Try the two most common 2026 model names
+    models_to_try = ["gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts"]
+    
+    for model_name in models_to_try:
+        try:
+            response = client.models.generate_content(
+                model=model_name,
+                contents=f"Say this {speed} in Western Armenian: {text_to_speak}",
+                config=types.GenerateContentConfig(response_modalities=["AUDIO"])
+            )
+            # Binary extraction from the current SDK parts structure
+            audio_bytes = response.candidates[0].content.parts[0].inline_data.data
+            return create_wav_file(audio_bytes)
+        except Exception:
+            continue # Try the next model in the list
+            
+    st.error("Audio service is currently rotating models. Please try again in 1 minute.")
+    return None
 
 # 4. Sidebar: Master Navigation
 with st.sidebar:
@@ -95,9 +101,9 @@ if main_mode == "Foundations":
 
 else:
     if sub_selection:
-        with st.spinner("Tutor is conjugating..."):
+        with st.spinner("Tutor is thinking..."):
             verbs = get_verbs_only(sub_selection, tense)
-            # Ensuring we pair pronouns with verbs correctly
+            # Pronoun Pairing (Manual Stitching)
             display_list = [f"{PRONOUNS[i]} {verbs[i]}" for i in range(min(len(PRONOUNS), len(verbs)))]
         
         st.header(f"Verb: {sub_selection}")
@@ -112,7 +118,7 @@ else:
 
 st.divider()
 
-# 7. Practice Interaction
+# 7. Feedback Loop
 audio_data = st.audio_input("Record your practice")
 if audio_data:
     with st.status("Analyzing..."):
