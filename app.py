@@ -5,12 +5,11 @@ from google.genai import types
 # 1. Page Configuration
 st.set_page_config(page_title="Elite Hye-Tutor", page_icon="🇦🇲", layout="centered")
 
-# Persistence for conversation flow
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
 st.title("🇦🇲 Elite Western Armenian Tutor")
-st.caption("Version 8.0 • Fixed Audio Extraction Logic")
+st.caption("Version 9.0 • Stable Voice Logic (2026)")
 
 # 2. Key Verification
 if "GOOGLE_API_KEY" in st.secrets:
@@ -57,10 +56,11 @@ if audio_data:
                 st.markdown(analysis_response.text)
                 
                 # STEP 2: VOICE GENERATION (Updated for 2026 SDK)
-                # We strip the Armenian sentence (the first line) to speak it aloud
+                # We extract ONLY the first line (Armenian Script) to speak aloud
                 armenian_text = analysis_response.text.split("\n")[0]
                 
                 with st.spinner("Generating native audio..."):
+                    # Use the specialized TTS model
                     tts_response = client.models.generate_content(
                         model="gemini-2.5-flash-preview-tts",
                         contents=f"Say this clearly in Western Armenian: {armenian_text}",
@@ -69,17 +69,17 @@ if audio_data:
                         )
                     )
                     
-                    # NEW EXTRACTION LOGIC: Drilling into candidates[0].content.parts[0]
-                    # This replaces the old tts_response.data call
+                    # Logic to safely extract and play the audio
                     try:
+                        # Drilling down to the inline data path for 2026
                         audio_part = tts_response.candidates[0].content.parts[0]
-                        if audio_part.inline_data:
+                        if hasattr(audio_part, 'inline_data'):
                             audio_bytes = audio_part.inline_data.data
                             st.audio(audio_bytes, format="audio/wav")
                         else:
-                            st.warning("Audio data was empty. Try speaking again.")
-                    except (AttributeError, IndexError) as audio_err:
-                        st.warning("The voice engine is warming up. Please try another sentence.")
+                            st.warning("Audio was generated but is not in the expected format.")
+                    except (AttributeError, IndexError):
+                        st.warning("Tutor's voice engine is warming up. Please try another sentence.")
             
         except Exception as e:
             st.error(f"Technical Error: {e}")
