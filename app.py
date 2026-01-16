@@ -9,7 +9,7 @@ import re
 st.set_page_config(page_title="HyeTutor2.0beta", page_icon="🇦🇲", layout="wide")
 
 st.title("🇦🇲 HyeTutor2.0beta")
-st.caption("Version 4.4 • Autoplay Enabled • Hard-Wired Pronouns • Stable Models")
+st.caption("Version 4.5 • Phrase Translator • Verb Drill Master • Autoplay")
 
 # --- PERMANENT DATA ---
 PRONOUNS = ["Ես", "Դուն", "Ան", "Մենք", "Դուք", "Անոնք"]
@@ -37,7 +37,7 @@ def create_wav_file(pcm_data):
     return buf.getvalue()
 
 def get_stable_audio(text_to_speak, slow_mode=False):
-    """Fetches audio using the stable 2026 path with fallback logic."""
+    """Fetches audio with fallback logic and stable 2026 naming."""
     speed = "slowly" if slow_mode else "clearly"
     models_to_try = ["gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts"]
     
@@ -57,29 +57,28 @@ def get_stable_audio(text_to_speak, slow_mode=False):
 # 4. Sidebar: Master Navigation
 with st.sidebar:
     st.header("🎓 Learning Plan")
-    main_mode = st.selectbox("Select Learning Category:", ["Foundations", "Top 50 Verbs", "Custom Search"])
+    main_mode = st.selectbox("Category:", ["Foundations", "Top 50 Verbs", "Verb Drill Master", "Phrase Translator"])
     st.divider()
     slow_audio = st.toggle("🐢 Slow-Motion Audio", value=False)
     
     if main_mode == "Foundations":
         sub_selection = st.selectbox("Choose Foundation:", list(FOUNDATIONS.keys()))
         selected_content = FOUNDATIONS[sub_selection]
-        mode_label = sub_selection
     elif main_mode == "Top 50 Verbs":
         sub_selection = st.selectbox("Select Verb:", TOP_50_VERBS)
         tense = st.selectbox("Tense:", ["Past", "Present", "Future"])
-        mode_label = f"{sub_selection} ({tense})"
-    else:
-        sub_selection = st.text_input("Type any English verb:", "to sing")
+    elif main_mode == "Verb Drill Master":
+        sub_selection = st.text_input("Type any English verb:", "to dance")
         tense = st.selectbox("Tense:", ["Past", "Present", "Future"])
-        mode_label = f"{sub_selection} ({tense})"
+    elif main_mode == "Phrase Translator":
+        sub_selection = st.text_input("Type English phrase to translate:", "How are you today?")
 
     st.divider()
     if st.button("🔄 Reset Session", use_container_width=True):
         st.cache_data.clear()
         st.rerun()
 
-# 5. Hybrid Verb Engine
+# 5. Specialized Logic Functions
 @st.cache_data
 def get_verbs_only(verb_name, tense_name):
     prompt = f"Provide ONLY the 6 conjugated Western Armenian forms for '{verb_name}' in {tense_name} tense. NO PRONOUNS. Comma-separated."
@@ -87,19 +86,34 @@ def get_verbs_only(verb_name, tense_name):
     raw_verbs = response.text.strip().split(",")
     return [v.strip() for v in raw_verbs if v.strip()]
 
+@st.cache_data
+def get_translation(phrase):
+    prompt = f"Translate this English phrase into natural Western Armenian: '{phrase}'. Return ONLY the Armenian text."
+    response = client.models.generate_content(model="gemini-3-flash-preview", contents=prompt)
+    return response.text.strip()
+
 # 6. Main Lesson Area
 if main_mode == "Foundations":
-    st.header(mode_label)
+    st.header(sub_selection)
     st.write(f"### {selected_content}")
     if st.button("🔊 Listen"):
         audio = get_stable_audio(selected_content, slow_mode=slow_audio)
-        if audio: 
-            # Autoplay enabled here
-            st.audio(audio, format="audio/wav", autoplay=True)
+        if audio: st.audio(audio, format="audio/wav", autoplay=True)
 
-else:
+elif main_mode == "Phrase Translator":
+    st.header("Phrase Translator")
     if sub_selection:
-        with st.spinner("Tutor is thinking..."):
+        with st.spinner("Translating..."):
+            translated_text = get_translation(sub_selection)
+        st.write(f"**English:** {sub_selection}")
+        st.write(f"### **Armenian:** {translated_text}")
+        if st.button("🔊 Speak Translation"):
+            audio = get_stable_audio(translated_text, slow_mode=slow_audio)
+            if audio: st.audio(audio, format="audio/wav", autoplay=True)
+
+else: # Verb Modes
+    if sub_selection:
+        with st.spinner("Conjugating..."):
             verbs = get_verbs_only(sub_selection, tense)
             display_list = [f"{PRONOUNS[i]} {verbs[i]}" for i in range(min(len(PRONOUNS), len(verbs)))]
         
@@ -111,26 +125,22 @@ else:
         if st.button("🔊 Listen"):
             audio_text = ", ".join(display_list)
             audio = get_stable_audio(audio_text, slow_mode=slow_audio)
-            if audio: 
-                # Autoplay enabled here
-                st.audio(audio, format="audio/wav", autoplay=True)
+            if audio: st.audio(audio, format="audio/wav", autoplay=True)
 
 st.divider()
 
-# 7. Feedback Loop
-audio_data = st.audio_input("Record your practice")
+# 7. Practice Interaction
+audio_data = st.audio_input("Practice and get feedback")
 if audio_data:
     with st.status("Analyzing..."):
         audio_part = types.Part.from_bytes(data=audio_data.read(), mime_type="audio/wav")
         analysis = client.models.generate_content(
             model="gemini-3-flash-preview", 
-            config={'system_instruction': f"Analyze pronunciation of {mode_label}."},
+            config={'system_instruction': "Analyze pronunciation for Western Armenian. Give score 1-10."},
             contents=[audio_part]
         )
         st.success("Tutor's Evaluation:")
         st.markdown(analysis.text)
         fb_text = analysis.text.split("\n")[0]
         fb_audio = get_stable_audio(fb_text)
-        if fb_audio: 
-            # Autoplay for feedback as well
-            st.audio(fb_audio, format="audio/wav", autoplay=True)
+        if fb_audio: st.audio(fb_audio, format="audio/wav", autoplay=True)
