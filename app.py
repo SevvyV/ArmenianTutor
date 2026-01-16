@@ -7,53 +7,46 @@ import io
 # 1. Page Configuration
 st.set_page_config(page_title="HyeTutor2.0beta", page_icon="🇦🇲", layout="wide")
 
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+# --- EXPANDED DATA STRUCTURES ---
+PRONOUNS = ["Ես (I)", "Դուն (You)", "Ան (He/She/It)", "Մենք (We)", "Դուք (You pl.)", "Անոնք (They)"]
 
-# --- EXTENDED CURRICULUM DATA ---
-TOPICS = {
-    "📅 Days of the Week": "Երկուշաբթի, Երեքշաբթի, Չորեքշաբթի, Հինգշաբթի, Ուրբաթ, Շաբաթ, Կիրակի",
-    "🔢 Numbers (1-10)": "Մէկ, Երկու, Երեք, Չորս, Հինգ, Վեց, Եօթը, Ութը, Ինը, Տասը",
-    "🗓️ Months of the Year": "Յունուար, Փետրուար, Մարտ, Ապրիլ, Մայիս, Յունիս, Յուլիս, Օգոստոս, Սեպտեմբեր, Հոկտեմբեր, Նոյեմբեր, Դեկտեմբեր"
-}
-
-# --- VERB CONJUGATION ENGINE (Top 100 Sample) ---
-# Format: { Verb: { Tense: "I, You, He/She, We, You(pl), They" } }
-VERBS = {
+# Pre-loaded Verb Bank
+VERB_BANK = {
     "Վազել (To Run)": {
-        "Past": "Վազեցի, Վազեցիր, Վազեց, Վազեցինք, Վազեցիք, Վազեցին",
-        "Present": "Կը վազեմ, Կը վազես, Կը վազէ, Կը վազենք, Կը վազէք, Կը վազեն",
-        "Future": "Պիտի վազեմ, Պիտի վազես, Պիտի վազէ, Պիտի վազենք, Պիտի վազէք, Պիտի վազեն"
+        "Past": ["Ես վազեցի", "Դուն վազեցիր", "Ան վազեց", "Մենք վազեցինք", "Դուք վազեցիք", "Անոնք վազեցին"],
+        "Present": ["Ես կը վազեմ", "Դուն կը վազես", "Ան կը վազէ", "Մենք կը վազենք", "Դուք կը վազէք", "Անոնք կը վազեն"],
+        "Future": ["Ես պիտի վազեմ", "Դուն պիտի վազես", "Ան պիտի վազէ", "Մենք պիտի վազենք", "Դուք պիտի վազէք", "Անոնք պիտի վազեն"]
     },
     "Ուտել (To Eat)": {
-        "Past": "Կերայ, Կերար, Կերաւ, Կերանք, Կերաք, Կերան",
-        "Present": "Կ'ուտեմ, Կ'ուտես, Կ'ուտէ, Կ'ուտենք, Կ'ուտէք, Կ'ուտեն",
-        "Future": "Պիտի ուտեմ, Պիտի ուտես, Պիտի ուտէ, Պիտի ուտենք, Պիտի ուտէք, Պիտի ուտեն"
+        "Past": ["Ես կերայ", "Դուն կերար", "Ան կերաւ", "Մենք կերանք", "Դուք կերաք", "Անոնք կերան"],
+        "Present": ["Ես կ'ուտեմ", "Դուն կ'ուտես", "Ան կ'ուտէ", "Մենք կ'ուտենք", "Դուք կ'ուտէք", "Անոնք կ'ուտեն"],
+        "Future": ["Ես պիտի ուտեմ", "Դուն պիտի ուտես", "Ան պիտի ուտէ", "Մենք պիտի ուտենք", "Դուք պիտի ուտէք", "Անոնք պիտի ուտեն"]
+    },
+    "Խմել (To Drink)": {
+        "Past": ["Ես խմեցի", "Դուն խմեցիր", "Ան խմեց", "Մենք խմեցինք", "Դուք խմեցիք", "Անոնք խմեցին"],
+        "Present": ["Ես կը խմեմ", "Դուն կը խմես", "Ան կը խմէ", "Մենք կը խմենք", "Դուք կը խմէք", "Անոնք կը խմեն"],
+        "Future": ["Ես պիտի խմեմ", "Դուն պիտի խմես", "Ան պիտի խմէ", "Մենք պիտի խմենք", "Դուք պիտի խմէք", "Անոնք պիտի խմեն"]
     }
 }
 
 # 2. Sidebar Navigation
 with st.sidebar:
-    st.title("🎓 Learning Plan")
+    st.title("🎓 HyeTutor2.0beta")
+    st.subheader("Interactive Lessons")
+    lesson_mode = st.radio("Choose Mode:", ["Verb Bank", "Custom Verb Search", "Foundations"])
     
-    st.subheader("Foundations")
-    selected_topic = st.selectbox("Topic Lessons:", ["Choose a Topic"] + list(TOPICS.keys()))
+    if lesson_mode == "Verb Bank":
+        verb_choice = st.selectbox("Select a Verb:", list(VERB_BANK.keys()))
+        tense_choice = st.radio("Select Tense:", ["Past", "Present", "Future"])
     
-    st.divider()
-    
-    st.subheader("Verb Mastery")
-    verb_choice = st.selectbox("Select a Verb:", ["Choose a Verb"] + list(VERBS.keys()))
-    tense_choice = st.radio("Tense:", ["Past", "Present", "Future"])
-    
-    if st.button("Clear Chat"):
-        st.session_state.chat_history = []
-        st.rerun()
+    elif lesson_mode == "Custom Verb Search":
+        custom_verb = st.text_input("Enter an English Verb (e.g. 'to sleep')")
+        tense_choice = st.radio("Select Tense:", ["Past", "Present", "Future"])
 
-# 3. Key Verification
+# 3. Key Verification & Audio Utils
 api_key = st.secrets["GOOGLE_API_KEY"]
 client = genai.Client(api_key=api_key)
 
-# 4. Helper Function: Audio Packaging
 def create_wav_file(pcm_data):
     buf = io.BytesIO()
     with wave.open(buf, 'wb') as wf:
@@ -67,57 +60,53 @@ def speak_text(text_to_speak):
     try:
         tts_response = client.models.generate_content(
             model="gemini-2.5-flash-preview-tts",
-            contents=f"Read this Western Armenian text slowly and clearly: {text_to_speak}",
+            contents=f"Read this clearly in Western Armenian: {text_to_speak}",
             config=types.GenerateContentConfig(response_modalities=["AUDIO"])
         )
         for part in tts_response.candidates[0].content.parts:
             if part.inline_data:
-                wav_bytes = create_wav_file(part.inline_data.data)
-                st.audio(wav_bytes, format="audio/wav")
+                st.audio(create_wav_file(part.inline_data.data), format="audio/wav")
     except:
-        st.warning("Voice engine initializing...")
+        st.warning("Tutor voice engine loading...")
 
-# 5. Main UI Logic
-st.title("🇦🇲 HyeTutor2.0beta")
+# 4. Custom Verb Generator Logic
+def get_custom_conjugation(verb, tense):
+    prompt = f"Translate the verb '{verb}' to Western Armenian infinitive and conjugate it for the {tense} tense with all 6 personal pronouns. Return ONLY the list of 6 phrases separated by commas."
+    response = client.models.generate_content(model="gemini-3-flash-preview", contents=prompt)
+    return response.text.split(",")
 
-# Logic for Verb Practice
-if verb_choice != "Choose a Verb":
-    drill_text = VERBS[verb_choice][tense_choice]
-    st.header(f"Practice: {verb_choice} ({tense_choice} Tense)")
+# 5. Main Content Area
+st.title("🇦🇲 Elite Western Armenian Learning Lab")
+
+current_drill = []
+
+if lesson_mode == "Verb Bank":
+    current_drill = VERB_BANK[verb_choice][tense_choice]
+    st.header(f"Mastering: {verb_choice}")
     
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown(f"### The Drill:\n{drill_text}")
-        if st.button("🔊 Listen to Drill"):
-            speak_text(drill_text)
+elif lesson_mode == "Custom Verb Search" and custom_verb:
+    with st.spinner("Tutor is generating custom conjugation..."):
+        current_drill = get_custom_conjugation(custom_verb, tense_choice)
+    st.header(f"Mastering: {custom_verb}")
+
+# Display Drill
+if current_drill:
+    st.subheader(f"Pronoun + Verb ({tense_choice})")
+    display_str = " • ".join(current_drill)
+    st.write(f"### {display_str}")
     
-    with col2:
-        st.info("Tap the mic and repeat the full sequence: I, You, He/She, We, You(pl), They.")
+    if st.button("🔊 Listen to native pronunciation"):
+        speak_text(", ".join(current_drill))
 
-elif selected_topic != "Choose a Topic":
-    st.header(selected_topic)
-    st.write(f"**Content:** {TOPICS[selected_topic]}")
-    if st.button(f"🔊 Listen"):
-        speak_text(TOPICS[selected_topic])
+st.divider()
 
-# 6. Interaction Protocol
-audio_data = st.audio_input("Record your practice")
+# 6. Microphone Interaction
+audio_data = st.audio_input("Tap to repeat the full conjugation")
 
 if audio_data:
-    # Determine context for the AI
-    mode_context = f"The user is practicing the verb {verb_choice} in the {tense_choice} tense." if verb_choice != "Choose a Verb" else f"The user is practicing {selected_topic}."
+    ELITE_INSTRUCTIONS = f"IDENTITY: Elite Western Armenian Tutor. USER TASK: Repeat the conjugation {current_drill}. Listen for pronoun agreement and correct verb ending."
     
-    ELITE_INSTRUCTIONS = f"""
-    IDENTITY: Elite Western Armenian Tutor.
-    CONTEXT: {mode_context}
-    TASK: Listen to the user's pronunciation of the sequence. 
-    1. Correct any specific vowel or consonant slips.
-    2. Provide a 1-10 'Native Accent' score.
-    3. If they missed a person (e.g. they forgot 'We ran'), point it out.
-    FORMAT: Armenian Script, Phonetic, then English Feedback.
-    """
-
-    with st.status("Analyzing pronunciation..."):
+    with st.status("Analyzing your accent..."):
         try:
             audio_part = types.Part.from_bytes(data=audio_data.read(), mime_type="audio/wav")
             analysis = client.models.generate_content(
@@ -127,8 +116,6 @@ if audio_data:
             )
             st.success("Tutor's Feedback:")
             st.markdown(analysis.text)
-            
-            # Auto-speak the tutor's summary
             speak_text(analysis.text.split("\n")[0])
         except Exception as e:
             st.error(f"Error: {e}")
