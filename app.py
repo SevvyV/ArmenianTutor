@@ -9,18 +9,17 @@ import time
 
 st.set_page_config(page_title="HyeTutor2.0beta", page_icon="🇦🇲", layout="wide")
 st.title("🇦🇲 HyeTutor2.0beta")
-st.caption("Version 6.7 • Brute Force Mode • Safety Fix Applied")
+st.caption("Version 6.8 • Brute Force Manual Mode • Quota Recovery")
 
 # --- AUDIO LIBRARY SETUP ---
 AUDIO_DIR = "audio_library"
 if not os.path.exists(AUDIO_DIR):
     os.makedirs(AUDIO_DIR)
 
-# --- THE DATASET ---
 FOUNDATIONS = {
     "days_of_the_week": "Երկուշաբթի, Երեքշաբթի, Չորեքշաբթի, Հինգշաբթի, Ուրբաթ, Շաբաթ, Կիրակի",
     "numbers_1_10": "Մէկ, Երկու, Երեք, Չորս, Հինգ, Վեց, Եօթը, Ութը, Ինը, Տասը",
-    "numbers_11_20": "Տասնըմէկ, Տասնըերկու, Տասնըերեք, Տասնըչորս, Տասնըհինգ, Տասնըվեց, Տասնըեօթը, Տասնըութը, Տասնըինը, Քսան",
+    "numbers_11_20": "Տասնմեկ, Տասնըերկու, Տասնըերեք, Տասնըչորս, Տասնըհինգ, Տասնըվեց, Տասնըեօթը, Տասնըութը, Տասնըինը, Քսան",
     "tens_to_100": "Տասը, Քսան, Երեսուն, Քառասուն, Հիսուն, Վաթսուն, Եօթանասուն, Ութսուն, Իննսուն, Հարիւր",
     "hundreds_to_1000": "Հարիւր, Երկու հարիւր, Երեք հարիւր, Չորս հարիւր, Հինգ հարիւր, Վեց հարիւր, Եօթը հարիւր, Ութը հարիւր, Ինը հարիւր, Հազար",
     "months_of_the_year": "Յունուար, Փետրուար, Մարտ, Ապրիլ, Մայիս, Յունիս, Յուլիս, Օգոստոս, Սեպտեմբեր, Հոկտեմբեր, Նոյեմբեր, Դեկտեմբեր"
@@ -34,21 +33,11 @@ def build_single_file(text, slug, slow):
     file_path = os.path.join(AUDIO_DIR, filename)
     
     try:
-        # Use the formal category names to satisfy the Pydantic validator
-        safety_settings = [
-            types.SafetySetting(category="HARM_CATEGORY_HATE_SPEECH", threshold="BLOCK_NONE"),
-            types.SafetySetting(category="HARM_CATEGORY_HARASSMENT", threshold="BLOCK_NONE"),
-            types.SafetySetting(category="HARM_CATEGORY_DANGEROUS_CONTENT", threshold="BLOCK_NONE"),
-            types.SafetySetting(category="HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold="BLOCK_NONE")
-        ]
-        
+        # SWITCHING TO STANDARD FLASH (More stable quota)
         response = client.models.generate_content(
-            model="gemini-2.5-flash-preview-tts",
-            contents=f"Say this {'slowly' if slow else 'clearly'} in Western Armenian: {text}",
-            config=types.GenerateContentConfig(
-                response_modalities=["AUDIO"],
-                safety_settings=safety_settings
-            )
+            model="gemini-2.5-flash", 
+            contents=f"Provide audio of these words spoken {'slowly' if slow else 'clearly'} in Western Armenian: {text}",
+            config=types.GenerateContentConfig(response_modalities=["AUDIO"])
         )
         
         if response.candidates and response.candidates[0].content:
@@ -62,42 +51,40 @@ def build_single_file(text, slug, slow):
                 f.write(buf.getvalue())
             return True
     except Exception as e:
-        st.error(f"Error building {filename}: {e}")
+        st.error(f"Quota Error for {filename}. Wait 60 seconds. Details: {e}")
     return False
 
-# --- THE CONTROL PANEL ---
-st.header("🛠️ Brute Force Construction Site")
-st.write("Click each button one at a time. The page will refresh and show a green check when done.")
+# --- UI CONTROL PANEL ---
+st.header("⚒️ Manual Construction Site")
+st.warning("Google has throttled your requests. You MUST wait 30-60 seconds between clicks.")
 
-# Create a grid of buttons
 for slug, text in FOUNDATIONS.items():
     st.subheader(slug.replace("_", " ").title())
     c1, c2 = st.columns(2)
     
-    # FAST BUTTON
-    f_name = f"{slug}_fast.wav"
     with c1:
-        if os.path.exists(os.path.join(AUDIO_DIR, f_name)):
-            st.success(f"✅ Fast Ready")
-        elif st.button(f"Build Fast: {slug}"):
-            if build_single_file(text, slug, False):
-                st.rerun()
+        f_path = os.path.join(AUDIO_DIR, f"{slug}_fast.wav")
+        if os.path.exists(f_path):
+            st.success("✅ Fast Ready")
+            st.audio(f_path)
+        else:
+            if st.button(f"Generate Fast: {slug}"):
+                if build_single_file(text, slug, False): st.rerun()
                 
-    # SLOW BUTTON
-    s_name = f"{slug}_slow.wav"
     with c2:
-        if os.path.exists(os.path.join(AUDIO_DIR, s_name)):
-            st.success(f"✅ Slow Ready")
-        elif st.button(f"Build Slow: {slug}"):
-            if build_single_file(text, slug, True):
-                st.rerun()
+        s_path = os.path.join(AUDIO_DIR, f"{slug}_slow.wav")
+        if os.path.exists(s_path):
+            st.success("✅ Slow Ready")
+            st.audio(s_path)
+        else:
+            if st.button(f"Generate Slow: {slug}"):
+                if build_single_file(text, slug, True): st.rerun()
     st.divider()
 
 # --- EXPORT ---
 with st.sidebar:
-    st.header("📦 Library Export")
     existing = [f for f in os.listdir(AUDIO_DIR) if f.endswith(".wav")]
-    st.write(f"Files Generated: **{len(existing)} / 12**")
+    st.metric("Library Progress", f"{len(existing)} / 12")
     
     if existing:
         zip_buf = io.BytesIO()
@@ -105,9 +92,4 @@ with st.sidebar:
             for f in existing:
                 with open(os.path.join(AUDIO_DIR, f), "rb") as audio_f:
                     zf.writestr(f, audio_f.read())
-        st.download_button("📥 Download ZIP", zip_buf.getvalue(), "armenian_library.zip", use_container_width=True)
-
-    if st.button("🔴 Reset/Empty Folder"):
-        for f in os.listdir(AUDIO_DIR):
-            os.remove(os.path.join(AUDIO_DIR, f))
-        st.rerun()
+        st.download_button("📥 Download Final ZIP", zip_buf.getvalue(), "armenian_library.zip", use_container_width=True)
