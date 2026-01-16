@@ -3,46 +3,31 @@ from google import genai
 from google.genai import types
 import wave
 import io
+import re
 
-# 1. Page Configuration - Updated for Version 1.0 Branding
-st.set_page_config(
-    page_title="Elite Armenian AI Tutor v1.0", 
-    page_icon="🇦🇲", 
-    layout="centered"
-)
+# 1. Page Configuration
+st.set_page_config(page_title="HyeTutor2.0beta", page_icon="🇦🇲", layout="wide")
 
-# Persistence for Version 1.0 sessions
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+st.title("🇦🇲 HyeTutor2.0beta")
+st.caption("Version 4.5 • Phrase Translator • Verb Drill Master • Autoplay")
 
-# Main Title Branding
-st.title("🇦🇲 Elite Armenian AI Tutor v1.0")
-st.caption("Official Release • Hybrid Pedagogical Engine • 2026")
+# --- PERMANENT DATA ---
+PRONOUNS = ["Ես", "Դուն", "Ան", "Մենք", "Դուք", "Անոնք"]
+
+FOUNDATIONS = {
+    "📅 Days of the Week": "Երկուշաբթի, Երեքշաբթի, Չորեքշաբթի, Հինգշաբթի, Ուրբաթ, Շաբաթ, Կիրակի",
+    "🔢 Numbers (1-10)": "Մէկ, Երկու, Երեք, Չորս, Հինգ, Վեց, Եօթը, Ութը, Ինը, Տասը",
+    "🗓️ Months of the Year": "Յունուար, Փետրուար, Մարտ, Ապրիլ, Մայիս, Յունիս, Յուլիս, Օգոստոս, Սեպտեմբեր, Հոկտեմբեր, Նոյեմբեր, Դեկտեմբեր"
+}
+
+TOP_50_VERBS = ["be", "have", "do", "say", "go", "can", "get", "would", "make", "know", "will", "think", "take", "see", "come", "could", "want", "look", "use", "find", "give", "tell", "work", "may", "should", "call", "try", "ask", "need", "feel", "become", "leave", "put", "mean", "keep", "let", "begin", "seem", "help", "talk", "turn", "start", "might", "show", "hear", "play", "run", "move", "like", "live"]
 
 # 2. Key Verification
-if "GOOGLE_API_KEY" in st.secrets:
-    api_key = st.secrets["GOOGLE_API_KEY"]
-else:
-    st.error("Missing GOOGLE_API_KEY in Streamlit Secrets.")
-    st.stop()
-
+api_key = st.secrets["GOOGLE_API_KEY"]
 client = genai.Client(api_key=api_key)
 
-# 3. Elite Instruction Protocol
-ELITE_INSTRUCTIONS = """
-IDENTITY: Elite Western Armenian Language Tutor.
-OPERATING MODE: Spoken-first, natural pacing.
-PHILOSOPHY: Speech precedes grammar. Focus on natural flow and confidence.
-OUTPUT FORMAT:
-  1. Armenian Script (Հայերէն)
-  2. Phonetic English
-  3. English Translation
-  4. Brief Cultural or Linguistic Note
-"""
-
-# 4. Helper Function: Raw PCM to Playable WAV Header
+# 3. Audio Utility Functions
 def create_wav_file(pcm_data):
-    # Gemini 2.5 TTS Specs: 24kHz, 16-bit Mono
     buf = io.BytesIO()
     with wave.open(buf, 'wb') as wf:
         wf.setnchannels(1)
@@ -51,68 +36,111 @@ def create_wav_file(pcm_data):
         wf.writeframes(pcm_data)
     return buf.getvalue()
 
-# 5. Spoken Interaction UI
-audio_data = st.audio_input("Tap the microphone to speak with your tutor")
-
-if audio_data:
-    with st.status("Tutor is listening...", expanded=False) as status:
+def get_stable_audio(text_to_speak, slow_mode=False):
+    """Fetches audio with fallback logic and stable 2026 naming."""
+    speed = "slowly" if slow_mode else "clearly"
+    models_to_try = ["gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts"]
+    
+    for model_name in models_to_try:
         try:
-            # Package the user's audio
-            audio_part = types.Part.from_bytes(data=audio_data.read(), mime_type="audio/wav")
-            
-            # STEP 1: ANALYSIS (Gemini 3 Flash Listening)
-            analysis_response = client.models.generate_content(
-                model="gemini-3-flash-preview", 
-                config={'system_instruction': ELITE_INSTRUCTIONS},
-                contents=[audio_part]
+            response = client.models.generate_content(
+                model=model_name,
+                contents=f"Say this {speed} in Western Armenian: {text_to_speak}",
+                config=types.GenerateContentConfig(response_modalities=["AUDIO"])
             )
-            
-            if analysis_response.text:
-                status.update(label="Response generated. Preparing voice...", state="complete")
-                st.session_state.chat_history.append({"role": "assistant", "content": analysis_response.text})
-                
-                # Display Text Feedback
-                st.success("Tutor's Response:")
-                st.markdown(analysis_response.text)
-                
-                # STEP 2: VOICE GENERATION (Gemini 2.5 TTS Speaking)
-                # Cleaning: Take only the Armenian script for the speaker
-                clean_armenian = analysis_response.text.split("\n")[0].strip()
-                
-                with st.spinner("Tutor is speaking..."):
-                    tts_response = client.models.generate_content(
-                        model="gemini-2.5-flash-preview-tts",
-                        contents=f"Say this clearly in Western Armenian: {clean_armenian}",
-                        config=types.GenerateContentConfig(response_modalities=["AUDIO"])
-                    )
-                    
-                    # Search and Wrap Logic (v1.0 Stability)
-                    try:
-                        audio_found = False
-                        for part in tts_response.candidates[0].content.parts:
-                            if part.inline_data and part.inline_data.data:
-                                # Reconstruct the WAV header
-                                wav_bytes = create_wav_file(part.inline_data.data)
-                                st.audio(wav_bytes, format="audio/wav")
-                                audio_found = True
-                                break
-                        
-                        if not audio_found:
-                            st.warning("Audio was processed but no bytes were returned. Try again.")
-                    except Exception:
-                        st.info("The voice engine is calibrating. Please try your sentence once more.")
-            
-        except Exception as e:
-            st.error(f"Technical Error: {e}")
+            audio_bytes = response.candidates[0].content.parts[0].inline_data.data
+            return create_wav_file(audio_bytes)
+        except Exception:
+            continue
+    return None
 
-# Sidebar Lesson Log
+# 4. Sidebar: Master Navigation
 with st.sidebar:
-    st.header("v1.0 Lesson Log")
-    if st.button("New Session"):
-        st.session_state.chat_history = []
+    st.header("🎓 Learning Plan")
+    main_mode = st.selectbox("Category:", ["Foundations", "Top 50 Verbs", "Verb Drill Master", "Phrase Translator"])
+    st.divider()
+    slow_audio = st.toggle("🐢 Slow-Motion Audio", value=False)
+    
+    if main_mode == "Foundations":
+        sub_selection = st.selectbox("Choose Foundation:", list(FOUNDATIONS.keys()))
+        selected_content = FOUNDATIONS[sub_selection]
+    elif main_mode == "Top 50 Verbs":
+        sub_selection = st.selectbox("Select Verb:", TOP_50_VERBS)
+        tense = st.selectbox("Tense:", ["Past", "Present", "Future"])
+    elif main_mode == "Verb Drill Master":
+        sub_selection = st.text_input("Type any English verb:", "to dance")
+        tense = st.selectbox("Tense:", ["Past", "Present", "Future"])
+    elif main_mode == "Phrase Translator":
+        sub_selection = st.text_input("Type English phrase to translate:", "How are you today?")
+
+    st.divider()
+    if st.button("🔄 Reset Session", use_container_width=True):
+        st.cache_data.clear()
         st.rerun()
-    for msg in st.session_state.chat_history[-2:]:
-        st.info(msg["content"][:100] + "...")
+
+# 5. Specialized Logic Functions
+@st.cache_data
+def get_verbs_only(verb_name, tense_name):
+    prompt = f"Provide ONLY the 6 conjugated Western Armenian forms for '{verb_name}' in {tense_name} tense. NO PRONOUNS. Comma-separated."
+    response = client.models.generate_content(model="gemini-3-flash-preview", contents=prompt)
+    raw_verbs = response.text.strip().split(",")
+    return [v.strip() for v in raw_verbs if v.strip()]
+
+@st.cache_data
+def get_translation(phrase):
+    prompt = f"Translate this English phrase into natural Western Armenian: '{phrase}'. Return ONLY the Armenian text."
+    response = client.models.generate_content(model="gemini-3-flash-preview", contents=prompt)
+    return response.text.strip()
+
+# 6. Main Lesson Area
+if main_mode == "Foundations":
+    st.header(sub_selection)
+    st.write(f"### {selected_content}")
+    if st.button("🔊 Listen"):
+        audio = get_stable_audio(selected_content, slow_mode=slow_audio)
+        if audio: st.audio(audio, format="audio/wav", autoplay=True)
+
+elif main_mode == "Phrase Translator":
+    st.header("Phrase Translator")
+    if sub_selection:
+        with st.spinner("Translating..."):
+            translated_text = get_translation(sub_selection)
+        st.write(f"**English:** {sub_selection}")
+        st.write(f"### **Armenian:** {translated_text}")
+        if st.button("🔊 Speak Translation"):
+            audio = get_stable_audio(translated_text, slow_mode=slow_audio)
+            if audio: st.audio(audio, format="audio/wav", autoplay=True)
+
+else: # Verb Modes
+    if sub_selection:
+        with st.spinner("Conjugating..."):
+            verbs = get_verbs_only(sub_selection, tense)
+            display_list = [f"{PRONOUNS[i]} {verbs[i]}" for i in range(min(len(PRONOUNS), len(verbs)))]
+        
+        st.header(f"Verb: {sub_selection}")
+        cols = st.columns(3)
+        for i, item in enumerate(display_list):
+            cols[i % 3].write(f"🔹 **{item}**")
+            
+        if st.button("🔊 Listen"):
+            audio_text = ", ".join(display_list)
+            audio = get_stable_audio(audio_text, slow_mode=slow_audio)
+            if audio: st.audio(audio, format="audio/wav", autoplay=True)
 
 st.divider()
-st.caption("Release 1.0.0 • Hybrid Engine (Analysis + TTS)")
+
+# 7. Practice Interaction
+audio_data = st.audio_input("Practice and get feedback")
+if audio_data:
+    with st.status("Analyzing..."):
+        audio_part = types.Part.from_bytes(data=audio_data.read(), mime_type="audio/wav")
+        analysis = client.models.generate_content(
+            model="gemini-3-flash-preview", 
+            config={'system_instruction': "Analyze pronunciation for Western Armenian. Give score 1-10."},
+            contents=[audio_part]
+        )
+        st.success("Tutor's Evaluation:")
+        st.markdown(analysis.text)
+        fb_text = analysis.text.split("\n")[0]
+        fb_audio = get_stable_audio(fb_text)
+        if fb_audio: st.audio(fb_audio, format="audio/wav", autoplay=True)
