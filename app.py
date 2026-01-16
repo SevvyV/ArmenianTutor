@@ -9,7 +9,7 @@ if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
 st.title("🇦🇲 Elite Western Armenian Tutor")
-st.caption("Version 11.0 • Stable Audio Extraction (2026)")
+st.caption("Version 12.0 • API v1beta / Model Path Updated")
 
 # 2. Key Verification
 if "GOOGLE_API_KEY" in st.secrets:
@@ -20,7 +20,7 @@ else:
 
 client = genai.Client(api_key=api_key)
 
-# 3. Instruction Protocol
+# 3. Instruction Protocol (Elite Tutor Framework)
 ELITE_INSTRUCTIONS = """
 IDENTITY: Elite Western Armenian Language Tutor.
 OPERATING MODE: Spoken-first, natural pacing.
@@ -41,8 +41,9 @@ if audio_data:
             audio_part = types.Part.from_bytes(data=audio_data.read(), mime_type="audio/wav")
             
             # STEP 1: ANALYSIS (Using the multimodal listening model)
+            # 2026 Stable model for multimodal input
             analysis_response = client.models.generate_content(
-                model="gemini-2.5-flash", 
+                model="gemini-3-flash-preview", 
                 config={'system_instruction': ELITE_INSTRUCTIONS},
                 contents=[audio_part]
             )
@@ -55,32 +56,30 @@ if audio_data:
                 st.success("Tutor's Response:")
                 st.markdown(analysis_response.text)
                 
-                # STEP 2: VOICE GENERATION (Updated for 2026 SDK)
-                # Extract only the Armenian sentence (the first line) for speech
+                # STEP 2: VOICE GENERATION
+                # Extract the Armenian text (the first line)
                 armenian_text = analysis_response.text.split("\n")[0]
                 
                 with st.spinner("Generating native audio..."):
-                    # Use the specialized stable TTS model
+                    # Use the precise 2026 preview TTS model ID
                     tts_response = client.models.generate_content(
-                        model="gemini-2.5-flash-tts",
+                        model="gemini-2.5-flash-preview-tts",
                         contents=f"Say this clearly in Western Armenian: {armenian_text}",
                         config=types.GenerateContentConfig(
                             response_modalities=["AUDIO"]
                         )
                     )
                     
-                    # 2026 Data Path: candidates -> content -> parts -> inline_data
+                    # Drilling down into the 2026 structure (Candidates -> Content -> Parts)
                     try:
-                        # Extract the raw bytes directly from the nested parts
                         audio_part = tts_response.candidates[0].content.parts[0]
-                        if hasattr(audio_part, 'inline_data'):
+                        if audio_part.inline_data:
                             audio_bytes = audio_part.inline_data.data
-                            # Display the audio player with the correct format
                             st.audio(audio_bytes, format="audio/wav")
                         else:
-                            st.warning("Audio data generated but not found in the response parts.")
+                            st.warning("Audio processing complete, but data was empty.")
                     except (AttributeError, IndexError):
-                        st.warning("The voice engine is still initializing. Try one more short sentence.")
+                        st.warning("The tutor's voice is warming up. Please try again in 10 seconds.")
             
         except Exception as e:
             st.error(f"Technical Error: {e}")
@@ -95,4 +94,4 @@ with st.sidebar:
         st.info(msg["content"][:100] + "...")
 
 st.divider()
-st.caption("Hybrid System: Gemini 2.5 Flash (Listen) + Gemini 2.5 TTS (Speak)")
+st.caption("Hybrid System: Gemini 3 Flash (Analysis) + Gemini 2.5 TTS (Voice)")
