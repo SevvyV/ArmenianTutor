@@ -5,11 +5,12 @@ from google.genai import types
 # 1. Page Configuration
 st.set_page_config(page_title="Elite Hye-Tutor", page_icon="🇦🇲", layout="centered")
 
+# Persistence for conversation flow
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
 st.title("🇦🇲 Elite Western Armenian Tutor")
-st.caption("Version 6.0 • Fixed Voice Generation Path")
+st.caption("Version 8.0 • Fixed Audio Extraction Logic")
 
 # 2. Key Verification
 if "GOOGLE_API_KEY" in st.secrets:
@@ -20,7 +21,7 @@ else:
 
 client = genai.Client(api_key=api_key)
 
-# 3. Instruction Protocol
+# 3. Instruction Protocol (Elite Tutor Framework)
 ELITE_INSTRUCTIONS = """
 IDENTITY: Elite Western Armenian Language Tutor.
 OPERATING MODE: Spoken-first, natural pacing.
@@ -28,6 +29,7 @@ OUTPUT FORMAT:
   1. Armenian Script (Հայերէն)
   2. Phonetic English
   3. English Translation
+  4. Brief Tutor Note
 """
 
 # 4. Interaction UI
@@ -36,9 +38,10 @@ audio_data = st.audio_input("Tap the mic to speak with your tutor")
 if audio_data:
     with st.status("Elite Tutor is analyzing...", expanded=False) as status:
         try:
+            # Package the user's voice
             audio_part = types.Part.from_bytes(data=audio_data.read(), mime_type="audio/wav")
             
-            # STEP 1: ANALYSIS
+            # STEP 1: ANALYSIS (Using the listening model)
             analysis_response = client.models.generate_content(
                 model="gemini-3-flash-preview", 
                 config={'system_instruction': ELITE_INSTRUCTIONS},
@@ -53,7 +56,8 @@ if audio_data:
                 st.success("Tutor's Response:")
                 st.markdown(analysis_response.text)
                 
-                # STEP 2: VOICE GENERATION (Corrected Extraction Path)
+                # STEP 2: VOICE GENERATION (Updated for 2026 SDK)
+                # We strip the Armenian sentence (the first line) to speak it aloud
                 armenian_text = analysis_response.text.split("\n")[0]
                 
                 with st.spinner("Generating native audio..."):
@@ -65,14 +69,17 @@ if audio_data:
                         )
                     )
                     
-                    # CORRECTED: Accessing audio data in the 2026 SDK
-                    # We check the candidates and parts to find the inline_data
+                    # NEW EXTRACTION LOGIC: Drilling into candidates[0].content.parts[0]
+                    # This replaces the old tts_response.data call
                     try:
-                        audio_bytes = tts_response.candidates[0].content.parts[0].inline_data.data
-                        if audio_bytes:
+                        audio_part = tts_response.candidates[0].content.parts[0]
+                        if audio_part.inline_data:
+                            audio_bytes = audio_part.inline_data.data
                             st.audio(audio_bytes, format="audio/wav")
-                    except (AttributeError, IndexError):
-                        st.warning("Voice generated, but audio format was unexpected. Try again.")
+                        else:
+                            st.warning("Audio data was empty. Try speaking again.")
+                    except (AttributeError, IndexError) as audio_err:
+                        st.warning("The voice engine is warming up. Please try another sentence.")
             
         except Exception as e:
             st.error(f"Technical Error: {e}")
@@ -83,8 +90,8 @@ with st.sidebar:
     if st.button("Clear Session"):
         st.session_state.chat_history = []
         st.rerun()
-    for msg in st.session_state.chat_history[-3:]:
+    for msg in st.session_state.chat_history[-2:]:
         st.info(msg["content"][:100] + "...")
 
 st.divider()
-st.caption("Hybrid Engine: Gemini 3 Flash + Gemini 2.5 TTS")
+st.caption("Hybrid System: Gemini 3 Flash (Listen) + Gemini 2.5 TTS (Speak)")
