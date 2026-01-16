@@ -8,9 +8,16 @@ import io
 st.set_page_config(page_title="HyeTutor2.0beta", page_icon="🇦🇲", layout="wide")
 
 st.title("🇦🇲 HyeTutor2.0beta")
-st.caption("Version 3.2 • Guided Curriculum: Top 50 Essential Verbs")
+st.caption("Version 3.4 • Cleaned Navigation Logic")
 
-# 2. Top 50 Verb List (The Roadmap)
+# --- FOUNDATIONS DATA ---
+FOUNDATIONS = {
+    "📅 Days of the Week": "Երկուշաբթի (Yerkushapti), Երեքշաբթի (Yerekshapti), Չորեքշաբթի (Chorekshapti), Հինգշաբթի (Hingshapti), Ուրբաթ (Urpatt), Շաբաթ (Shapat), Կիրակի (Giragi)",
+    "🔢 Numbers (1-10)": "Մէկ (Meg), Երկու (Yergu), Երեք (Yerek), Չորս (Chors), Հինգ (Hink), Վեց (Vets), Եօթը (Yote), Ութը (Oote), Ինը (Ine), Տասը (Dase)",
+    "🗓️ Months of the Year": "Յունուար (Hoonvar), Փետրուար (Pedervar), Մարտ (Mard), Ապրիլ (Abreel), Մայիս (Mayis), Յունիս (Hooneess), Յուլիս (Hooleess), Օգոստոս (Okosdos), Սեպտեմբեր (Sebdemper), Հոկտեմբեր (Hogdemper), Նոյեմբեր (Noyemper), Դեկտեմբեր (Tegdemper)"
+}
+
+# --- TOP 50 VERB LIST ---
 TOP_50_VERBS = [
     "be", "have", "do", "say", "go", "can", "get", "would", "make", "know",
     "will", "think", "take", "see", "come", "could", "want", "look", "use",
@@ -20,7 +27,7 @@ TOP_50_VERBS = [
     "run", "move", "like", "live"
 ]
 
-# 3. Key Verification & Audio Utils
+# 2. Key Verification & Audio Utils
 api_key = st.secrets["GOOGLE_API_KEY"]
 client = genai.Client(api_key=api_key)
 
@@ -46,68 +53,83 @@ def speak_text(text_to_speak):
     except:
         st.warning("Tutor voice engine loading...")
 
-# 4. Sidebar: Guided Lesson Plan
-with st.sidebar:
-    st.header("🎓 Guided Lessons")
-    lesson_mode = st.radio("Mode:", ["Top 50 List", "Search Any Verb", "Foundations"])
-    
-    if lesson_mode == "Top 50 List":
-        selected_verb = st.selectbox("Select a Verb:", TOP_50_VERBS)
-    elif lesson_mode == "Search Any Verb":
-        selected_verb = st.text_input("Type a verb:", "to dance")
-    else:
-        selected_verb = None
-        
-    tense = st.selectbox("Tense:", ["Past", "Present", "Future"])
-    st.divider()
-    if st.button("Reset Session"):
-        st.session_state.chat_history = []
-        st.rerun()
-
-# 5. Dynamic Conjugator with Pronouns
+# 3. Dynamic Conjugator Logic
 @st.cache_data
 def get_conjugation(verb_name, tense_name):
-    prompt = f"""
-    Translate the English verb '{verb_name}' into Western Armenian.
-    Then, conjugate it for the {tense_name} tense using all 6 Western Armenian pronouns:
-    Ես, Դուն, Ան, Մենք, Դուք, Անոնք.
-    Format your response EXACTLY as a list of 6 strings, separated by commas.
-    Example: Ես վազեցի, Դուն վազեցիր, Ան վազեց, Մենք վազեցինք, Դուք վազեցիք, Անոնք վազեցին
-    """
+    prompt = f"Conjugate the Western Armenian verb for '{verb_name}' in {tense_name} tense with all 6 pronouns (Ես, Դուն, Ան, Մենք, Դուք, Անոնք). Return as a comma-separated list."
     response = client.models.generate_content(model="gemini-3-flash-preview", contents=prompt)
     return response.text.strip().split(",")
 
-# 6. Main Interaction Area
-if selected_verb:
-    with st.spinner(f"Preparing lesson for '{selected_verb}'..."):
-        conjugation_list = get_conjugation(selected_verb, tense)
+# 4. Sidebar: Master Navigation with Improved Logic
+with st.sidebar:
+    st.header("🎓 Learning Plan")
+    main_mode = st.selectbox("Select Learning Category:", ["Foundations", "Top 50 Verbs", "Custom Search"])
     
-    st.header(f"Mastering: '{selected_verb}'")
-    st.subheader(f"Lesson: {tense} Tense with Pronouns")
-    
-    # Display verbs in a clean grid
-    cols = st.columns(3)
-    for i, item in enumerate(conjugation_list):
-        cols[i % 3].write(f"🔹 **{item.strip()}**")
-        
-    if st.button("🔊 Listen and Model Pronunciation"):
-        speak_text(", ".join(conjugation_list))
-
     st.divider()
+    
+    # Logic: Only show secondary options relevant to the current mode
+    if main_mode == "Foundations":
+        sub_selection = st.selectbox("Choose Foundation:", list(FOUNDATIONS.keys()))
+        selected_content = FOUNDATIONS[sub_selection]
+        mode_label = sub_selection
+        tense = None # Not used in foundations
+        
+    elif main_mode == "Top 50 Verbs":
+        sub_selection = st.selectbox("Select Verb:", TOP_50_VERBS)
+        tense = st.selectbox("Tense:", ["Past", "Present", "Future"])
+        mode_label = f"{sub_selection} ({tense})"
+        
+    elif main_mode == "Custom Search":
+        sub_selection = st.text_input("Type any English verb:", "to sing")
+        tense = st.selectbox("Tense:", ["Past", "Present", "Future"])
+        mode_label = f"{sub_selection} ({tense})"
 
-    # 7. Practice & Analysis
-    audio_data = st.audio_input("Repeat the sequence above for feedback")
+# 5. Main Content Logic
+if main_mode == "Foundations":
+    st.header(mode_label)
+    # Highlight the Western Armenian script
+    st.info("Listen and repeat the full sequence.")
+    st.write(f"### {selected_content}")
+    
+    if st.button(f"🔊 Listen to Native Pronunciation"):
+        # We strip the English phonetics (in brackets) for the voice engine
+        armenian_only = selected_content.split("(")[0].strip() if "(" in selected_content else selected_content
+        speak_text(selected_content)
 
-    if audio_data:
-        instruction = f"IDENTITY: Elite Western Armenian Tutor. Task: Analyze pronunciation for the sequence {conjugation_list}."
-        with st.status("Tutor is analyzing..."):
+else:
+    # Verb Modes
+    if sub_selection:
+        with st.spinner(f"Generating lesson for {sub_selection}..."):
+            conjugation_list = get_conjugation(sub_selection, tense)
+        st.header(f"Verb Practice: {sub_selection}")
+        st.subheader(f"Focus: {tense} Tense with Pronouns")
+        
+        # Display verbs in a clean grid
+        cols = st.columns(3)
+        for i, item in enumerate(conjugation_list):
+            cols[i % 3].write(f"🔹 **{item.strip()}**")
+            
+        if st.button("🔊 Listen and Model"):
+            speak_text(", ".join(conjugation_list))
+
+st.divider()
+
+# 6. Global Practice Interaction
+audio_data = st.audio_input("Practice your pronunciation")
+
+if audio_data:
+    instruct = f"IDENTITY: Elite Western Armenian Tutor. Task: Analyze the user's pronunciation of {mode_label}."
+    with st.status("Analyzing..."):
+        try:
             audio_part = types.Part.from_bytes(data=audio_data.read(), mime_type="audio/wav")
             analysis = client.models.generate_content(
                 model="gemini-3-flash-preview", 
-                config={'system_instruction': instruction},
+                config={'system_instruction': instruct},
                 contents=[audio_part]
             )
             st.success("Tutor's Evaluation:")
             st.markdown(analysis.text)
-            # Speak only the summary Armenian feedback
+            # Auto-speak the first line of feedback
             speak_text(analysis.text.split("\n")[0])
+        except Exception as e:
+            st.error(f"Recording Error: {e}")
