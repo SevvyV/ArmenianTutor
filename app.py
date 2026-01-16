@@ -5,13 +5,13 @@ import wave
 import io
 import os
 import zipfile
-import shutil
+import time
 
 # 1. Page Configuration
 st.set_page_config(page_title="HyeTutor2.0beta", page_icon="🇦🇲", layout="wide")
 
 st.title("🇦🇲 HyeTutor2.0beta")
-st.caption("Version 5.8 • specialized-TTS Engine • Clean Slate Mode")
+st.caption("Version 5.9 • Auto-Retry Logic • Stable TTS")
 
 # --- AUDIO LIBRARY SETUP ---
 AUDIO_DIR = "audio_library"
@@ -19,7 +19,6 @@ if not os.path.exists(AUDIO_DIR):
     os.makedirs(AUDIO_DIR)
 
 # --- PERMANENT DATA ---
-PRONOUNS = ["Ես", "Դուն", "Ան", "Մենք", "Դուք", "Անոնք"]
 FOUNDATIONS = {
     "days_of_the_week": {
         "label": "📅 Days of the Week",
@@ -39,7 +38,7 @@ FOUNDATIONS = {
 api_key = st.secrets["GOOGLE_API_KEY"]
 client = genai.Client(api_key=api_key)
 
-# 3. ROBUST AUDIO ENGINE
+# 3. ROBUST AUDIO ENGINE (With Retry Logic)
 def create_wav_file(pcm_data):
     buf = io.BytesIO()
     with wave.open(buf, 'wb') as wf:
@@ -56,47 +55,44 @@ def get_audio(text_to_speak, filename_slug, slow_mode=False):
     if os.path.exists(file_path):
         with open(file_path, "rb") as f: return f.read()
 
-    # Use specialized TTS model to avoid 400 error
-    try:
-        speed_instr = "slowly" if slow_mode else "clearly"
-        response = client.models.generate_content(
-            model="gemini-2.5-flash-preview-tts", # Specialized for Audio Output
-            contents=f"Say this {speed_instr} in Western Armenian: {text_to_speak}",
-            config=types.GenerateContentConfig(response_modalities=["AUDIO"])
-        )
-        audio_bytes = response.candidates[0].content.parts[0].inline_data.data
-        wav_data = create_wav_file(audio_bytes)
-        with open(file_path, "wb") as f:
-            f.write(wav_data)
-        return wav_data
-    except Exception as e:
-        st.error(f"TTS Error: {e}")
-        return None
+    # RETRY LOGIC: Try up to 3 times if the API returns None
+    for attempt in range(3):
+        try:
+            speed_instr = "slowly" if slow_mode else "clearly"
+            response = client.models.generate_content(
+                model="gemini-2.5-flash-preview-tts",
+                contents=f"Say this {speed_instr} in Western Armenian: {text_to_speak}",
+                config=types.GenerateContentConfig(response_modalities=["AUDIO"])
+            )
+            
+            # THE SAFETY CHECK: Ensure response.candidates[0].content is NOT None
+            if response.candidates and response.candidates[0].content:
+                audio_bytes = response.candidates[0].content.parts[0].inline_data.data
+                wav_data = create_wav_file(audio_bytes)
+                with open(file_path, "wb") as f:
+                    f.write(wav_data)
+                return wav_data
+            else:
+                time.sleep(1) # Wait 1 second before retrying
+                continue
+        except Exception:
+            time.sleep(1)
+            continue
+            
+    return None
 
-# 4. Sidebar: Library Sync & Maintenance
+# 4. Sidebar: Same logic as before
 with st.sidebar:
-    st.header("⚙️ Library Maintenance")
-    
-    if st.button("🗑️ 1. Clear Local Cache"):
-        for filename in os.listdir(AUDIO_DIR):
-            file_path = os.path.join(AUDIO_DIR, filename)
-            try:
-                if os.path.isfile(file_path) or os.path.islink(file_path):
-                    os.unlink(file_path)
-            except Exception as e:
-                st.error(f'Failed to delete {filename}. Reason: {e}')
-        st.warning("Local library folder cleared! Ready for fresh build.")
-
-    if st.button("🚀 2. Build Clean Foundations"):
-        with st.status("Generating Stable Files..."):
+    st.header("⚙️ Library Sync")
+    if st.button("🚀 1. Build Foundations (with Retry)"):
+        with st.status("Generating Armenian Audio..."):
             for slug, data in FOUNDATIONS.items():
                 get_audio(data['text'], slug, slow_mode=False)
                 get_audio(data['text'], slug, slow_mode=True)
-        st.success("Clean Foundation library built!")
+            st.success("Foundation library build attempted!")
 
     st.divider()
     
-    # ZIP Logic for Download
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
         file_count = 0
@@ -109,9 +105,9 @@ with st.sidebar:
     
     if file_count > 0:
         st.download_button(
-            label=f"📥 3. Download Clean ZIP ({file_count} files)",
+            label=f"📥 2. Download {file_count} Files as ZIP",
             data=zip_buffer.getvalue(),
-            file_name="armenian_foundations_clean.zip",
+            file_name="armenian_foundations_v59.zip",
             mime="application/zip",
             use_container_width=True
         )
