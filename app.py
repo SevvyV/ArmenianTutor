@@ -9,7 +9,7 @@ if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
 st.title("🇦🇲 Elite Western Armenian Tutor")
-st.caption("2026 Hybrid Engine • Voice & Analysis Active")
+st.caption("Version 6.0 • Fixed Voice Generation Path")
 
 # 2. Key Verification
 if "GOOGLE_API_KEY" in st.secrets:
@@ -20,7 +20,7 @@ else:
 
 client = genai.Client(api_key=api_key)
 
-# 3. Instruction Protocol (Elite Tutor Framework)
+# 3. Instruction Protocol
 ELITE_INSTRUCTIONS = """
 IDENTITY: Elite Western Armenian Language Tutor.
 OPERATING MODE: Spoken-first, natural pacing.
@@ -36,11 +36,9 @@ audio_data = st.audio_input("Tap the mic to speak with your tutor")
 if audio_data:
     with st.status("Elite Tutor is analyzing...", expanded=False) as status:
         try:
-            # Package the user's voice
             audio_part = types.Part.from_bytes(data=audio_data.read(), mime_type="audio/wav")
             
-            # STEP 1: ANALYSIS (Use a model that can LISTEN)
-            # This fixes the 'Audio input modality not enabled' error
+            # STEP 1: ANALYSIS
             analysis_response = client.models.generate_content(
                 model="gemini-3-flash-preview", 
                 config={'system_instruction': ELITE_INSTRUCTIONS},
@@ -55,8 +53,7 @@ if audio_data:
                 st.success("Tutor's Response:")
                 st.markdown(analysis_response.text)
                 
-                # STEP 2: VOICE GENERATION (Use the TTS-specific model)
-                # We extract the first line (Armenian) to speak it aloud
+                # STEP 2: VOICE GENERATION (Corrected Extraction Path)
                 armenian_text = analysis_response.text.split("\n")[0]
                 
                 with st.spinner("Generating native audio..."):
@@ -68,9 +65,14 @@ if audio_data:
                         )
                     )
                     
-                    # Display the Audio Player
-                    if tts_response.data:
-                        st.audio(tts_response.data, format="audio/wav")
+                    # CORRECTED: Accessing audio data in the 2026 SDK
+                    # We check the candidates and parts to find the inline_data
+                    try:
+                        audio_bytes = tts_response.candidates[0].content.parts[0].inline_data.data
+                        if audio_bytes:
+                            st.audio(audio_bytes, format="audio/wav")
+                    except (AttributeError, IndexError):
+                        st.warning("Voice generated, but audio format was unexpected. Try again.")
             
         except Exception as e:
             st.error(f"Technical Error: {e}")
@@ -85,4 +87,4 @@ with st.sidebar:
         st.info(msg["content"][:100] + "...")
 
 st.divider()
-st.caption("Hybrid: Gemini 3 Flash (Listen) + Gemini 2.5 TTS (Speak)")
+st.caption("Hybrid Engine: Gemini 3 Flash + Gemini 2.5 TTS")
