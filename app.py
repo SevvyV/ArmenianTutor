@@ -10,7 +10,7 @@ import zipfile
 st.set_page_config(page_title="HyeTutor2.0beta", page_icon="🇦🇲", layout="wide")
 
 st.title("🇦🇲 HyeTutor2.0beta")
-st.caption("Version 5.6 • Stable ZIP Sync • Optimized for Tier 1")
+st.caption("Version 5.7 • Audio API Fix • Tier 1 Stable")
 
 # --- AUDIO LIBRARY SETUP ---
 AUDIO_DIR = "audio_library"
@@ -19,8 +19,6 @@ if not os.path.exists(AUDIO_DIR):
 
 # --- PERMANENT DATA ---
 PRONOUNS = ["Ես", "Դուն", "Ան", "Մենք", "Դուք", "Անոնք"]
-
-# Mapping Armenian text to English filenames for stability
 FOUNDATIONS = {
     "days_of_the_week": {
         "label": "📅 Days of the Week",
@@ -40,7 +38,7 @@ FOUNDATIONS = {
 api_key = st.secrets["GOOGLE_API_KEY"]
 client = genai.Client(api_key=api_key)
 
-# 3. ROBUST AUDIO ENGINE
+# 3. ROBUST AUDIO ENGINE (The Fix)
 def create_wav_file(pcm_data):
     buf = io.BytesIO()
     with wave.open(buf, 'wb') as wf:
@@ -54,48 +52,56 @@ def get_audio(text_to_speak, filename_slug, slow_mode=False):
     speed_tag = "_slow" if slow_mode else "_fast"
     file_path = os.path.join(AUDIO_DIR, f"{filename_slug}{speed_tag}.wav")
 
-    # Check local library first
+    # 1. Check if we already have it
     if os.path.exists(file_path):
         with open(file_path, "rb") as f: return f.read()
 
-    # Generate if missing
-    try:
-        speed_instr = "slowly" if slow_mode else "clearly"
-        response = client.models.generate_content(
-            model="gemini-2.5-flash-lite",
-            contents=f"Say this {speed_instr} in Western Armenian: {text_to_speak}",
-            config=types.GenerateContentConfig(response_modalities=["AUDIO"])
-        )
-        audio_bytes = response.candidates[0].content.parts[0].inline_data.data
-        wav_data = create_wav_file(audio_bytes)
-        with open(file_path, "wb") as f: f.write(wav_data)
-        return wav_data
-    except Exception as e:
-        st.error(f"Google API Error: {e}")
-        return None
+    # 2. Try specialized TTS models (The 400 Error Fix)
+    # We use -tts specific models which are allowlisted for audio output
+    models_to_try = ["gemini-2.5-flash-preview-tts", "gemini-2.5-flash-tts", "gemini-2.5-flash"]
+    speed_instr = "slowly" if slow_mode else "clearly"
+    
+    for model_name in models_to_try:
+        try:
+            response = client.models.generate_content(
+                model=model_name,
+                contents=f"Say this {speed_instr} in Western Armenian: {text_to_speak}",
+                config=types.GenerateContentConfig(response_modalities=["AUDIO"])
+            )
+            # If successful, extract and save
+            audio_bytes = response.candidates[0].content.parts[0].inline_data.data
+            wav_data = create_wav_file(audio_bytes)
+            with open(file_path, "wb") as f:
+                f.write(wav_data)
+            return wav_data
+        except Exception as e:
+            continue # Try next model if this one fails
+            
+    st.error("All audio models failed. Please check your Google Cloud Billing Tier.")
+    return None
 
-# 4. Sidebar: Admin Sync Tools
+# 4. Sidebar: Library Builder (Same logic, better engine)
 with st.sidebar:
     st.header("⚙️ Library Sync")
-    
     if st.button("🚀 1. Build All Foundation Files"):
         with st.status("Generating Armenian Audio..."):
             for slug, data in FOUNDATIONS.items():
                 get_audio(data['text'], slug, slow_mode=False)
                 get_audio(data['text'], slug, slow_mode=True)
-            st.success("All 6 Foundation files generated!")
+            st.success("All Foundation files generated!")
 
     st.divider()
     
-    # Create the ZIP in memory to bypass file system issues
+    # ZIP Logic
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
         file_count = 0
-        for f_name in os.listdir(AUDIO_DIR):
-            if f_name.endswith(".wav"):
-                with open(os.path.join(AUDIO_DIR, f_name), "rb") as f:
-                    zip_file.writestr(f_name, f.read())
-                    file_count += 1
+        if os.path.exists(AUDIO_DIR):
+            for f_name in os.listdir(AUDIO_DIR):
+                if f_name.endswith(".wav"):
+                    with open(os.path.join(AUDIO_DIR, f_name), "rb") as f:
+                        zip_file.writestr(f_name, f.read())
+                        file_count += 1
     
     if file_count > 0:
         st.download_button(
@@ -105,12 +111,9 @@ with st.sidebar:
             mime="application/zip",
             use_container_width=True
         )
-    else:
-        st.info("No files ready. Click 'Build' first.")
 
 # 5. Main Lesson Area
-st.header("🎓 Armenian Lessons")
-main_mode = st.selectbox("Category:", ["Foundations", "Verb Drill Master", "Phrase Translator"])
+main_mode = st.selectbox("Category:", ["Foundations", "Phrase Translator"])
 slow_audio = st.toggle("🐢 Slow-Motion Audio", value=False)
 
 if main_mode == "Foundations":
@@ -120,5 +123,3 @@ if main_mode == "Foundations":
     if st.button("🔊 Listen"):
         audio = get_audio(content['text'], sub_sel, slow_mode=slow_audio)
         if audio: st.audio(audio, format="audio/wav", autoplay=True)
-
-# (Additional modes like Phrase Translator would follow here)
