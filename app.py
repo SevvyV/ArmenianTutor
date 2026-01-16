@@ -10,11 +10,9 @@ import re
 st.set_page_config(page_title="HyeTutor2.0beta", page_icon="🇦🇲", layout="wide")
 
 st.title("🇦🇲 HyeTutor2.0beta")
-st.caption("Version 5.0 • Hybrid Audio Library • Tier 1 Speed Optimization")
+st.caption("Version 5.1 • Stable Model Fallback • Audio Library Fix")
 
 # --- AUDIO LIBRARY SETUP ---
-# This folder must exist in your GitHub repo for permanent storage.
-# If it doesn't exist locally, the app creates it for the current session.
 AUDIO_DIR = "audio_library"
 if not os.path.exists(AUDIO_DIR):
     os.makedirs(AUDIO_DIR)
@@ -34,7 +32,7 @@ TOP_50_VERBS = ["be", "have", "do", "say", "go", "can", "get", "would", "make", 
 api_key = st.secrets["GOOGLE_API_KEY"]
 client = genai.Client(api_key=api_key)
 
-# 3. HYBRID LIBRARY ENGINE
+# 3. ROBUST AUDIO ENGINE
 def create_wav_file(pcm_data):
     buf = io.BytesIO()
     with wave.open(buf, 'wb') as wf:
@@ -46,35 +44,33 @@ def create_wav_file(pcm_data):
 
 @st.cache_data(show_spinner=False)
 def get_audio(text_to_speak, slow_mode=False):
-    """Checks local library first, then generates via Flash-Lite if missing."""
-    # Create a simple filename from the text
+    """Checks library first, then tries multiple model names to prevent 404s."""
     clean_name = "".join(filter(str.isalnum, text_to_speak))[:40]
     speed_tag = "_slow" if slow_mode else "_fast"
     file_path = os.path.join(AUDIO_DIR, f"{clean_name}{speed_tag}.wav")
 
-    # 1. Check Library (Instant)
+    # 1. Check Library
     if os.path.exists(file_path):
-        with open(file_path, "rb") as f:
-            return f.read()
+        with open(file_path, "rb") as f: return f.read()
 
-    # 2. Generate if missing (Flash-Lite for Tier 1 Speed)
+    # 2. Try Models in sequence (2026 Rotation Fix)
+    models_to_try = ["gemini-2.5-flash-lite", "gemini-2.5-flash-preview-tts", "gemini-2.5-flash-tts"]
     speed_instr = "slowly" if slow_mode else "clearly"
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash-lite-preview-tts",
-            contents=f"Say this {speed_instr} in Western Armenian: {text_to_speak}",
-            config=types.GenerateContentConfig(response_modalities=["AUDIO"])
-        )
-        audio_bytes = response.candidates[0].content.parts[0].inline_data.data
-        wav_data = create_wav_file(audio_bytes)
-        
-        # Save for current session use
-        with open(file_path, "wb") as f:
-            f.write(wav_data)
-            
-        return wav_data
-    except Exception:
-        return None
+    
+    for model_name in models_to_try:
+        try:
+            response = client.models.generate_content(
+                model=model_name,
+                contents=f"Say this {speed_instr} in Western Armenian: {text_to_speak}",
+                config=types.GenerateContentConfig(response_modalities=["AUDIO"])
+            )
+            audio_bytes = response.candidates[0].content.parts[0].inline_data.data
+            wav_data = create_wav_file(audio_bytes)
+            with open(file_path, "wb") as f: f.write(wav_data)
+            return wav_data
+        except:
+            continue
+    return None
 
 # 4. Sidebar: Master Navigation
 with st.sidebar:
@@ -115,6 +111,8 @@ def get_translation(phrase):
     return response.text.strip()
 
 # 6. Main Lesson Area
+st.info("💡 Tip: If you don't hear audio, click anywhere on the screen once to 'wake up' the player.")
+
 if main_mode == "Foundations":
     st.header(sub_selection)
     st.write(f"### {selected_content}")
@@ -125,8 +123,7 @@ if main_mode == "Foundations":
 elif main_mode == "Phrase Translator":
     st.header("Phrase Translator")
     if sub_selection:
-        with st.spinner("Translating..."):
-            translated_text = get_translation(sub_selection)
+        translated_text = get_translation(sub_selection)
         st.write(f"**English:** {sub_selection}")
         st.write(f"### **Armenian:** {translated_text}")
         if st.button("🔊 Speak Translation"):
@@ -135,15 +132,12 @@ elif main_mode == "Phrase Translator":
 
 else: # Verb Modes
     if sub_selection:
-        with st.spinner("Conjugating..."):
-            verbs = get_verbs_only(sub_selection, tense)
-            display_list = [f"{PRONOUNS[i]} {verbs[i]}" for i in range(min(len(PRONOUNS), len(verbs)))]
-        
+        verbs = get_verbs_only(sub_selection, tense)
+        display_list = [f"{PRONOUNS[i]} {verbs[i]}" for i in range(min(len(PRONOUNS), len(verbs)))]
         st.header(f"Verb: {sub_selection}")
         cols = st.columns(3)
         for i, item in enumerate(display_list):
             cols[i % 3].write(f"🔹 **{item}**")
-            
         if st.button("🔊 Listen"):
             audio_text = ", ".join(display_list)
             audio = get_audio(audio_text, slow_mode=slow_audio)
@@ -152,7 +146,7 @@ else: # Verb Modes
 st.divider()
 
 # 7. Feedback Loop
-audio_data = st.audio_input("Practice and get feedback")
+audio_data = st.audio_input("Record your practice")
 if audio_data:
     with st.status("Analyzing..."):
         audio_part = types.Part.from_bytes(data=audio_data.read(), mime_type="audio/wav")
