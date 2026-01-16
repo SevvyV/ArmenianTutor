@@ -5,11 +5,10 @@ import wave
 import io
 import os
 import zipfile
-import time
 
 st.set_page_config(page_title="HyeTutor2.0beta", page_icon="🇦🇲", layout="wide")
 st.title("🇦🇲 HyeTutor2.0beta")
-st.caption("Version 6.8 • Brute Force Manual Mode • Quota Recovery")
+st.caption("Version 6.9 • The 24-Hour Reset Builder")
 
 # --- AUDIO LIBRARY SETUP ---
 AUDIO_DIR = "audio_library"
@@ -19,7 +18,7 @@ if not os.path.exists(AUDIO_DIR):
 FOUNDATIONS = {
     "days_of_the_week": "Երկուշաբթի, Երեքշաբթի, Չորեքշաբթի, Հինգշաբթի, Ուրբաթ, Շաբաթ, Կիրակի",
     "numbers_1_10": "Մէկ, Երկու, Երեք, Չորս, Հինգ, Վեց, Եօթը, Ութը, Ինը, Տասը",
-    "numbers_11_20": "Տասնմեկ, Տասնըերկու, Տասնըերեք, Տասնըչորս, Տասնըհինգ, Տասնըվեց, Տասնըեօթը, Տասնըութը, Տասնըինը, Քսան",
+    "numbers_11_20": "Տասնըմէկ, Տասնըերկու, Տասնըերեք, Տասնըչորս, Տասնըհինգ, Տասնըվեց, Տասնըեօթը, Տասնըութը, Տասնըինը, Քսան",
     "tens_to_100": "Տասը, Քսան, Երեսուն, Քառասուն, Հիսուն, Վաթսուն, Եօթանասուն, Ութսուն, Իննսուն, Հարիւր",
     "hundreds_to_1000": "Հարիւր, Երկու հարիւր, Երեք հարիւր, Չորս հարիւր, Հինգ հարիւր, Վեց հարիւր, Եօթը հարիւր, Ութը հարիւր, Ինը հարիւր, Հազար",
     "months_of_the_year": "Յունուար, Փետրուար, Մարտ, Ապրիլ, Մայիս, Յունիս, Յուլիս, Օգոստոս, Սեպտեմբեր, Հոկտեմբեր, Նոյեմբեր, Դեկտեմբեր"
@@ -33,10 +32,10 @@ def build_single_file(text, slug, slow):
     file_path = os.path.join(AUDIO_DIR, filename)
     
     try:
-        # SWITCHING TO STANDARD FLASH (More stable quota)
+        # Reverting to the ONLY model that supports Audio output
         response = client.models.generate_content(
-            model="gemini-2.5-flash", 
-            contents=f"Provide audio of these words spoken {'slowly' if slow else 'clearly'} in Western Armenian: {text}",
+            model="gemini-2.4-flash-tts", # or gemini-2.5-flash-preview-tts
+            contents=f"Say this {'slowly' if slow else 'clearly'} in Western Armenian: {text}",
             config=types.GenerateContentConfig(response_modalities=["AUDIO"])
         )
         
@@ -51,12 +50,12 @@ def build_single_file(text, slug, slow):
                 f.write(buf.getvalue())
             return True
     except Exception as e:
-        st.error(f"Quota Error for {filename}. Wait 60 seconds. Details: {e}")
+        st.error(f"Quota still locked. Details: {e}")
     return False
 
 # --- UI CONTROL PANEL ---
-st.header("⚒️ Manual Construction Site")
-st.warning("Google has throttled your requests. You MUST wait 30-60 seconds between clicks.")
+st.header("⏳ Quota Cooldown Mode")
+st.info("The 429 error means we must wait for Google to reset your daily limits. Try again in 24 hours.")
 
 for slug, text in FOUNDATIONS.items():
     st.subheader(slug.replace("_", " ").title())
@@ -68,7 +67,7 @@ for slug, text in FOUNDATIONS.items():
             st.success("✅ Fast Ready")
             st.audio(f_path)
         else:
-            if st.button(f"Generate Fast: {slug}"):
+            if st.button(f"Retry Fast: {slug}"):
                 if build_single_file(text, slug, False): st.rerun()
                 
     with c2:
@@ -77,7 +76,7 @@ for slug, text in FOUNDATIONS.items():
             st.success("✅ Slow Ready")
             st.audio(s_path)
         else:
-            if st.button(f"Generate Slow: {slug}"):
+            if st.button(f"Retry Slow: {slug}"):
                 if build_single_file(text, slug, True): st.rerun()
     st.divider()
 
