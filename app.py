@@ -7,41 +7,18 @@ import io
 # 1. Page Configuration
 st.set_page_config(page_title="HyeTutor2.0beta", page_icon="🇦🇲", layout="wide")
 
-# --- EXPANDED DATA STRUCTURES ---
-PRONOUNS = ["Ես (I)", "Դուն (You)", "Ան (He/She/It)", "Մենք (We)", "Դուք (You pl.)", "Անոնք (They)"]
+st.title("🇦🇲 HyeTutor2.0beta")
+st.caption("Version 3.2 • Guided Curriculum: Top 50 Essential Verbs")
 
-# Pre-loaded Verb Bank
-VERB_BANK = {
-    "Վազել (To Run)": {
-        "Past": ["Ես վազեցի", "Դուն վազեցիր", "Ան վազեց", "Մենք վազեցինք", "Դուք վազեցիք", "Անոնք վազեցին"],
-        "Present": ["Ես կը վազեմ", "Դուն կը վազես", "Ան կը վազէ", "Մենք կը վազենք", "Դուք կը վազէք", "Անոնք կը վազեն"],
-        "Future": ["Ես պիտի վազեմ", "Դուն պիտի վազես", "Ան պիտի վազէ", "Մենք պիտի վազենք", "Դուք պիտի վազէք", "Անոնք պիտի վազեն"]
-    },
-    "Ուտել (To Eat)": {
-        "Past": ["Ես կերայ", "Դուն կերար", "Ան կերաւ", "Մենք կերանք", "Դուք կերաք", "Անոնք կերան"],
-        "Present": ["Ես կ'ուտեմ", "Դուն կ'ուտես", "Ան կ'ուտէ", "Մենք կ'ուտենք", "Դուք կ'ուտէք", "Անոնք կ'ուտեն"],
-        "Future": ["Ես պիտի ուտեմ", "Դուն պիտի ուտես", "Ան պիտի ուտէ", "Մենք պիտի ուտենք", "Դուք պիտի ուտէք", "Անոնք պիտի ուտեն"]
-    },
-    "Խմել (To Drink)": {
-        "Past": ["Ես խմեցի", "Դուն խմեցիր", "Ան խմեց", "Մենք խմեցինք", "Դուք խմեցիք", "Անոնք խմեցին"],
-        "Present": ["Ես կը խմեմ", "Դուն կը խմես", "Ան կը խմէ", "Մենք կը խմենք", "Դուք կը խմէք", "Անոնք կը խմեն"],
-        "Future": ["Ես պիտի խմեմ", "Դուն պիտի խմես", "Ան պիտի խմէ", "Մենք պիտի խմենք", "Դուք պիտի խմէք", "Անոնք պիտի խմեն"]
-    }
-}
-
-# 2. Sidebar Navigation
-with st.sidebar:
-    st.title("🎓 HyeTutor2.0beta")
-    st.subheader("Interactive Lessons")
-    lesson_mode = st.radio("Choose Mode:", ["Verb Bank", "Custom Verb Search", "Foundations"])
-    
-    if lesson_mode == "Verb Bank":
-        verb_choice = st.selectbox("Select a Verb:", list(VERB_BANK.keys()))
-        tense_choice = st.radio("Select Tense:", ["Past", "Present", "Future"])
-    
-    elif lesson_mode == "Custom Verb Search":
-        custom_verb = st.text_input("Enter an English Verb (e.g. 'to sleep')")
-        tense_choice = st.radio("Select Tense:", ["Past", "Present", "Future"])
+# 2. Top 50 Verb List (The Roadmap)
+TOP_50_VERBS = [
+    "be", "have", "do", "say", "go", "can", "get", "would", "make", "know",
+    "will", "think", "take", "see", "come", "could", "want", "look", "use",
+    "find", "give", "tell", "work", "may", "should", "call", "try", "ask",
+    "need", "feel", "become", "leave", "put", "mean", "keep", "let", "begin",
+    "seem", "help", "talk", "turn", "start", "might", "show", "hear", "play",
+    "run", "move", "like", "live"
+]
 
 # 3. Key Verification & Audio Utils
 api_key = st.secrets["GOOGLE_API_KEY"]
@@ -69,53 +46,68 @@ def speak_text(text_to_speak):
     except:
         st.warning("Tutor voice engine loading...")
 
-# 4. Custom Verb Generator Logic
-def get_custom_conjugation(verb, tense):
-    prompt = f"Translate the verb '{verb}' to Western Armenian infinitive and conjugate it for the {tense} tense with all 6 personal pronouns. Return ONLY the list of 6 phrases separated by commas."
+# 4. Sidebar: Guided Lesson Plan
+with st.sidebar:
+    st.header("🎓 Guided Lessons")
+    lesson_mode = st.radio("Mode:", ["Top 50 List", "Search Any Verb", "Foundations"])
+    
+    if lesson_mode == "Top 50 List":
+        selected_verb = st.selectbox("Select a Verb:", TOP_50_VERBS)
+    elif lesson_mode == "Search Any Verb":
+        selected_verb = st.text_input("Type a verb:", "to dance")
+    else:
+        selected_verb = None
+        
+    tense = st.selectbox("Tense:", ["Past", "Present", "Future"])
+    st.divider()
+    if st.button("Reset Session"):
+        st.session_state.chat_history = []
+        st.rerun()
+
+# 5. Dynamic Conjugator with Pronouns
+@st.cache_data
+def get_conjugation(verb_name, tense_name):
+    prompt = f"""
+    Translate the English verb '{verb_name}' into Western Armenian.
+    Then, conjugate it for the {tense_name} tense using all 6 Western Armenian pronouns:
+    Ես, Դուն, Ան, Մենք, Դուք, Անոնք.
+    Format your response EXACTLY as a list of 6 strings, separated by commas.
+    Example: Ես վազեցի, Դուն վազեցիր, Ան վազեց, Մենք վազեցինք, Դուք վազեցիք, Անոնք վազեցին
+    """
     response = client.models.generate_content(model="gemini-3-flash-preview", contents=prompt)
-    return response.text.split(",")
+    return response.text.strip().split(",")
 
-# 5. Main Content Area
-st.title("🇦🇲 Elite Western Armenian Learning Lab")
-
-current_drill = []
-
-if lesson_mode == "Verb Bank":
-    current_drill = VERB_BANK[verb_choice][tense_choice]
-    st.header(f"Mastering: {verb_choice}")
+# 6. Main Interaction Area
+if selected_verb:
+    with st.spinner(f"Preparing lesson for '{selected_verb}'..."):
+        conjugation_list = get_conjugation(selected_verb, tense)
     
-elif lesson_mode == "Custom Verb Search" and custom_verb:
-    with st.spinner("Tutor is generating custom conjugation..."):
-        current_drill = get_custom_conjugation(custom_verb, tense_choice)
-    st.header(f"Mastering: {custom_verb}")
-
-# Display Drill
-if current_drill:
-    st.subheader(f"Pronoun + Verb ({tense_choice})")
-    display_str = " • ".join(current_drill)
-    st.write(f"### {display_str}")
+    st.header(f"Mastering: '{selected_verb}'")
+    st.subheader(f"Lesson: {tense} Tense with Pronouns")
     
-    if st.button("🔊 Listen to native pronunciation"):
-        speak_text(", ".join(current_drill))
+    # Display verbs in a clean grid
+    cols = st.columns(3)
+    for i, item in enumerate(conjugation_list):
+        cols[i % 3].write(f"🔹 **{item.strip()}**")
+        
+    if st.button("🔊 Listen and Model Pronunciation"):
+        speak_text(", ".join(conjugation_list))
 
-st.divider()
+    st.divider()
 
-# 6. Microphone Interaction
-audio_data = st.audio_input("Tap to repeat the full conjugation")
+    # 7. Practice & Analysis
+    audio_data = st.audio_input("Repeat the sequence above for feedback")
 
-if audio_data:
-    ELITE_INSTRUCTIONS = f"IDENTITY: Elite Western Armenian Tutor. USER TASK: Repeat the conjugation {current_drill}. Listen for pronoun agreement and correct verb ending."
-    
-    with st.status("Analyzing your accent..."):
-        try:
+    if audio_data:
+        instruction = f"IDENTITY: Elite Western Armenian Tutor. Task: Analyze pronunciation for the sequence {conjugation_list}."
+        with st.status("Tutor is analyzing..."):
             audio_part = types.Part.from_bytes(data=audio_data.read(), mime_type="audio/wav")
             analysis = client.models.generate_content(
                 model="gemini-3-flash-preview", 
-                config={'system_instruction': ELITE_INSTRUCTIONS},
+                config={'system_instruction': instruction},
                 contents=[audio_part]
             )
-            st.success("Tutor's Feedback:")
+            st.success("Tutor's Evaluation:")
             st.markdown(analysis.text)
+            # Speak only the summary Armenian feedback
             speak_text(analysis.text.split("\n")[0])
-        except Exception as e:
-            st.error(f"Error: {e}")
