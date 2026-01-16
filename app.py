@@ -12,14 +12,14 @@ import time
 st.set_page_config(page_title="HyeTutor2.0beta", page_icon="🇦🇲", layout="wide")
 
 st.title("🇦🇲 HyeTutor2.0beta")
-st.caption("Version 6.1 • Expanded Numbers • Multi-File Builder")
+st.caption("Version 6.3 • Full Number Sets • High-Reliability Builder")
 
 # --- AUDIO LIBRARY SETUP ---
 AUDIO_DIR = "audio_library"
 if not os.path.exists(AUDIO_DIR):
     os.makedirs(AUDIO_DIR)
 
-# --- EXPANDED PERMANENT DATA ---
+# --- EXPANDED FOUNDATIONS ---
 FOUNDATIONS = {
     "days_of_the_week": {
         "label": "📅 Days of the Week",
@@ -31,7 +31,7 @@ FOUNDATIONS = {
     },
     "numbers_11_20": {
         "label": "🔢 Numbers (11-20)",
-        "text": "Տասնըմէկ, Տասնըերկու, Տասնըերեք, Տասնըչորս, Տասնըհինգ, Տասնըվեց, Տասնըեօթը, Տասնըութը, Տասնըինը, Քսան"
+        "text": "Տասնմեկ, Տասնըերկու, Տասնըերեք, Տասնըչորս, Տասնըհինգ, Տասնըվեց, Տասնըեօթը, Տասնըութը, Տասնըինը, Քսան"
     },
     "tens_to_100": {
         "label": "🔟 Counting by 10s (to 100)",
@@ -51,7 +51,7 @@ FOUNDATIONS = {
 api_key = st.secrets["GOOGLE_API_KEY"]
 client = genai.Client(api_key=api_key)
 
-# 3. ROBUST AUDIO ENGINE
+# 3. ADVANCED AUDIO ENGINE (Optimized for Multi-part stitching)
 def create_wav_file(pcm_data):
     buf = io.BytesIO()
     with wave.open(buf, 'wb') as wf:
@@ -69,13 +69,14 @@ def get_audio(text_to_speak, filename_slug, slow_mode=False):
         with open(file_path, "rb") as f: return f.read()
 
     speed_instr = "slowly" if slow_mode else "clearly"
-    
-    # Chunking logic for longer strings (like Months or 100s)
     words = text_to_speak.split(", ")
-    chunks = [", ".join(words[i:i+5]) for i in range(0, len(words), 5)]
+    
+    # We now process in tiny chunks of 3 words to avoid "Empty File" errors on long lists
+    chunks = [", ".join(words[i:i+3]) for i in range(0, len(words), 3)]
     
     combined_pcm = b""
     for chunk in chunks:
+        # 3 Retries per chunk with progressive waiting
         for attempt in range(3):
             try:
                 response = client.models.generate_content(
@@ -85,10 +86,12 @@ def get_audio(text_to_speak, filename_slug, slow_mode=False):
                 )
                 if response.candidates and response.candidates[0].content:
                     combined_pcm += response.candidates[0].content.parts[0].inline_data.data
+                    # Add a 0.5s pause between chunks for natural flow
+                    combined_pcm += b'\x00' * 12000 
                     break
-                time.sleep(1)
+                time.sleep(2 * (attempt + 1))
             except:
-                time.sleep(1)
+                time.sleep(2)
     
     if combined_pcm:
         wav_data = create_wav_file(combined_pcm)
@@ -96,50 +99,51 @@ def get_audio(text_to_speak, filename_slug, slow_mode=False):
         return wav_data
     return None
 
-# 4. Sidebar: Multi-File Builder
+# 4. Sidebar: Maintenance & Download
 with st.sidebar:
-    st.header("⚙️ Library Tools")
+    st.header("⚙️ Admin Tools")
     
-    if st.button("🔴 Reset & Clear"):
+    if st.button("🔴 Reset/Clear Pantry"):
         if os.path.exists(AUDIO_DIR): shutil.rmtree(AUDIO_DIR)
         os.makedirs(AUDIO_DIR)
-        st.success("Clean Slate!")
+        st.success("Folder Emptied!")
 
-    if st.button("🚀 Build All 10 Files"):
-        with st.status("Generating Numbers and Foundations..."):
+    if st.button("🚀 Build FULL Foundation Library"):
+        with st.status("Generating All 12 Files..."):
             for slug, data in FOUNDATIONS.items():
+                st.write(f"Generating: {data['label']}...")
                 get_audio(data['text'], slug, slow_mode=False)
                 get_audio(data['text'], slug, slow_mode=True)
-        st.success("All 10 audio files (Fast & Slow) are ready!")
+        st.success("Library Built with 11-20 and Fixed Months!")
 
     st.divider()
     
-    # Zip Downloader for 10 pairs (20 total files)
+    # ZIP Downloader logic
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
         file_count = 0
         if os.path.exists(AUDIO_DIR):
             for f_name in os.listdir(AUDIO_DIR):
-                if f_name.endswith(".wav"):
+                if f_name.endswith(".wav") and "_" in f_name: # Simple check for our English slugs
                     with open(os.path.join(AUDIO_DIR, f_name), "rb") as f:
                         zip_file.writestr(f_name, f.read())
                         file_count += 1
     
     if file_count > 0:
         st.download_button(
-            label=f"📥 Download Full Library ({file_count} files)",
+            label=f"📥 Download Full ZIP ({file_count} files)",
             data=zip_buffer.getvalue(),
-            file_name="armenian_foundations_full.zip",
+            file_name="armenian_foundations_v63.zip",
             mime="application/zip",
             use_container_width=True
         )
 
-# 5. Lessons
+# 5. Main Lesson Area
 main_mode = st.selectbox("Category:", ["Foundations", "Phrase Translator"])
 slow_audio = st.toggle("🐢 Slow-Motion Audio", value=False)
 
 if main_mode == "Foundations":
-    sub_sel = st.selectbox("Selection:", list(FOUNDATIONS.keys()), format_func=lambda x: FOUNDATIONS[x]['label'])
+    sub_sel = st.selectbox("Select:", list(FOUNDATIONS.keys()), format_func=lambda x: FOUNDATIONS[x]['label'])
     content = FOUNDATIONS[sub_sel]
     st.write(f"### {content['text']}")
     if st.button("🔊 Listen"):
