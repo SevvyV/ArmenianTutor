@@ -1,21 +1,23 @@
 import streamlit as st
-import requests
-import base64
-import json
+import asyncio
+import subprocess
+import sys
+import io
 
-st.set_page_config(page_title="HyeTutor Surgical 15.2", page_icon="🇦🇲")
-st.title("🇦🇲 Surgical Audio Builder 15.2 (Standard)")
-st.info("Engine: Google Cloud TTS (Standard) | Voice: hy-AM-Standard-A")
+# --- 1. AUTO-INSTALLER (One-Time Setup) ---
+# This ensures the Microsoft Edge library is installed on your server
+try:
+    import edge_tts
+except ImportError:
+    st.warning("⚙️ Installing Microsoft Edge TTS Engine...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "edge-tts"])
+    st.rerun()
 
-# 1. Configuration
-API_KEY = st.secrets["GOOGLE_API_KEY"]
-TTS_ENDPOINT = f"https://texttospeech.googleapis.com/v1/text:synthesize?key={API_KEY}"
+st.set_page_config(page_title="HyeTutor Surgical 16.0", page_icon="🇦🇲")
+st.title("🇦🇲 Surgical Audio Builder 16.0")
+st.info("Engine: Microsoft Edge Neural | Voice: hy-AM-AnahitNeural")
 
-if "audio_buffer" not in st.session_state:
-    st.session_state.audio_buffer = None
-if "active_filename" not in st.session_state:
-    st.session_state.active_filename = ""
-
+# 2. DATA
 TARGETS = {
     "numbers_11_20": "Տասնըմէկ, Տասնըերկու, Տասնըերեք, Տասնըչորս, Տասնըհինգ, Տասնըվեց, Տասնըեօթը, Տասնըութը, Տասնըինը, Քսան",
     "tens_to_100": "Տասը, Քսան, Երեսուն, Քառասուն, Հիսուն, Վաթսուն, Եօթանասուն, Ութսուն, Իննսուն, Հարիւր",
@@ -24,65 +26,47 @@ TARGETS = {
 }
 
 selection = st.selectbox("Select Target Category", list(TARGETS.keys()))
+gender = st.radio("Voice Gender", ["Female (Anahit)", "Male (Hayk)"], index=0)
 
-# Speed control
-speed_multiplier = st.radio("Speed", [0.85, 1.0], format_func=lambda x: "Teacher Mode (Slow)" if x == 0.85 else "Native Speed (Normal)", index=0)
+# Map selection to the correct Microsoft Neural Voice ID
+voice_id = "hy-AM-AnahitNeural" if "Female" in gender else "hy-AM-HaykNeural"
 
-if st.button("🚀 Synthesize Standard Audio"):
+# Speed adjustment
+rate_str = st.select_slider("Speaking Rate", options=["-10%", "-5%", "+0%", "+5%"], value="-5%")
+
+# 3. ASYNC GENERATION FUNCTION
+async def generate_audio(text, voice, rate):
+    communicate = edge_tts.Communicate(text, voice, rate=rate)
+    out_buffer = io.BytesIO()
+    async for chunk in communicate.stream():
+        if chunk["type"] == "audio":
+            out_buffer.write(chunk["data"])
+    return out_buffer.getvalue()
+
+# 4. UI LOGIC
+if st.button("🚀 Generate Neural Audio"):
     st.session_state.audio_buffer = None
     
-    with st.status("Requesting Standard Armenian Voice...") as status:
-        payload = {
-            "input": {
-                "text": TARGETS[selection]
-            },
-            "voice": {
-                "languageCode": "hy-AM",
-                "name": "hy-AM-Standard-A"  # <--- THE GUARANTEED VOICE ID
-            },
-            "audioConfig": {
-                "audioEncoding": "LINEAR16",
-                "speakingRate": speed_multiplier
-            }
-        }
-        
+    with st.status("Connecting to Microsoft Neural Cloud...") as status:
         try:
-            response = requests.post(
-                TTS_ENDPOINT, 
-                headers={"Content-Type": "application/json"},
-                data=json.dumps(payload),
-                timeout=30
-            )
+            # We must run the async function inside Streamlit's sync environment
+            audio_data = asyncio.run(generate_audio(TARGETS[selection], voice_id, rate_str))
             
-            if response.status_code == 200:
-                data = response.json()
-                if "audioContent" in data:
-                    binary_audio = base64.b64decode(data["audioContent"])
-                    st.session_state.audio_buffer = binary_audio
-                    st.session_state.active_filename = f"{selection}.wav"
-                    status.update(label="✅ Audio Synthesized", state="complete")
-                else:
-                    st.error("Protocol Error: No audio content returned.")
+            st.session_state.audio_buffer = audio_data
+            st.session_state.active_filename = f"{selection}_{'female' if 'Female' in gender else 'male'}.mp3"
+            status.update(label="✅ Success! Audio Generated", state="complete")
             
-            elif response.status_code == 400:
-                 st.error(f"Configuration Error: {response.text}")
-            
-            elif response.status_code == 403:
-                st.error("🚨 PERMISSION DENIED: API Key restriction or API not enabled.")
-                
-            else:
-                st.error(f"Server Error ({response.status_code}): {response.text}")
-
         except Exception as e:
-            st.error(f"Connection Failure: {e}")
+            st.error(f"Generation Error: {e}")
 
-if st.session_state.audio_buffer:
+# 5. DOWNLOAD
+if "audio_buffer" in st.session_state and st.session_state.audio_buffer:
     st.divider()
     st.write(f"### Ready: {st.session_state.active_filename}")
-    st.audio(st.session_state.audio_buffer, format="audio/wav")
+    st.audio(st.session_state.audio_buffer, format="audio/mp3")
     st.download_button(
-        label="💾 SAVE WAV FILE",
+        label="💾 SAVE MP3 FILE",
         data=st.session_state.audio_buffer,
         file_name=st.session_state.active_filename,
-        mime="audio/wav"
+        mime="audio/mpeg"
     )
