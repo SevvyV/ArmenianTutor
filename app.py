@@ -4,11 +4,15 @@ from google.genai import types
 import wave
 import io
 
-st.set_page_config(page_title="HyeTutor Surgical 11.0", page_icon="🇦🇲")
-st.title("🇦🇲 Surgical Audio Builder 11.0")
+st.set_page_config(page_title="Surgical Builder 12.0 (Stable)", page_icon="🇦🇲")
+st.title("🇦🇲 Surgical Audio Builder 12.0")
+st.info("Architecture: Stable V1 API | Model: Gemini 3 Flash")
 
-# 1. API Setup
-client = genai.Client(api_key=st.secrets["GOOGLE_API_KEY"])
+# 1. API Setup - PINNED TO STABLE V1
+client = genai.Client(
+    api_key=st.secrets["GOOGLE_API_KEY"],
+    http_options=types.HttpOptions(api_version="v1") # Bypasses v1beta
+)
 
 if "audio_buffer" not in st.session_state:
     st.session_state.audio_buffer = None
@@ -16,30 +20,32 @@ if "audio_buffer" not in st.session_state:
 TARGETS = {
     "numbers_11_20": "Տասնըմէկ, Տասնըերկու, Տասնըերեք, Տասնըչորս, Տասնըհինգ, Տասնըվեց, Տասնըեօթը, Տասնըութը, Տասնըինը, Քսան",
     "tens_to_100": "Տասը, Քսան, Երեսուն, Քառասուն, Հիսուն, Վաթսուն, Եօթանասուն, Ութսուն, Իննսուն, Հարիւր",
-    "months_of_the_year": "Յունուար, Փետրուար, Մարտ, Ապրիլ, Մայիս, Յունիս, Յուլիս, Օգոստոս, Սեպտեմբեր, Հոկտեմբեր, Նոյեմբեր, Դեկտեմբեր"
+    "hundreds_to_1000": "Հարիւր, Երկու հարիւր, Երեք հարիւր, Չորս հարիւր, Հինգ հարիւր, Վեց հարիւր, Եօթը հարիւր, Ութը հարիւր, Ինը հարիւր, Հազար",
+    "months_of_the_year": "Յունուար, Փետրուար, Մարտ, Ապրիլ, Մայիս, Յունիս, Յուլիս, Ութը հարիւր, Սեպտեմբեր, Հոկտեմբեր, Նոյեմբեր, Դեկտեմբեր"
 }
 
-selection = st.selectbox("Select Category", list(TARGETS.keys()))
+selection = st.selectbox("Select Target Category", list(TARGETS.keys()))
 
-if st.button("🚀 Execute Audio Generation"):
+if st.button("🚀 Generate Stable Audio"):
     st.session_state.audio_buffer = None
-    with st.status("Accessing Native Audio Engine...") as status:
+    with st.status("Requesting Stable V1 Audio Pipe...") as status:
         try:
-            # THIS IS THE STABLE GA MODEL FOR AUDIO OUTPUT
+            # GEMINI 3 FLASH: The production-ready multimodal model
             response = client.models.generate_content(
-                model="gemini-live-2.5-flash-native-audio", 
-                contents=f"Say these words clearly in Western Armenian: {TARGETS[selection]}",
+                model="gemini-3-flash", 
+                contents=f"Say these Armenian words clearly and distinctly: {TARGETS[selection]}",
                 config=types.GenerateContentConfig(
                     response_modalities=["AUDIO"]
                 )
             )
             
-            # Extracting from the native audio stream
+            # Extract and package
             if response.candidates and response.candidates[0].content:
+                # Look for the audio data part
                 audio_part = next((p for p in response.candidates[0].content.parts if p.inline_data), None)
                 
                 if audio_part:
-                    # Native Audio Output is 24kHz, 16-bit PCM
+                    # Package as 24kHz Mono WAV
                     buf = io.BytesIO()
                     with wave.open(buf, 'wb') as wf:
                         wf.setnchannels(1)
@@ -48,21 +54,22 @@ if st.button("🚀 Execute Audio Generation"):
                         wf.writeframes(audio_part.inline_data.data)
                     
                     st.session_state.audio_buffer = buf.getvalue()
-                    status.update(label="✅ Audio Generated", state="complete")
+                    status.update(label="✅ Audio Generated Successfully", state="complete")
                 else:
-                    st.error("No inline_data found in response parts.")
+                    st.error("Audio stream was empty. Please check your project's audio quota.")
             else:
-                st.error("Empty response candidates. Verify Project/Key permissions.")
+                st.error("No response candidates found. The stable model might be throttled.")
                 
         except Exception as e:
-            st.error(f"Engine Error: {e}")
+            st.error(f"Stable V1 Failure: {e}")
 
 if st.session_state.audio_buffer:
     st.divider()
     st.audio(st.session_state.audio_buffer)
     st.download_button(
-        "💾 DOWNLOAD WAV", 
+        "💾 SAVE TO DOWNLOADS", 
         st.session_state.audio_buffer, 
         f"{selection}.wav",
-        mime="audio/wav"
+        mime="audio/wav",
+        use_container_width=True
     )
