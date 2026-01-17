@@ -3,23 +3,27 @@ from google import genai
 from google.genai import types
 import wave
 import io
-import time
 
-st.set_page_config(page_title="HyeTutor Surgical Builder 8.3", page_icon="🇦🇲")
-st.title("🇦🇲 Surgical Audio Builder 8.3")
+st.set_page_config(page_title="HyeTutor Surgical Builder 8.4", page_icon="🇦🇲")
+st.title("🇦🇲 Surgical Audio Builder 8.4")
 
 # 1. API Setup
 client = genai.Client(api_key=st.secrets["GOOGLE_API_KEY"])
 
-# 2. Targeted Foundation List
+# 2. Initialize Session State for the audio file
+if "current_audio" not in st.session_state:
+    st.session_state.current_audio = None
+if "current_filename" not in st.session_state:
+    st.session_state.current_filename = ""
+
 TARGETS = {
     "numbers_11_20": "Տասնըմէկ, Տասնըերկու, Տասնըերեք, Տասնըչորս, Տասնըհինգ, Տասնըվեց, Տասնըեօթը, Տասնըութը, Տասնըինը, Քսան",
     "tens_to_100": "Տասը, Քսան, Երեսուն, Քառասուն, Հիսուն, Վաթսուն, Եօթանասուն, Ութսուն, Իննսուն, Հարիւր",
     "hundreds_to_1000": "Հարիւր, Երկու հարիւր, Երեք հարիւր, Չորս հարիւր, Հինգ հարիւր, Վեց հարիւր, Եօթը հարիւր, Ութը հարիւր, Ինը հարիւր, Հազար",
-    "months_of_the_year_slow": "Յունուար, Փետրուար, Մարտ, Ապրիլ, Մայիս, Յունիս, Յուլիս, Օգոստոս, Սեպտեմբեր, Հոկտեմբեր, Նոյեմբեր, Դեկտեմբեր"
+    "months_of_the_year": "Յունուար, Փետրուար, Մարտ, Ապրիլ, Մայիս, Յունիս, Յուլիս, Օգոստոս, Սեպտեմբեր, Հոկտեմբեր, Նոյեմբեր, Դեկտեմբեր"
 }
 
-selection = st.selectbox("Select Target to Build:", list(TARGETS.keys()))
+selection = st.selectbox("Select Target:", list(TARGETS.keys()))
 slow_mode = st.toggle("Slow-Motion Version", value=True)
 
 def create_wav(pcm_data):
@@ -29,45 +33,38 @@ def create_wav(pcm_data):
         wf.writeframes(pcm_data)
     return buf.getvalue()
 
-# FIX: Initialize success here so the check at the bottom always works
-success = False
-
+# --- GENERATION LOGIC ---
 if st.button(f"🚀 Generate {selection}"):
-    with st.status(f"Generating {selection}...") as status:
-        text = TARGETS[selection]
-        
+    with st.spinner(f"Requesting {selection} from Google..."):
         try:
-            # "Waking up" the AI with a simple greeting first
-            client.models.generate_content(model="gemini-2.5-flash", contents="Hi")
-            
             response = client.models.generate_content(
                 model="gemini-2.5-flash-preview-tts",
-                contents=f"Say this {'slowly' if slow_mode else 'clearly'} in Western Armenian: {text}",
-                config=types.GenerateContentConfig(
-                    response_modalities=["AUDIO"],
-                    safety_settings=[{"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"}],
-                )
+                contents=f"Say this {'slowly' if slow_mode else 'clearly'} in Western Armenian: {TARGETS[selection]}",
+                config=types.GenerateContentConfig(response_modalities=["AUDIO"])
             )
             
             if response.candidates and response.candidates[0].content:
-                audio_data = response.candidates[0].content.parts[0].inline_data.data
-                
-                if len(audio_data) > 100:
-                    wav_file = create_wav(audio_data)
-                    st.audio(wav_file)
-                    # File naming fix to make it easier for your GitHub library
-                    file_slug = f"{selection}_{'slow' if slow_mode else 'fast'}.wav"
-                    st.download_button("📥 Save to Hard Drive", wav_file, file_name=file_slug)
-                    status.update(label="Build Successful!", state="complete")
-                    success = True
-                else:
-                    st.error("Google returned a header with no audio data. Please try again.")
+                raw_data = response.candidates[0].content.parts[0].inline_data.data
+                # Store the result in Session State so it persists
+                st.session_state.current_audio = create_wav(raw_data)
+                st.session_state.current_filename = f"{selection}_{'slow' if slow_mode else 'fast'}.wav"
+                st.success("Generation Complete! Use the player and button below.")
             else:
-                st.error("Empty response from Google AI.")
-
+                st.error("AI returned empty data.")
         except Exception as e:
-            st.error(f"Surgical Build Failed: {e}")
-            st.info("Wait 60 seconds if you suspect a rate limit.")
+            st.error(f"Build Failed: {e}")
 
-if not success:
-    st.info("Ready to build. Select a category and click Generate.")
+# --- PERSISTENT UI ---
+# This part stays on the screen as long as current_audio isn't empty
+if st.session_state.current_audio:
+    st.divider()
+    st.write(f"### Ready: {st.session_state.current_filename}")
+    st.audio(st.session_state.current_audio)
+    
+    st.download_button(
+        label="💾 Save to Hard Drive",
+        data=st.session_state.current_audio,
+        file_name=st.session_state.current_filename,
+        mime="audio/wav",
+        key="download_btn" # Unique key ensures it doesn't vanish
+    )
