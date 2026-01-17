@@ -4,12 +4,12 @@ from google.genai import types
 import wave
 import io
 
-st.set_page_config(page_title="Surgical Builder 9.1", page_icon="🇦🇲")
-st.title("🇦🇲 Surgical Audio Builder 9.1")
-st.info("Status: Connected to New Project Quota")
+st.set_page_config(page_title="Surgical Builder 9.2", page_icon="🇦🇲")
+st.title("🇦🇲 Surgical Audio Builder 9.2")
+st.info("Status: Routing to Gemini 2.5 Flash Preview TTS")
 
 # 1. API Setup
-# Ensure your NEW key (from the new project) is in Streamlit Secrets!
+# This will pick up your NEW key from the Streamlit Secrets (Dev app)
 client = genai.Client(api_key=st.secrets["GOOGLE_API_KEY"])
 
 if "audio_buffer" not in st.session_state:
@@ -30,11 +30,11 @@ slow_mode = st.toggle("2. Slow-Motion Mode", value=True)
 if st.button("🚀 3. Generate Audio File"):
     st.session_state.audio_buffer = None
     
-    with st.status("Building with gemini-2.5-flash-tts...") as status:
+    with st.status("Requesting Audio Generation...") as status:
         try:
-            # CORRECT MODEL ID for January 2026 stable tier
+            # THE CORRECT ID: gemini-2.5-flash-preview-tts
             response = client.models.generate_content(
-                model="gemini-2.5-flash-tts", 
+                model="gemini-2.5-flash-preview-tts", 
                 contents=f"Speak these Western Armenian words {'slowly' if slow_mode else 'clearly'}: {TARGETS[selection]}",
                 config=types.GenerateContentConfig(response_modalities=["AUDIO"])
             )
@@ -52,18 +52,18 @@ if st.button("🚀 3. Generate Audio File"):
                     st.session_state.active_filename = f"{selection}_{'slow' if slow_mode else 'fast'}.wav"
                     status.update(label="✅ Success!", state="complete")
                 else:
-                    st.error("Model responded but returned no audio data.")
+                    st.error("AI returned text but no audio. Check modality support.")
             else:
-                st.error("No response. Check your API key status in AI Studio.")
+                st.error("No response from model. Project or key may be inactive.")
                 
         except Exception as e:
-            st.error(f"Error: {e}")
+            st.error(f"Error detail: {e}")
 
 if st.session_state.audio_buffer:
     st.divider()
     st.audio(st.session_state.audio_buffer)
     st.download_button(
-        label="💾 SAVE FILE TO COMPUTER",
+        label="💾 SAVE TO COMPUTER",
         data=st.session_state.audio_buffer,
         file_name=st.session_state.active_filename,
         mime="audio/wav"
