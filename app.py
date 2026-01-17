@@ -5,8 +5,8 @@ import wave
 import io
 import time
 
-st.set_page_config(page_title="HyeTutor Surgical Builder 8.2", page_icon="🇦🇲")
-st.title("🇦🇲 Surgical Audio Builder 8.2")
+st.set_page_config(page_title="HyeTutor Surgical Builder 8.3", page_icon="🇦🇲")
+st.title("🇦🇲 Surgical Audio Builder 8.3")
 
 # 1. API Setup
 client = genai.Client(api_key=st.secrets["GOOGLE_API_KEY"])
@@ -29,13 +29,17 @@ def create_wav(pcm_data):
         wf.writeframes(pcm_data)
     return buf.getvalue()
 
+# FIX: Initialize success here so the check at the bottom always works
+success = False
+
 if st.button(f"🚀 Generate {selection}"):
     with st.status(f"Generating {selection}...") as status:
         text = TARGETS[selection]
-        success = False
         
-        # We process each file in a single "Try" block to stay safe
         try:
+            # "Waking up" the AI with a simple greeting first
+            client.models.generate_content(model="gemini-2.5-flash", contents="Hi")
+            
             response = client.models.generate_content(
                 model="gemini-2.5-flash-preview-tts",
                 contents=f"Say this {'slowly' if slow_mode else 'clearly'} in Western Armenian: {text}",
@@ -47,11 +51,13 @@ if st.button(f"🚀 Generate {selection}"):
             
             if response.candidates and response.candidates[0].content:
                 audio_data = response.candidates[0].content.parts[0].inline_data.data
-                # Verify the file is not empty (standard header is 44 bytes)
+                
                 if len(audio_data) > 100:
                     wav_file = create_wav(audio_data)
                     st.audio(wav_file)
-                    st.download_button("📥 Save to Hard Drive", wav_file, file_name=f"{selection}_{'slow' if slow_mode else 'fast'}.wav")
+                    # File naming fix to make it easier for your GitHub library
+                    file_slug = f"{selection}_{'slow' if slow_mode else 'fast'}.wav"
+                    st.download_button("📥 Save to Hard Drive", wav_file, file_name=file_slug)
                     status.update(label="Build Successful!", state="complete")
                     success = True
                 else:
@@ -61,7 +67,7 @@ if st.button(f"🚀 Generate {selection}"):
 
         except Exception as e:
             st.error(f"Surgical Build Failed: {e}")
-            st.info("Wait 60 seconds. This is usually a 'Requests Per Minute' limit.")
+            st.info("Wait 60 seconds if you suspect a rate limit.")
 
-if success is False:
-    st.info("Ready for next attempt.")
+if not success:
+    st.info("Ready to build. Select a category and click Generate.")
