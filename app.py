@@ -3,15 +3,14 @@ import requests
 import base64
 import json
 
-st.set_page_config(page_title="HyeTutor Surgical 14.0", page_icon="🇦🇲")
-st.title("🇦🇲 Surgical Audio Builder 14.0 (Raw REST)")
-st.info("Architecture: Direct HTTP/1.1 over TLS | Endpoint: v1beta")
+st.set_page_config(page_title="HyeTutor Surgical 15.1", page_icon="🇦🇲")
+st.title("🇦🇲 Surgical Audio Builder 15.1 (WaveNet)")
+st.info("Engine: Google Cloud WaveNet (Premium) | Protocol: REST")
 
 # 1. Configuration
-# We use the REST endpoint directly to bypass SDK version conflicts
+# We use your existing API Key from the Secrets
 API_KEY = st.secrets["GOOGLE_API_KEY"]
-MODEL_NAME = "gemini-2.0-flash-exp" # The reliable experimental model for Audio
-URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL_NAME}:generateContent?key={API_KEY}"
+TTS_ENDPOINT = f"https://texttospeech.googleapis.com/v1/text:synthesize?key={API_KEY}"
 
 if "audio_buffer" not in st.session_state:
     st.session_state.audio_buffer = None
@@ -21,79 +20,66 @@ if "active_filename" not in st.session_state:
 TARGETS = {
     "numbers_11_20": "Տասնըմէկ, Տասնըերկու, Տասնըերեք, Տասնըչորս, Տասնըհինգ, Տասնըվեց, Տասնըեօթը, Տասնըութը, Տասնըինը, Քսան",
     "tens_to_100": "Տասը, Քսան, Երեսուն, Քառասուն, Հիսուն, Վաթսուն, Եօթանասուն, Ութսուն, Իննսուն, Հարիւր",
+    "hundreds_to_1000": "Հարիւր, Երկու հարիւր, Երեք հարիւր, Չորս հարիւր, Հինգ հարիւր, Վեց հարիւր, Եօթը հարիւր, Ութը հարիւր, Ինը հարիւր, Հազար",
     "months_of_the_year": "Յունուար, Փետրուար, Մարտ, Ապրիլ, Մայիս, Յունիս, Յուլիս, Օգոստոս, Սեպտեմբեր, Հոկտեմբեր, Նոյեմբեր, Դեկտեմբեր"
 }
 
 selection = st.selectbox("Select Target Category", list(TARGETS.keys()))
-slow_mode = st.toggle("Slow-Motion Mode", value=True)
 
-if st.button("🚀 Execute Raw Request"):
+# Speed control mapping for TTS engine
+speed_multiplier = st.radio("Speed", [0.85, 1.0], format_func=lambda x: "Teacher Mode (Slow)" if x == 0.85 else "Native Speed (Normal)", index=0)
+
+if st.button("🚀 Synthesize WaveNet Audio"):
     st.session_state.audio_buffer = None
     
-    with st.status("Transmitting Raw JSON Payload...") as status:
-        # Constructing the raw payload manually to ensure exact compliance
+    with st.status("Requesting High-Fidelity WaveNet Stream...") as status:
+        # Construct the specialized TTS payload
         payload = {
-            "contents": [{
-                "parts": [{
-                    "text": f"Speak the following Western Armenian words {'slowly and clearly' if slow_mode else 'naturally'}: {TARGETS[selection]}"
-                }]
-            }],
-            "generationConfig": {
-                "responseModalities": ["AUDIO"],
-                "speechConfig": {
-                    "voiceConfig": {
-                        "prebuiltVoiceConfig": {
-                            "voiceName": "Puck"
-                        }
-                    }
-                }
+            "input": {
+                "text": TARGETS[selection]
+            },
+            "voice": {
+                "languageCode": "hy-AM",       # Armenian Locale
+                "name": "hy-AM-Wavenet-A"      # <--- SWITCHED TO WAVENET (Higher Quality)
+            },
+            "audioConfig": {
+                "audioEncoding": "LINEAR16",   # WAV format
+                "speakingRate": speed_multiplier
             }
         }
         
         try:
-            # Direct POST request
+            # Direct POST to the stable TTS endpoint
             response = requests.post(
-                URL, 
+                TTS_ENDPOINT, 
                 headers={"Content-Type": "application/json"},
                 data=json.dumps(payload),
                 timeout=30
             )
             
-            # Error Handling based on HTTP Status Codes
-            if response.status_code != 200:
+            if response.status_code == 200:
+                data = response.json()
+                if "audioContent" in data:
+                    # Decode the base64 audio content
+                    binary_audio = base64.b64decode(data["audioContent"])
+                    st.session_state.audio_buffer = binary_audio
+                    st.session_state.active_filename = f"{selection}.wav"
+                    status.update(label="✅ WaveNet Audio Synthesized", state="complete")
+                else:
+                    st.error("Protocol Error: API returned 200 but no 'audioContent'.")
+            
+            elif response.status_code == 400:
+                 st.error(f"Configuration Error: {response.text}")
+                 st.info("Note: If 'hy-AM-Wavenet-A' is unavailable in your region, we can revert to 'Standard-A'.")
+            
+            elif response.status_code == 403:
+                st.error("🚨 PERMISSION DENIED: Please enable the 'Cloud Text-to-Speech API' in your Google Cloud Console.")
+                st.markdown(f"[Click here to Enable API](https://console.cloud.google.com/marketplace/product/google/texttospeech.googleapis.com)")
+                status.update(label="❌ API Not Enabled", state="error")
+                
+            else:
                 st.error(f"Server Error ({response.status_code}): {response.text}")
                 status.update(label="❌ Transmission Failed", state="error")
-            else:
-                data = response.json()
-                
-                # Manual parsing of the JSON structure
-                try:
-                    candidates = data.get("candidates", [])
-                    if not candidates:
-                        st.error("Protocol Error: No candidates returned.")
-                    else:
-                        parts = candidates[0].get("content", {}).get("parts", [])
-                        audio_data = None
-                        
-                        # Search for the inline_data blob
-                        for part in parts:
-                            if "inlineData" in part:
-                                audio_data = part["inlineData"]["data"]
-                                break
-                        
-                        if audio_data:
-                            # Decode Base64 to Binary
-                            binary_audio = base64.b64decode(audio_data)
-                            st.session_state.audio_buffer = binary_audio
-                            st.session_state.active_filename = f"{selection}.wav"
-                            status.update(label="✅ Payload Received & Decoded", state="complete")
-                        else:
-                            st.error("Logic Error: Model returned text only. Quota or model capability mismatch.")
-                            st.json(data) # Dump the JSON for inspection
-                            
-                except Exception as parse_error:
-                    st.error(f"Parsing Failure: {parse_error}")
-                    st.write(data)
 
         except Exception as e:
             st.error(f"Connection Failure: {e}")
