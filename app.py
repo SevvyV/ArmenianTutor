@@ -1,11 +1,10 @@
 import streamlit as st
-import asyncio
-import edge_tts
+from gtts import gTTS
 import io
 
-st.set_page_config(page_title="HyeTutor Dev 16.1", page_icon="🇦🇲")
-st.title("🇦🇲 Surgical Audio Builder 16.1 (Dev Mode)")
-st.info("Engine: Microsoft Edge Neural | Status: Dev Branch")
+st.set_page_config(page_title="HyeTutor Surgical 18.0", page_icon="🇦🇲")
+st.title("🇦🇲 Surgical Audio Builder 18.0 (gTTS)")
+st.info("Engine: Google Translate (gTTS) | Status: Unlocking 'Preview' Voice")
 
 # 1. DATA
 TARGETS = {
@@ -16,40 +15,32 @@ TARGETS = {
 }
 
 selection = st.selectbox("Select Target Category", list(TARGETS.keys()))
-gender = st.radio("Voice Gender", ["Female (Anahit)", "Male (Hayk)"], index=0)
+slow_mode = st.toggle("Slow Mode (Educational)", value=False)
 
-# Map selection to the correct Microsoft Neural Voice ID
-voice_id = "hy-AM-AnahitNeural" if "Female" in gender else "hy-AM-HaykNeural"
-
-# Speed adjustment
-rate_str = st.select_slider("Speaking Rate", options=["-10%", "-5%", "+0%", "+5%"], value="-5%")
-
-# 2. ASYNC GENERATION FUNCTION
-async def generate_audio(text, voice, rate):
-    communicate = edge_tts.Communicate(text, voice, rate=rate)
-    out_buffer = io.BytesIO()
-    async for chunk in communicate.stream():
-        if chunk["type"] == "audio":
-            out_buffer.write(chunk["data"])
-    return out_buffer.getvalue()
-
-# 3. UI LOGIC
-if st.button("🚀 Generate Neural Audio"):
+if st.button("🚀 Generate Audio"):
     st.session_state.audio_buffer = None
     
-    with st.status("Connecting to Microsoft Neural Cloud...") as status:
+    with st.status("Accessing Google Translate Endpoint...") as status:
         try:
-            # We must run the async function inside Streamlit's sync environment
-            audio_data = asyncio.run(generate_audio(TARGETS[selection], voice_id, rate_str))
+            # 2. THE TOKENIZED REQUEST
+            # gTTS generates a valid 'tk' token, proving we are a legitimate user
+            # This unlocks the 'Preview' voice that the API hides from us
+            tts = gTTS(text=TARGETS[selection], lang='hy', slow=slow_mode)
             
-            st.session_state.audio_buffer = audio_data
-            st.session_state.active_filename = f"{selection}_{'female' if 'Female' in gender else 'male'}.mp3"
-            status.update(label="✅ Success! Neural Audio Generated", state="complete")
+            # Write to memory buffer
+            buf = io.BytesIO()
+            tts.write_to_fp(buf)
+            buf.seek(0)
+            
+            st.session_state.audio_buffer = buf.getvalue()
+            st.session_state.active_filename = f"{selection}.mp3"
+            status.update(label="✅ Success! 'Preview' Voice Captured", state="complete")
             
         except Exception as e:
-            st.error(f"Generation Error: {e}")
+            st.error(f"Generation Failed: {e}")
+            st.caption("Common fix: Wait 1 minute if you clicked too fast (Rate Limit).")
 
-# 4. DOWNLOAD
+# 3. DOWNLOAD
 if "audio_buffer" in st.session_state and st.session_state.audio_buffer:
     st.divider()
     st.write(f"### Ready: {st.session_state.active_filename}")
