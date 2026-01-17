@@ -1,22 +1,22 @@
 import streamlit as st
-from google import genai
-from google.genai import types
-import wave
-import io
+import requests
+import base64
+import json
 
-st.set_page_config(page_title="HyeTutor Surgical 12.1", page_icon="🇦🇲")
-st.title("🇦🇲 Surgical Audio Builder 12.1")
-st.info("Architecture: Stable V1 API | Model: Gemini 2.5 Flash")
+st.set_page_config(page_title="HyeTutor Surgical 14.0", page_icon="🇦🇲")
+st.title("🇦🇲 Surgical Audio Builder 14.0 (Raw REST)")
+st.info("Architecture: Direct HTTP/1.1 over TLS | Endpoint: v1beta")
 
-# 1. API Setup - Corrected for Stable V1 without AttributeError
-# Passing http_options as a dictionary is the SDK-recommended stable path
-client = genai.Client(
-    api_key=st.secrets["GOOGLE_API_KEY"],
-    http_options={'api_version': 'v1'} 
-)
+# 1. Configuration
+# We use the REST endpoint directly to bypass SDK version conflicts
+API_KEY = st.secrets["GOOGLE_API_KEY"]
+MODEL_NAME = "gemini-2.0-flash-exp" # The reliable experimental model for Audio
+URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL_NAME}:generateContent?key={API_KEY}"
 
 if "audio_buffer" not in st.session_state:
     st.session_state.audio_buffer = None
+if "active_filename" not in st.session_state:
+    st.session_state.active_filename = ""
 
 TARGETS = {
     "numbers_11_20": "Տասնըմէկ, Տասնըերկու, Տասնըերեք, Տասնըչորս, Տասնըհինգ, Տասնըվեց, Տասնըեօթը, Տասնըութը, Տասնըինը, Քսան",
@@ -24,41 +24,87 @@ TARGETS = {
     "months_of_the_year": "Յունուար, Փետրուար, Մարտ, Ապրիլ, Մայիս, Յունիս, Յուլիս, Օգոստոս, Սեպտեմբեր, Հոկտեմբեր, Նոյեմբեր, Դեկտեմբեր"
 }
 
-selection = st.selectbox("Select Category", list(TARGETS.keys()))
+selection = st.selectbox("Select Target Category", list(TARGETS.keys()))
+slow_mode = st.toggle("Slow-Motion Mode", value=True)
 
-if st.button("🚀 Generate Audio"):
+if st.button("🚀 Execute Raw Request"):
     st.session_state.audio_buffer = None
-    with st.status("Building via Stable V1...") as status:
+    
+    with st.status("Transmitting Raw JSON Payload...") as status:
+        # Constructing the raw payload manually to ensure exact compliance
+        payload = {
+            "contents": [{
+                "parts": [{
+                    "text": f"Speak the following Western Armenian words {'slowly and clearly' if slow_mode else 'naturally'}: {TARGETS[selection]}"
+                }]
+            }],
+            "generationConfig": {
+                "responseModalities": ["AUDIO"],
+                "speechConfig": {
+                    "voiceConfig": {
+                        "prebuiltVoiceConfig": {
+                            "voiceName": "Puck"
+                        }
+                    }
+                }
+            }
+        }
+        
         try:
-            # Using the stable 2.5-flash which is GA for audio modalities
-            response = client.models.generate_content(
-                model="gemini-2.5-flash", 
-                contents=f"Say these Western Armenian words clearly: {TARGETS[selection]}",
-                config=types.GenerateContentConfig(
-                    response_modalities=["AUDIO"]
-                )
+            # Direct POST request
+            response = requests.post(
+                URL, 
+                headers={"Content-Type": "application/json"},
+                data=json.dumps(payload),
+                timeout=30
             )
             
-            if response.candidates and response.candidates[0].content:
-                audio_part = next((p for p in response.candidates[0].content.parts if p.inline_data), None)
-                
-                if audio_part:
-                    buf = io.BytesIO()
-                    with wave.open(buf, 'wb') as wf:
-                        wf.setnchannels(1); wf.setsampwidth(2); wf.setframerate(24000)
-                        wf.writeframes(audio_part.inline_data.data)
-                    
-                    st.session_state.audio_buffer = buf.getvalue()
-                    status.update(label="✅ Success!", state="complete")
-                else:
-                    st.error("Engine failure: No audio data in stable response.")
+            # Error Handling based on HTTP Status Codes
+            if response.status_code != 200:
+                st.error(f"Server Error ({response.status_code}): {response.text}")
+                status.update(label="❌ Transmission Failed", state="error")
             else:
-                st.error("No response from model. Project may be restricted.")
+                data = response.json()
                 
+                # Manual parsing of the JSON structure
+                try:
+                    candidates = data.get("candidates", [])
+                    if not candidates:
+                        st.error("Protocol Error: No candidates returned.")
+                    else:
+                        parts = candidates[0].get("content", {}).get("parts", [])
+                        audio_data = None
+                        
+                        # Search for the inline_data blob
+                        for part in parts:
+                            if "inlineData" in part:
+                                audio_data = part["inlineData"]["data"]
+                                break
+                        
+                        if audio_data:
+                            # Decode Base64 to Binary
+                            binary_audio = base64.b64decode(audio_data)
+                            st.session_state.audio_buffer = binary_audio
+                            st.session_state.active_filename = f"{selection}.wav"
+                            status.update(label="✅ Payload Received & Decoded", state="complete")
+                        else:
+                            st.error("Logic Error: Model returned text only. Quota or model capability mismatch.")
+                            st.json(data) # Dump the JSON for inspection
+                            
+                except Exception as parse_error:
+                    st.error(f"Parsing Failure: {parse_error}")
+                    st.write(data)
+
         except Exception as e:
-            st.error(f"V1 Execution Error: {e}")
+            st.error(f"Connection Failure: {e}")
 
 if st.session_state.audio_buffer:
     st.divider()
-    st.audio(st.session_state.audio_buffer)
-    st.download_button("💾 DOWNLOAD WAV", st.session_state.audio_buffer, f"{selection}.wav")
+    st.write(f"### Ready: {st.session_state.active_filename}")
+    st.audio(st.session_state.audio_buffer, format="audio/wav")
+    st.download_button(
+        label="💾 SAVE WAV FILE",
+        data=st.session_state.audio_buffer,
+        file_name=st.session_state.active_filename,
+        mime="audio/wav"
+    )
