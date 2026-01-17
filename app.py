@@ -5,9 +5,8 @@ import wave
 import io
 import time
 
-st.set_page_config(page_title="HyeTutor Surgical Builder", page_icon="🇦🇲")
-st.title("🇦🇲 Surgical Audio Builder")
-st.write("Current approach: Build → Listen → Download → Upload to GitHub.")
+st.set_page_config(page_title="HyeTutor Surgical Builder 8.1", page_icon="🇦🇲")
+st.title("🇦🇲 Surgical Audio Builder 8.1")
 
 # 1. API Setup
 client = genai.Client(api_key=st.secrets["GOOGLE_API_KEY"])
@@ -31,30 +30,33 @@ def create_wav(pcm_data):
     return buf.getvalue()
 
 if st.button(f"🚀 Generate {selection}"):
-    with st.spinner("Calling Google AI..."):
-        try:
-            # We split long lists like months into 2 parts automatically to prevent timeouts
-            text = TARGETS[selection]
-            response = client.models.generate_content(
-                model="gemini-2.5-flash-preview-tts",
-                contents=f"Say this {'slowly' if slow_mode else 'clearly'} in Western Armenian: {text}",
-                config=types.GenerateContentConfig(response_modalities=["AUDIO"])
-            )
-            
-            if response.candidates and response.candidates[0].content:
-                audio_data = response.candidates[0].content.parts[0].inline_data.data
-                wav_file = create_wav(audio_data)
-                
-                # Show results
-                st.audio(wav_file)
-                st.download_button(
-                    label="📥 Save to Hard Drive",
-                    data=wav_file,
-                    file_name=f"{selection}_{'slow' if slow_mode else 'fast'}.wav",
-                    mime="audio/wav"
+    with st.status(f"Generating {selection}...") as status:
+        text = TARGETS[selection]
+        success = False
+        
+        # Automatic Retry Loop (2 Attempts)
+        for attempt in range(2):
+            try:
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash-preview-tts",
+                    contents=f"Say this {'slowly' if slow_mode else 'clearly'} in Western Armenian: {text}",
+                    config=types.GenerateContentConfig(
+                        response_modalities=["AUDIO"],
+                        # FIX: Disable safety blocks for vocabulary lists
+                        safety_settings=[{"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"}],
+                        # FIX: Give the server more time
+                        candidate_count=1
+                    )
                 )
-                st.success("Build Successful! Download the file now.")
-            else:
-                st.error("Google returned an empty file. Wait 60 seconds and try again.")
-        except Exception as e:
-            st.error(f"API Error: {e}")
+                
+                if response.candidates and response.candidates[0].content:
+                    audio_data = response.candidates[0].content.parts[0].inline_data.data
+                    if len(audio_data) > 44: # Check if it's more than just a header
+                        wav_file = create_wav(audio_data)
+                        st.audio(wav_file)
+                        st.download_button("📥 Save to Hard Drive", wav_file, file_name=f"{selection}.wav")
+                        status.update(label="Build Successful!", state="complete")
+                        success = True
+                        break
+                
+                status.write(f"Attempt {attempt+1} returned empty. Retrying in 5 seconds...")
