@@ -3,14 +3,13 @@ from google import genai
 from google.genai import types
 import wave
 import io
+import time
 
-st.set_page_config(page_title="HyeTutor Surgical Builder 8.4", page_icon="🇦🇲")
-st.title("🇦🇲 Surgical Audio Builder 8.4")
+st.set_page_config(page_title="HyeTutor Surgical Builder 8.5", page_icon="🇦🇲")
+st.title("🇦🇲 Surgical Audio Builder 8.5")
 
-# 1. API Setup
 client = genai.Client(api_key=st.secrets["GOOGLE_API_KEY"])
 
-# 2. Initialize Session State for the audio file
 if "current_audio" not in st.session_state:
     st.session_state.current_audio = None
 if "current_filename" not in st.session_state:
@@ -33,38 +32,52 @@ def create_wav(pcm_data):
         wf.writeframes(pcm_data)
     return buf.getvalue()
 
-# --- GENERATION LOGIC ---
 if st.button(f"🚀 Generate {selection}"):
-    with st.spinner(f"Requesting {selection} from Google..."):
-        try:
-            response = client.models.generate_content(
-                model="gemini-2.5-flash-preview-tts",
-                contents=f"Say this {'slowly' if slow_mode else 'clearly'} in Western Armenian: {TARGETS[selection]}",
-                config=types.GenerateContentConfig(response_modalities=["AUDIO"])
-            )
-            
-            if response.candidates and response.candidates[0].content:
-                raw_data = response.candidates[0].content.parts[0].inline_data.data
-                # Store the result in Session State so it persists
-                st.session_state.current_audio = create_wav(raw_data)
-                st.session_state.current_filename = f"{selection}_{'slow' if slow_mode else 'fast'}.wav"
-                st.success("Generation Complete! Use the player and button below.")
-            else:
-                st.error("AI returned empty data.")
-        except Exception as e:
-            st.error(f"Build Failed: {e}")
+    with st.status(f"Requesting {selection}...") as status:
+        # STEP 1: Clear previous state
+        st.session_state.current_audio = None
+        
+        # STEP 2: The "Model Cycle" - Try Preview first, then Stable
+        models_to_try = ["gemini-2.5-flash-preview-tts", "gemini-2.5-flash"]
+        
+        for model_choice in models_to_try:
+            try:
+                status.write(f"Testing model: {model_choice}...")
+                response = client.models.generate_content(
+                    model=model_choice,
+                    contents=f"Please speak these words {'slowly' if slow_mode else 'clearly'} in Western Armenian: {TARGETS[selection]}",
+                    config=types.GenerateContentConfig(
+                        response_modalities=["AUDIO"],
+                        safety_settings=[{"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"}]
+                    )
+                )
+                
+                if response.candidates and response.candidates[0].content:
+                    parts = response.candidates[0].content.parts
+                    # Look for the first part that actually contains audio data
+                    audio_part = next((p for p in parts if p.inline_data), None)
+                    
+                    if audio_part and len(audio_part.inline_data.data) > 200:
+                        st.session_state.current_audio = create_wav(audio_part.inline_data.data)
+                        st.session_state.current_filename = f"{selection}_{'slow' if slow_mode else 'fast'}.wav"
+                        status.update(label="✅ Success!", state="complete")
+                        break
+                
+                status.write(f"⚠️ {model_choice} returned empty audio. Trying next model...")
+                time.sleep(2)
+            except Exception as e:
+                status.write(f"❌ {model_choice} failed: {e}")
 
 # --- PERSISTENT UI ---
-# This part stays on the screen as long as current_audio isn't empty
 if st.session_state.current_audio:
     st.divider()
-    st.write(f"### Ready: {st.session_state.current_filename}")
     st.audio(st.session_state.current_audio)
-    
     st.download_button(
-        label="💾 Save to Hard Drive",
+        label="💾 SAVE TO COMPUTER",
         data=st.session_state.current_audio,
         file_name=st.session_state.current_filename,
-        mime="audio/wav",
-        key="download_btn" # Unique key ensures it doesn't vanish
+        mime="audio/wav"
     )
+    st.success(f"File ready for your hard drive: {st.session_state.current_filename}")
+elif not st.session_state.current_audio:
+    st.warning("No file generated yet. Select a category and click 'Generate'.")
