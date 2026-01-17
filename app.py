@@ -1,11 +1,11 @@
 import streamlit as st
-import requests
+import asyncio
+import edge_tts
 import io
-import urllib.parse
 
-st.set_page_config(page_title="HyeTutor Surgical 17.0", page_icon="🇦🇲")
-st.title("🇦🇲 Surgical Audio Builder 17.0 (Google Translate)")
-st.info("Engine: Google Translate (Web Endpoint) | Voice: Armenian (Standard)")
+st.set_page_config(page_title="HyeTutor Dev 16.1", page_icon="🇦🇲")
+st.title("🇦🇲 Surgical Audio Builder 16.1 (Dev Mode)")
+st.info("Engine: Microsoft Edge Neural | Status: Dev Branch")
 
 # 1. DATA
 TARGETS = {
@@ -16,35 +16,40 @@ TARGETS = {
 }
 
 selection = st.selectbox("Select Target Category", list(TARGETS.keys()))
+gender = st.radio("Voice Gender", ["Female (Anahit)", "Male (Hayk)"], index=0)
 
-if st.button("🚀 Fetch Google Translate Audio"):
+# Map selection to the correct Microsoft Neural Voice ID
+voice_id = "hy-AM-AnahitNeural" if "Female" in gender else "hy-AM-HaykNeural"
+
+# Speed adjustment
+rate_str = st.select_slider("Speaking Rate", options=["-10%", "-5%", "+0%", "+5%"], value="-5%")
+
+# 2. ASYNC GENERATION FUNCTION
+async def generate_audio(text, voice, rate):
+    communicate = edge_tts.Communicate(text, voice, rate=rate)
+    out_buffer = io.BytesIO()
+    async for chunk in communicate.stream():
+        if chunk["type"] == "audio":
+            out_buffer.write(chunk["data"])
+    return out_buffer.getvalue()
+
+# 3. UI LOGIC
+if st.button("🚀 Generate Neural Audio"):
     st.session_state.audio_buffer = None
     
-    with st.status("Requesting Audio from Google Translate...") as status:
+    with st.status("Connecting to Microsoft Neural Cloud...") as status:
         try:
-            # 2. THE "BACKDOOR" REQUEST
-            # We hit the internal API used by the Google Translate website
-            text = urllib.parse.quote(TARGETS[selection])
-            url = f"https://translate.google.com/translate_tts?ie=UTF-8&q={text}&tl=hy&client=tw-ob"
+            # We must run the async function inside Streamlit's sync environment
+            audio_data = asyncio.run(generate_audio(TARGETS[selection], voice_id, rate_str))
             
-            # Use standard headers to look like a browser
-            headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-            }
+            st.session_state.audio_buffer = audio_data
+            st.session_state.active_filename = f"{selection}_{'female' if 'Female' in gender else 'male'}.mp3"
+            status.update(label="✅ Success! Neural Audio Generated", state="complete")
             
-            response = requests.get(url, headers=headers, timeout=10)
-            
-            if response.status_code == 200:
-                st.session_state.audio_buffer = response.content
-                st.session_state.active_filename = f"{selection}.mp3"
-                status.update(label="✅ Success! Audio Captured", state="complete")
-            else:
-                st.error(f"Google Refused Connection ({response.status_code})")
-                
         except Exception as e:
-            st.error(f"Connection Error: {e}")
+            st.error(f"Generation Error: {e}")
 
-# 3. DOWNLOAD
+# 4. DOWNLOAD
 if "audio_buffer" in st.session_state and st.session_state.audio_buffer:
     st.divider()
     st.write(f"### Ready: {st.session_state.active_filename}")
