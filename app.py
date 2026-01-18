@@ -22,7 +22,7 @@ st.markdown("""
 # --- 2. HELPER FUNCTIONS ---
 def play_audio(filename):
     # ⚠️ UPDATE THIS LINE with your GitHub details
-    base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/tree/main/audio_library"
+    base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/main/audio_library"
     
     # Logic to handle verbs (which are in a subfolder) vs. regular files
     if "verb_" in filename:
@@ -258,3 +258,4 @@ elif mode == "AI Playground":
                     st.error(f"Speech Error: {audio_response}")
         else:
             st.warning("Please enter text first.")
+
