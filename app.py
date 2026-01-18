@@ -10,52 +10,69 @@ from data import (
     kitchen_data, food_data, furniture_data, animals_data, objects_data
 )
 
-# --- 1. CONFIGURATION & CARD STYLING ---
+# --- 1. CONFIGURATION & BIG CARD STYLING ---
 st.set_page_config(page_title="HyeTutor Dev", page_icon="🇦🇲", layout="wide")
 
 st.markdown("""
     <style>
-    /* 1. THE CARD (The "Box" you asked for) */
+    /* 1. THE CARD CONTAINER */
     div.css-card {
         background-color: #ffffff;
         border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        padding: 10px;
+        border-radius: 12px;           /* Softer corners */
+        padding: 15px;                 /* More internal breathing room */
         text-align: center;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         height: 100%;
         transition: transform 0.1s;
     }
     div.css-card:hover {
         border-color: #007bff;
-        box-shadow: 0 4px 6px rgba(0,123,255,0.1);
+        box-shadow: 0 6px 12px rgba(0,123,255,0.15);
+        transform: translateY(-2px);   /* Slight lift effect */
     }
     
-    /* 2. TEXT STYLES INSIDE CARD */
-    .card-eng { font-size: 14px; color: #555; font-weight: 500; margin-bottom: 2px; }
-    .card-arm { font-size: 18px; color: #0056b3; font-weight: bold; margin-bottom: 2px; }
-    .card-phon { font-size: 12px; color: #888; font-style: italic; margin-bottom: 8px; }
+    /* 2. TYPOGRAPHY (Larger & Bolder) */
+    .card-eng { 
+        font-size: 18px;               /* Was 14px */
+        color: #444; 
+        font-weight: 600; 
+        margin-bottom: 4px; 
+    }
+    .card-arm { 
+        font-size: 26px;               /* Was 18px - Much bigger for Armenian script */
+        color: #0056b3; 
+        font-weight: bold; 
+        margin-bottom: 4px; 
+        line-height: 1.4;
+    }
+    .card-phon { 
+        font-size: 16px;               /* Was 12px */
+        color: #666; 
+        font-style: italic; 
+        margin-bottom: 12px; 
+    }
     
-    /* 3. COMPACT PLAY BUTTON */
+    /* 3. PLAY BUTTON (Larger target) */
     div.stButton > button {
         width: 100%;
-        height: 24px;
-        font-size: 12px;
-        line-height: 1;
-        border-radius: 4px;
+        height: 32px;                  /* Taller for easier clicking */
+        font-size: 14px;
+        font-weight: 500;
+        border-radius: 6px;
         background-color: #f1f3f4;
         border: none;
         color: #333;
+        transition: background 0.2s;
     }
     div.stButton > button:hover {
         background-color: #007bff;
         color: white;
     }
     
-    /* 4. LAYOUT TWEAKS */
-    div.block-container { padding-top: 1rem; padding-bottom: 2rem; }
-    /* Remove default gaps to make the grid tighter */
-    div[data-testid="column"] { padding: 0.2rem; }
+    /* 4. LAYOUT CLEANUP */
+    div.block-container { padding-top: 1rem; padding-bottom: 3rem; }
+    div[data-testid="column"] { padding: 0.5rem; } /* More gap between cards */
     </style>
     """, unsafe_allow_html=True)
 
@@ -69,15 +86,14 @@ def play_audio(filename):
 
 def render_grid_player(data, category_prefix):
     """
-    GRID MODE: Renders items in a 4-column grid (Flashcards).
-    Drastically reduces vertical scrolling.
+    BIG GRID MODE: 3 Columns per row.
     """
     base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/dev/audio_library"
     
-    # Calculate rows needed
-    cols_per_row = 4
+    # ⚠️ UPDATED: Now using 3 items per row for larger cards
+    cols_per_row = 3
     
-    # Batch data into chunks of 4
+    # Batch data
     for i in range(0, len(data), cols_per_row):
         cols = st.columns(cols_per_row)
         batch = data[i:i+cols_per_row]
@@ -90,7 +106,7 @@ def render_grid_player(data, category_prefix):
                 filename = f"{category_prefix}_{safe_eng}"
                 url = f"{base_url}/{filename}.mp3"
                 
-                # Render the Card
+                # Render Card HTML
                 st.markdown(f"""
                 <div class="css-card">
                     <div class="card-eng">{eng}</div>
@@ -99,7 +115,7 @@ def render_grid_player(data, category_prefix):
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Render the Button (outside the HTML div because it's a Streamlit widget)
+                # Render Button
                 if st.button("🔊 Play", key=filename):
                     st.markdown(f'<audio src="{url}" autoplay></audio>', unsafe_allow_html=True)
 
@@ -130,7 +146,7 @@ def vocab_expander(data):
 # --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor")
-    st.caption("v3.7 Grid System")
+    st.caption("v3.8 Big Grid Build")
     st.divider()
     
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools", "🧪 AI Lab"])
