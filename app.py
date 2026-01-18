@@ -24,10 +24,8 @@ def play_audio(filename):
     # ⚠️ POINTING TO DEV BRANCH (Files exist here)
     base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/dev/audio_library"
     
-    if "verb_" in filename:
-        url = f"{base_url}/verbs/{filename}.mp3"
-    else:
-        url = f"{base_url}/{filename}.mp3"
+    # SIMPLIFIED: All files are in the same folder, so we just append .mp3
+    url = f"{base_url}/{filename}.mp3"
     
     st.audio(url, format="audio/mp3")
 
