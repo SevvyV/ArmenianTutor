@@ -17,7 +17,7 @@ st.markdown("""
     <style>
     /* COMPACT BUTTONS - Reduce height and padding */
     div.stButton > button {
-        width: 100%; border-radius: 6px; height: 38px; font-size: 14px;
+        width: 100%; border-radius: 6px; height: 30px; font-size: 14px;
         background-color: #f8f9fa; border: 1px solid #dee2e6;
         margin-top: 0px; padding-top: 0px; padding-bottom: 0px;
     }
@@ -257,4 +257,5 @@ elif module == "AI Playground":
                 audio_response = get_live_speech(armenian_text, voice_choice)
                 if isinstance(audio_response, bytes):
                     st.audio(audio_response, format="audio/mp3")
+
 
