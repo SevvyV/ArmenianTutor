@@ -10,100 +10,104 @@ from data import (
     kitchen_data, food_data, furniture_data, animals_data, objects_data
 )
 
-# --- 1. CONFIGURATION & SUPER COMPACT STYLING ---
+# --- 1. CONFIGURATION & ULTRA-COMPACT STYLING ---
 st.set_page_config(page_title="HyeTutor Dev", page_icon="🇦🇲", layout="wide")
 
 st.markdown("""
     <style>
-    /* 1. COMPACT BUTTONS - Height reduced to 30px */
+    /* 1. BUTTONS: Make them small and tight */
     div.stButton > button {
         width: 100%; 
         border-radius: 4px; 
-        height: 30px; 
-        font-size: 13px;
-        background-color: #f8f9fa; 
-        border: 1px solid #dee2e6;
-        margin-top: 0px; 
-        padding-top: 0px; 
-        padding-bottom: 0px;
+        height: 28px;             /* FORCED HEIGHT */
+        font-size: 14px;
+        background-color: #f0f2f6; 
+        border: 1px solid #d1d5db;
+        margin: 0px; 
+        padding: 0px;
         line-height: 1;
-    }
-    div.stButton > button:hover { border: 1px solid #007bff; color: #007bff; background-color: #fff; }
-    
-    /* 2. REMOVE DEFAULT WIDGET MARGINS */
-    div.stButton { margin-bottom: 0px; }
-    div[data-testid="stMarkdownContainer"] p { margin-bottom: 0px; }
-    
-    /* 3. TIGHTER TEXT ROWS - Height matching buttons */
-    .row-text { 
-        font-size: 17px; 
-        padding-top: 4px; 
-        padding-bottom: 2px; 
-        line-height: 1.2;
         display: flex;
         align-items: center;
-        height: 30px; /* Force text to match button height */
+        justify-content: center;
     }
-    .phonetic { font-size: 15px; color: #666; font-style: italic; padding-top: 4px; }
+    div.stButton > button:hover { 
+        border-color: #007bff; 
+        color: #007bff; 
+        background-color: #fff; 
+    }
     
-    /* 4. ULTRA THIN SEPARATOR */
-    .thin-hr { margin: 0px 0; border: 0; border-top: 1px solid #eaeaea; }
+    /* 2. KILL MARGINS: Remove Streamlit's default whitespace */
+    .stButton { margin-bottom: 0px !important; }
+    div[data-testid="column"] { padding: 0px !important; }
+    div.block-container { padding-top: 1rem; padding-bottom: 3rem; }
     
-    /* 5. REDUCE PAGE PADDING */
-    .block-container { padding-top: 1rem; padding-bottom: 2rem; }
-    div[data-testid="column"] { padding: 0px; }
+    /* 3. ROW TEXT: Align perfectly with the 28px buttons */
+    .row-text { 
+        font-size: 16px; 
+        height: 28px;             /* Match Button Height */
+        display: flex;
+        align-items: center;
+        padding-left: 5px;
+        white-space: nowrap;      /* Prevent text wrapping */
+        overflow: hidden;         /* Clean edges */
+        text-overflow: ellipsis; 
+    }
+    .phonetic { 
+        font-size: 14px; 
+        color: #666; 
+        font-style: italic; 
+    }
+    
+    /* 4. SEPARATOR: Thin grey line */
+    .thin-hr { margin: 2px 0; border: 0; border-top: 1px solid #e5e7eb; }
     </style>
     """, unsafe_allow_html=True)
 
 # --- 2. HELPER FUNCTIONS ---
 
-def play_audio(filename, debug_mode=False):
+def play_audio(filename):
     """
-    Smart Player with Debugging capabilities.
+    Standard player for long files (Lessons/Drills)
     """
     base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/dev/audio_library"
     url = f"{base_url}/{filename}.mp3"
-    
-    try:
-        response = requests.head(url)
-        if response.status_code == 200:
-            st.audio(url, format="audio/mp3")
-        else:
-            st.caption("🔇 Missing")
-            if debug_mode:
-                st.markdown(f"[`Link Check`]({url})")
-    except:
-        st.warning("⚠️ Net Error")
+    st.audio(url, format="audio/mp3")
 
-def vocab_player(data, category_prefix, debug_mode=False):
+def vocab_player_dense(data, category_prefix):
     """
-    Super Compact Active Drill Layout
+    DENSE MODE: Uses Buttons instead of Audio Players to save space.
     """
-    # Header Row
-    c1, c2, c3, c4 = st.columns([2, 2, 2, 1])
-    c1.markdown("**English**")
-    c2.markdown("**Armenian**")
-    c3.markdown("**Phonetic**")
-    c4.markdown("**Play**")
-    st.markdown("<div style='border-bottom: 2px solid #ccc; margin-bottom: 5px;'></div>", unsafe_allow_html=True)
+    # Header
+    c1, c2, c3, c4 = st.columns([3, 3, 3, 1])
+    c1.markdown("<div class='row-text' style='font-weight:bold'>English</div>", unsafe_allow_html=True)
+    c2.markdown("<div class='row-text' style='font-weight:bold'>Armenian</div>", unsafe_allow_html=True)
+    c3.markdown("<div class='row-text' style='font-weight:bold'>Phonetic</div>", unsafe_allow_html=True)
+    c4.markdown("<div class='row-text' style='font-weight:bold; justify-content:center'>Play</div>", unsafe_allow_html=True)
+    st.markdown("<hr style='margin: 0; border-top: 2px solid #bbb;'>", unsafe_allow_html=True)
 
-    # Data Rows
+    # Base URL for ghost player
+    base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/dev/audio_library"
+
+    # Rows
     for eng, arm, phon in data:
-        c1, c2, c3, c4 = st.columns([2, 2, 2, 1])
+        c1, c2, c3, c4 = st.columns([3, 3, 3, 1])
         
-        # Remove Emoji from filename if present (e.g. "🥄 Spoon" -> "spoon")
+        # Clean emoji for filename: "🥄 Spoon" -> "spoon"
         clean_eng_for_file = eng.split(' ')[-1] if ' ' in eng else eng
+        safe_eng = clean_eng_for_file.lower().replace("/", "_").replace(" ", "_")
+        filename = f"{category_prefix}_{safe_eng}"
+        url = f"{base_url}/{filename}.mp3"
         
         c1.markdown(f"<div class='row-text'>{eng}</div>", unsafe_allow_html=True)
-        c2.markdown(f"<div class='row-text' style='color:#0056b3; font-weight:bold;'>{arm}</div>", unsafe_allow_html=True)
+        c2.markdown(f"<div class='row-text' style='color:#0056b3; font-weight:600;'>{arm}</div>", unsafe_allow_html=True)
         c3.markdown(f"<div class='row-text phonetic'>{phon}</div>", unsafe_allow_html=True)
         
         with c4:
-            safe_eng = clean_eng_for_file.lower().replace("/", "_").replace(" ", "_")
-            filename = f"{category_prefix}_{safe_eng}"
-            play_audio(filename, debug_mode)
+            # THE MAGIC: Button + Ghost Audio
+            if st.button("🔊", key=filename):
+                # This HTML plays audio invisibly when button is clicked
+                st.markdown(f'<audio src="{url}" autoplay></audio>', unsafe_allow_html=True)
         
-        # Ultra-thin divider
         st.markdown("<hr class='thin-hr'>", unsafe_allow_html=True)
 
 def get_live_speech(text, voice_name):
@@ -124,7 +128,7 @@ def get_live_speech(text, voice_name):
         return f"CRASH: {str(e)}"
 
 def vocab_expander(data):
-    with st.expander("📖 View Vocabulary"):
+    with st.expander("📖 View Vocabulary List"):
         md_table = "| English | Armenian | Phonetic |\n| :--- | :--- | :--- |\n"
         for eng, arm, phon in data:
             md_table += f"| {eng} | **{arm}** | *{phon}* |\n"
@@ -133,14 +137,10 @@ def vocab_expander(data):
 # --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor")
-    st.caption("v3.4 Density Build")
+    st.caption("v3.5 High Density Build")
     st.divider()
     
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools", "🧪 AI Lab"])
-    
-    # DEBUG TOGGLE
-    st.divider()
-    debug_mode = st.checkbox("🐞 Show Debug Info", value=False, help="Check this to see why audio might be missing.")
     
     module = None
     if nav_category == "📚 Curriculum":
@@ -162,7 +162,7 @@ with st.sidebar:
 
 if module == "Lesson 1: Greetings":
     st.header("👋 Lesson 1: Basic Greetings")
-    play_audio("lesson_01_greetings", debug_mode)
+    play_audio("lesson_01_greetings")
     st.subheader("📝 Vocabulary")
     st.markdown("""| English | Armenian (Western) | Phonetic |
 | :--- | :--- | :--- |
@@ -174,27 +174,27 @@ if module == "Lesson 1: Greetings":
 
 elif module == "Lesson 2: Family":
     st.header("👪 Lesson 2: Family Members")
-    vocab_player(family_data, "family", debug_mode)
+    vocab_player_dense(family_data, "family")
 
 elif module == "Lesson 3: Kitchen":
     st.header("🍴 Lesson 3: Kitchen")
-    vocab_player(kitchen_data, "kitchen", debug_mode)
+    vocab_player_dense(kitchen_data, "kitchen")
 
 elif module == "Lesson 4: Food":
     st.header("🍎 Lesson 4: Food")
-    vocab_player(food_data, "food", debug_mode)
+    vocab_player_dense(food_data, "food")
 
 elif module == "Lesson 5: Furniture":
     st.header("🪑 Lesson 5: Furniture")
-    vocab_player(furniture_data, "furniture", debug_mode)
+    vocab_player_dense(furniture_data, "furniture")
 
 elif module == "Lesson 6: Animals":
     st.header("🐶 Lesson 6: Animals")
-    vocab_player(animals_data, "animals", debug_mode)
+    vocab_player_dense(animals_data, "animals")
 
 elif module == "Lesson 7: Objects":
     st.header("📱 Lesson 7: Objects")
-    vocab_player(objects_data, "objects", debug_mode)
+    vocab_player_dense(objects_data, "objects")
 
 # --- TOOLS ---
 elif module == "Audio Gym":
@@ -203,13 +203,13 @@ elif module == "Audio Gym":
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("📅 Calendar")
-        st.write("**Days of the Week**"); play_audio("drill_days_of_week", debug_mode); vocab_expander(days_data)
-        st.write("**Months of the Year**"); play_audio("drill_months_of_year", debug_mode); vocab_expander(months_data)
+        st.write("**Days of the Week**"); play_audio("drill_days_of_week"); vocab_expander(days_data)
+        st.write("**Months of the Year**"); play_audio("drill_months_of_year"); vocab_expander(months_data)
     with col2:
         st.subheader("🔢 Numbers")
-        st.write("**1 - 10**"); play_audio("drill_numbers_1_10", debug_mode); vocab_expander(nums_1_10_data)
-        st.write("**11 - 20**"); play_audio("drill_numbers_11_20", debug_mode); vocab_expander(nums_11_20_data)
-        st.write("**10 - 100**"); play_audio("drill_tens_10_100", debug_mode); vocab_expander(tens_data)
+        st.write("**1 - 10**"); play_audio("drill_numbers_1_10"); vocab_expander(nums_1_10_data)
+        st.write("**11 - 20**"); play_audio("drill_numbers_11_20"); vocab_expander(nums_11_20_data)
+        st.write("**10 - 100**"); play_audio("drill_tens_10_100"); vocab_expander(tens_data)
 
 elif module == "Verb Center":
     st.header("🏃 Verb Conjugation Center")
@@ -228,7 +228,7 @@ elif module == "Verb Center":
     clean_name = english_label.lower().replace(" ", "_")
     
     st.subheader(f"{english_label} — {active_tense.capitalize()}")
-    play_audio(f"verb_{clean_name}_{active_tense}", debug_mode)
+    play_audio(f"verb_{clean_name}_{active_tense}")
     
     if clean_name in verb_data:
         display_list = verb_data[clean_name][active_tense]
