@@ -10,65 +10,52 @@ from data import (
     kitchen_data, food_data, furniture_data, animals_data, objects_data
 )
 
-# --- 1. CONFIGURATION & SPREADSHEET STYLING ---
+# --- 1. CONFIGURATION & CARD STYLING ---
 st.set_page_config(page_title="HyeTutor Dev", page_icon="🇦🇲", layout="wide")
 
 st.markdown("""
     <style>
-    /* 1. MICRO BUTTONS: Height reduced to 20px */
+    /* 1. THE CARD (The "Box" you asked for) */
+    div.css-card {
+        background-color: #ffffff;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 10px;
+        text-align: center;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        height: 100%;
+        transition: transform 0.1s;
+    }
+    div.css-card:hover {
+        border-color: #007bff;
+        box-shadow: 0 4px 6px rgba(0,123,255,0.1);
+    }
+    
+    /* 2. TEXT STYLES INSIDE CARD */
+    .card-eng { font-size: 14px; color: #555; font-weight: 500; margin-bottom: 2px; }
+    .card-arm { font-size: 18px; color: #0056b3; font-weight: bold; margin-bottom: 2px; }
+    .card-phon { font-size: 12px; color: #888; font-style: italic; margin-bottom: 8px; }
+    
+    /* 3. COMPACT PLAY BUTTON */
     div.stButton > button {
-        width: 100%; 
-        border-radius: 3px; 
-        height: 20px;             /* TARGET HEIGHT: 20px */
-        font-size: 11px;          /* Smaller font for button */
-        background-color: #f8f9fa; 
-        border: 1px solid #d1d5db;
-        margin: 0px; 
-        padding: 0px;
+        width: 100%;
+        height: 24px;
+        font-size: 12px;
         line-height: 1;
-        min-height: 0px !important; /* Override Streamlit minimums */
-    }
-    div.stButton > button:hover { 
-        border-color: #007bff; 
-        color: #007bff; 
-        background-color: #fff; 
-    }
-    
-    /* 2. REMOVE ALL MARGINS */
-    .stButton { margin-bottom: 0px !important; height: 20px !important; }
-    div[data-testid="column"] { padding: 0px !important; }
-    div.block-container { padding-top: 1rem; padding-bottom: 2rem; }
-    
-    /* 3. ROW TEXT: Compact Font (15px) & Height (20px) */
-    .row-text { 
-        font-size: 15px; 
-        height: 20px;             /* Match Button Height */
-        display: flex;
-        align-items: center;
-        padding-left: 4px;
-        white-space: nowrap;      
-        overflow: hidden;         
-        text-overflow: ellipsis; 
-        line-height: 20px;
-    }
-    .phonetic { 
-        font-size: 13px; 
-        color: #777; 
-        font-style: italic; 
-    }
-    
-    /* 4. SEPARATOR: Micro line */
-    .thin-hr { margin: 0px 0; border: 0; border-top: 1px solid #eee; }
-    
-    /* 5. HEADER ADJUSTMENT */
-    .header-text {
-        font-size: 14px;
-        font-weight: bold;
+        border-radius: 4px;
+        background-color: #f1f3f4;
+        border: none;
         color: #333;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding-bottom: 4px;
     }
+    div.stButton > button:hover {
+        background-color: #007bff;
+        color: white;
+    }
+    
+    /* 4. LAYOUT TWEAKS */
+    div.block-container { padding-top: 1rem; padding-bottom: 2rem; }
+    /* Remove default gaps to make the grid tighter */
+    div[data-testid="column"] { padding: 0.2rem; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -80,50 +67,41 @@ def play_audio(filename):
     url = f"{base_url}/{filename}.mp3"
     st.audio(url, format="audio/mp3")
 
-def vocab_player_dense(data, category_prefix):
+def render_grid_player(data, category_prefix):
     """
-    SPREADSHEET MODE:
-    - Uses Spacer Columns to center the table (20% narrower).
-    - Uses 20px rows (35% shorter).
+    GRID MODE: Renders items in a 4-column grid (Flashcards).
+    Drastically reduces vertical scrolling.
     """
+    base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/dev/audio_library"
     
-    # COLUMN RATIO: [Spacer, Eng, Arm, Phon, Play, Spacer]
-    # We use roughly 20% spacers on sides to center the 60% content.
-    col_ratio = [3, 4, 4, 4, 1, 3]
-
-    # --- HEADER ---
-    _, c1, c2, c3, c4, _ = st.columns(col_ratio)
-    c1.markdown("<div class='header-text'>English</div>", unsafe_allow_html=True)
-    c2.markdown("<div class='header-text'>Armenian</div>", unsafe_allow_html=True)
-    c3.markdown("<div class='header-text'>Phonetic</div>", unsafe_allow_html=True)
-    c4.markdown("<div class='header-text' style='text-align:center'>🔊</div>", unsafe_allow_html=True)
+    # Calculate rows needed
+    cols_per_row = 4
     
-    # Use a container to group the rows closely
-    with st.container():
-        st.markdown("<hr style='margin: 0 0 4px 0; border-top: 2px solid #ccc;'>", unsafe_allow_html=True)
-
-        base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/dev/audio_library"
-
-        # --- DATA ROWS ---
-        for eng, arm, phon in data:
-            _, c1, c2, c3, c4, _ = st.columns(col_ratio)
-            
-            clean_eng_for_file = eng.split(' ')[-1] if ' ' in eng else eng
-            safe_eng = clean_eng_for_file.lower().replace("/", "_").replace(" ", "_")
-            filename = f"{category_prefix}_{safe_eng}"
-            url = f"{base_url}/{filename}.mp3"
-            
-            c1.markdown(f"<div class='row-text'>{eng}</div>", unsafe_allow_html=True)
-            c2.markdown(f"<div class='row-text' style='color:#0056b3; font-weight:600;'>{arm}</div>", unsafe_allow_html=True)
-            c3.markdown(f"<div class='row-text phonetic'>{phon}</div>", unsafe_allow_html=True)
-            
-            with c4:
-                # 20px high button
-                if st.button("▶", key=filename):
+    # Batch data into chunks of 4
+    for i in range(0, len(data), cols_per_row):
+        cols = st.columns(cols_per_row)
+        batch = data[i:i+cols_per_row]
+        
+        for j, (eng, arm, phon) in enumerate(batch):
+            with cols[j]:
+                # Prepare filename
+                clean_eng_for_file = eng.split(' ')[-1] if ' ' in eng else eng
+                safe_eng = clean_eng_for_file.lower().replace("/", "_").replace(" ", "_")
+                filename = f"{category_prefix}_{safe_eng}"
+                url = f"{base_url}/{filename}.mp3"
+                
+                # Render the Card
+                st.markdown(f"""
+                <div class="css-card">
+                    <div class="card-eng">{eng}</div>
+                    <div class="card-arm">{arm}</div>
+                    <div class="card-phon">{phon}</div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Render the Button (outside the HTML div because it's a Streamlit widget)
+                if st.button("🔊 Play", key=filename):
                     st.markdown(f'<audio src="{url}" autoplay></audio>', unsafe_allow_html=True)
-            
-            # The Divider
-            st.markdown("<hr class='thin-hr'>", unsafe_allow_html=True)
 
 def get_live_speech(text, voice_name):
     try:
@@ -152,7 +130,7 @@ def vocab_expander(data):
 # --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor")
-    st.caption("v3.6 Spreadsheet Build")
+    st.caption("v3.7 Grid System")
     st.divider()
     
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools", "🧪 AI Lab"])
@@ -189,27 +167,27 @@ if module == "Lesson 1: Greetings":
 
 elif module == "Lesson 2: Family":
     st.header("👪 Lesson 2: Family Members")
-    vocab_player_dense(family_data, "family")
+    render_grid_player(family_data, "family")
 
 elif module == "Lesson 3: Kitchen":
     st.header("🍴 Lesson 3: Kitchen")
-    vocab_player_dense(kitchen_data, "kitchen")
+    render_grid_player(kitchen_data, "kitchen")
 
 elif module == "Lesson 4: Food":
     st.header("🍎 Lesson 4: Food")
-    vocab_player_dense(food_data, "food")
+    render_grid_player(food_data, "food")
 
 elif module == "Lesson 5: Furniture":
     st.header("🪑 Lesson 5: Furniture")
-    vocab_player_dense(furniture_data, "furniture")
+    render_grid_player(furniture_data, "furniture")
 
 elif module == "Lesson 6: Animals":
     st.header("🐶 Lesson 6: Animals")
-    vocab_player_dense(animals_data, "animals")
+    render_grid_player(animals_data, "animals")
 
 elif module == "Lesson 7: Objects":
     st.header("📱 Lesson 7: Objects")
-    vocab_player_dense(objects_data, "objects")
+    render_grid_player(objects_data, "objects")
 
 # --- TOOLS ---
 elif module == "Audio Gym":
