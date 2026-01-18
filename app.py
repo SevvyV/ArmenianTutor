@@ -21,7 +21,7 @@ st.markdown("""
 
 # --- 2. HELPER FUNCTIONS ---
 def play_audio(filename):
-    # ⚠️ CHECK THIS LINE: Ensure your Username and Repo are correct here!
+    # ⚠️ UPDATE THIS LINE with your GitHub details
     base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/tree/main/audio_library"
     
     # Logic to handle verbs (which are in a subfolder) vs. regular files
@@ -135,4 +135,126 @@ verb_list = sorted([
     "To Learn — Սորվիլ (Sorvil)", "To Live — Ապրիլ (Abril)", "To Look — Նայիլ (Nayil)", 
     "To Love — Սիրել (Sirel)", "To Open — Բանալ (Panal)", "To Play — Խաղալ (Khaghal)", 
     "To Put — Դնել (Tnel)", "To Read — Կարդալ (Gartal)", "To Remember — Յիշել (Hishel)", 
-    "To Run — Վազել (Vazel)", "To Say — Ըս
+    "To Run — Վազել (Vazel)", "To Say — Ըսել (Esel)", "To See — Տեսնել (Desnel)", 
+    "To Sell — Ծախել (Dzakhel)", "To Sit — Նստիլ (Nsdel)", "To Sleep — Քնանալ (Knanol)", 
+    "To Speak — Խօսիլ (Khosil)", "To Stand — Կայնիլ (Gaynil)", "To Start — Սկսիլ (Sgsil)", 
+    "To Take — Առնել (Arnel)", "To Think — Մտածել (Mdadzel)", "To Try — Փորձել (Portsel)", 
+    "To Understand — Հասկնալ (Hasknal)", "To Wait — Սպասել (Spasel)", "To Wake Up — Արթննալ (Artnnal)", 
+    "To Walk — Քալել (Kalel)", "To Wash — Լուալ (Lval)", "To Work — Աշխատիլ (Ashkhadil)", 
+    "To Write — Գրել (Krel)"
+])
+
+# --- 4. NAVIGATION ---
+with st.sidebar:
+    st.title("🇦🇲 HyeTutor")
+    mode = st.radio("Navigate:", ["Audio Gym", "Lesson 1: Greetings", "Lesson 2: Family", "Verb Center", "AI Playground"])
+    st.divider()
+    st.caption("Version 2.8 (Dual-Voice Build)")
+
+# --- 5. PAGE LOGIC ---
+
+if mode == "Audio Gym":
+    st.header("🏋️ Audio Gym")
+    st.markdown("Repetition drills for numbers, dates, and time.")
+    st.divider()
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("📅 Calendar")
+        st.write("**Days of the Week**"); play_audio("drill_days_of_week"); vocab_expander(days_data)
+        st.write("**Months of the Year**"); play_audio("drill_months_of_year"); vocab_expander(months_data)
+    with col2:
+        st.subheader("🔢 Numbers")
+        st.write("**1 - 10**"); play_audio("drill_numbers_1_10"); vocab_expander(nums_1_10_data)
+        st.write("**11 - 20**"); play_audio("drill_numbers_11_20"); vocab_expander(nums_11_20_data)
+        st.write("**10 - 100**"); play_audio("drill_tens_10_100"); vocab_expander(tens_data)
+
+elif mode == "Lesson 1: Greetings":
+    st.header("👋 Lesson 1: Basic Greetings")
+    st.divider()
+    play_audio("lesson_01_greetings")
+    st.subheader("📝 Vocabulary")
+    st.markdown("""| English | Armenian (Western) | Phonetic |
+| :--- | :--- | :--- |
+| Hello | **Բարեւ** | *Parev* |
+| How are you? | **Ինչպէ՞ս ես** | *Inchbes es?* |
+| I am well | **Լաւ եմ** | *Lav em* |
+| Thank you | **Շնորհակալ եմ** | *Shnorhagal em* |
+| Goodbye | **Ցտեսութիւն** | *Tsedesutyun* |""")
+
+elif mode == "Lesson 2: Family":
+    st.header("👪 Lesson 2: Family Members")
+    st.divider()
+    play_audio("lesson_02_family") 
+    st.markdown("### Vocabulary")
+    md_table = "| English | Armenian | Phonetic |\n| :--- | :--- | :--- |\n"
+    for eng, arm, phon in family_data:
+        md_table += f"| {eng} | **{arm}** | *{phon}* |\n"
+    st.markdown(md_table)
+
+elif mode == "Verb Center":
+    st.header("🏃 Verb Conjugation Center")
+    if 'current_tense' not in st.session_state: st.session_state.current_tense = 'present'
+    verb_choice = st.selectbox("1. Select a Verb:", verb_list)
+    tcol1, tcol2, tcol3 = st.columns(3)
+    with tcol1: 
+        if st.button("📍 Present"): st.session_state.current_tense = 'present'
+    with tcol2:
+        if st.button("🕰️ Past"): st.session_state.current_tense = 'past'
+    with tcol3:
+        if st.button("🚀 Future"): st.session_state.current_tense = 'future'
+    
+    active_tense = st.session_state.current_tense
+    english_label = verb_choice.split('—')[0].strip()
+    st.subheader(f"{english_label} — {active_tense.capitalize()}")
+    clean_name = english_label.lower().replace(" ", "_")
+    play_audio(f"verb_{clean_name}_{active_tense}")
+    
+    st.markdown('<div class="big-table">', unsafe_allow_html=True)
+    
+    if clean_name in verb_data:
+        display_list = verb_data[clean_name][active_tense]
+        pronouns_eng = ["I", "You", "He/She", "We", "You pl.", "They"]
+        pronouns_arm = ["Ես", "Դուն", "Ան", "Մենք", "Դուք", "Անոնք"]
+        
+        table_html = "| English | Pronoun | Conjugation |\n| :--- | :--- | :--- |\n"
+        for i in range(6):
+            table_html += f"| {pronouns_eng[i]} | **{pronouns_arm[i]}** | {display_list[i]} |\n"
+        st.markdown(table_html)
+    else:
+        st.info("Conjugation text coming soon.")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+elif mode == "AI Playground":
+    st.header("🧪 AI Playground")
+    st.write("Translate and speak phrases in Western Armenian.")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        input_mode = st.radio("Translation Mode:", ["English ➡️ Armenian", "Armenian ➡️ English"])
+    with col2:
+        voice_choice = st.radio("Select Voice:", ["Anahit (Female)", "Hayk (Male)"])
+    
+    user_input = st.text_area("Type your phrase here:", placeholder="Type here...")
+    
+    if st.button("🔊 Translate & Speak"):
+        if user_input:
+            with st.spinner(f"{voice_choice.split(' ')[0]} is thinking..."):
+                if "English ➡️ Armenian" in input_mode:
+                    armenian_text = GoogleTranslator(source='en', target='hy').translate(user_input)
+                    st.markdown(f'<p class="label-font">Armenian Spelling:</p>', unsafe_allow_html=True)
+                    st.markdown(f'<p class="big-font">{armenian_text}</p>', unsafe_allow_html=True)
+                else:
+                    english_text = GoogleTranslator(source='hy', target='en').translate(user_input)
+                    armenian_text = user_input
+                    st.markdown(f'<p class="label-font">English Meaning:</p>', unsafe_allow_html=True)
+                    st.markdown(f'<p class="translation-font">{english_text}</p>', unsafe_allow_html=True)
+                    st.markdown(f'<p class="label-font">Armenian Input:</p>', unsafe_allow_html=True)
+                    st.markdown(f'<p class="big-font">{armenian_text}</p>', unsafe_allow_html=True)
+                
+                audio_response = get_live_speech(armenian_text, voice_choice)
+                if isinstance(audio_response, bytes):
+                    st.audio(audio_response, format="audio/mp3")
+                else:
+                    st.error(f"Speech Error: {audio_response}")
+        else:
+            st.warning("Please enter text first.")
