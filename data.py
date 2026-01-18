@@ -96,3 +96,74 @@ verb_list = sorted([
     "To Walk — Քալել (Kalel)", "To Wash — Լուալ (Lval)", "To Want — Ուզել (Ouzel)", "To Work — Աշխատիլ (Ashkhadil)", 
     "To Write — Գրել (Krel)"
 ])
+# --- NEW LESSONS (v3.1) ---
+
+kitchen_data = [
+    ("Spoon", "Դգալ", "Tkal"), 
+    ("Fork", "Պատառաքաղ", "Badarakagh"), 
+    ("Knife", "Դանակ", "Danag"), 
+    ("Plate", "Պնակ", "Pnag"), 
+    ("Bowl", "Աման", "Aman"), 
+    ("Cup/Mug", "Գաւաթ", "Kavat"), 
+    ("Glass", "Բաժակ", "Pajag"), 
+    ("Napkin", "Անձեռոցիկ", "Antzerotsig"), 
+    ("Pot", "Պտուկ", "Btdoug"), 
+    ("Pan", "Տապակ", "Dabag"),
+    ("Pitcher", "Փարչ", "Parch"),
+    ("Bottle", "Շիշ", "Shish")
+]
+
+food_data = [
+    ("Bread", "Հաց", "Hats"), 
+    ("Water", "Ջուր", "Joor"), 
+    ("Cheese", "Պանիր", "Banir"), 
+    ("Milk", "Կաթ", "Gat"), 
+    ("Coffee", "Սուրճ", "Soorj"), 
+    ("Tea", "Թէյ", "Tey"), 
+    ("Egg", "Հաւկիթ", "Havgit"), 
+    ("Meat", "Միս", "Mis"), 
+    ("Chicken", "Հաւ", "Hav"), 
+    ("Fish", "Ձուկ", "Tzoog"),
+    ("Fruit", "Պտուղ", "Bdoogh"),
+    ("Vegetable", "Բանջարեղէն", "Panchareghen")
+]
+
+furniture_data = [
+    ("Table", "Սեղան", "Seghan"), 
+    ("Chair", "Աթոռ", "Ator"), 
+    ("Sofa", "Բազմոց", "Bazmots"), 
+    ("Bed", "Անկողին", "Angoghin"), 
+    ("Door", "Դուռ", "Toor"), 
+    ("Window", "Պատուհան", "Badouhan"), 
+    ("Lamp", "Լամբ", "Lamp"), 
+    ("Rug/Carpet", "Գորգ", "Kork"), 
+    ("Mirror", "Հայելի", "Hayeli"), 
+    ("Closet", "Պահարան", "Baharan"),
+    ("Stairs", "Սանդուխ", "Sandough")
+]
+
+animals_data = [
+    ("Dog", "Շուն", "Shoon"), 
+    ("Cat", "Կատու", "Gadoo"), 
+    ("Bird", "Թռչուն", "Trchoon"), 
+    ("Horse", "Ձի", "Tzi"), 
+    ("Cow", "Կով", "Gov"), 
+    ("Sheep", "Ոչխար", "Vochkhar"), 
+    ("Chicken", "Հաւ", "Hav"), 
+    ("Mouse", "Մուկ", "Mook"), 
+    ("Bear", "Արջ", "Arch"), 
+    ("Lion", "Առիւծ", "Ariudz")
+]
+
+objects_data = [
+    ("Book", "Գիրք", "Kirk"), 
+    ("Newspaper", "Թերթ", "Tert"), 
+    ("Pen", "Գրիչ", "Krich"), 
+    ("Paper", "Թուղթ", "Tought"), 
+    ("Phone", "Հեռաձայն", "Heratsayn"), 
+    ("Computer", "Համակարգիչ", "Hamakarkich"), 
+    ("Watch/Clock", "Ժամացոյց", "Jamatsouyt"), 
+    ("Glasses", "Ակնոց", "Aknots"), 
+    ("Bag", "Պայուսակ", "Bayousag"), 
+    ("Key", "Բանալի", "Panali")
+]
