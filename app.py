@@ -21,22 +21,31 @@ st.markdown("""
 
 # --- 2. HELPER FUNCTIONS ---
 def play_audio(filename):
-    paths = [f"audio_library/verbs/{filename}.mp3", f"audio_library/{filename}.mp3", f"{filename}.mp3"]
-    for path in paths:
-        if os.path.exists(path):
-            st.audio(path, format="audio/mp3")
-            return
-    st.warning(f"Audio file not found: {filename}.mp3")
+    # ⚠️ UPDATE THIS LINE WITH YOUR GITHUB DETAILS ⚠️
+    "https://github.com/SevvyV/ArmenianTutor/tree/dev/audio_library"
+    base_url = "https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME/main/audio_library"
+    
+    # Logic to handle verbs (which are in a subfolder) vs. regular files
+    if "verb_" in filename:
+        url = f"{base_url}/verbs/{filename}.mp3"
+    else:
+        url = f"{base_url}/{filename}.mp3"
+    
+    st.audio(url, format="audio/mp3")
 
-def get_live_speech(text):
+def get_live_speech(text, voice_name):
     try:
         if "SPEECH_KEY" not in st.secrets: return "MISSING_KEYS"
         key = st.secrets["SPEECH_KEY"]
         region = st.secrets["SPEECH_REGION"]
         speech_config = speechsdk.SpeechConfig(subscription=key, region=region)
-        speech_config.speech_synthesis_voice_name = "hy-AM-AnahitNeural"
+        
+        # Mapping voices: Anahit (Female) or Hayk (Male)
+        voice_map = {"Anahit (Female)": "hy-AM-AnahitNeural", "Hayk (Male)": "hy-AM-HaykNeural"}
+        speech_config.speech_synthesis_voice_name = voice_map.get(voice_name, "hy-AM-AnahitNeural")
+        
         synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=None)
-        ssml = f"<speak version='1.0' xml:lang='hy-AM'><voice name='hy-AM-AnahitNeural'>{text}</voice></speak>"
+        ssml = f"<speak version='1.0' xml:lang='hy-AM'><voice name='{voice_map[voice_name]}'>{text}</voice></speak>"
         result = synthesizer.speak_ssml_async(ssml).get()
         return result.audio_data if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted else f"ERROR: {result.reason}"
     except Exception as e:
@@ -55,6 +64,13 @@ months_data = [("January", "Յունուար", "Hounvar"), ("February", "Փետ�
 nums_1_10_data = [("One", "Մէկ", "Meg"), ("Two", "Երկու", "Yergoo"), ("Three", "Երեք", "Yerek"), ("Four", "Չորս", "Chors"), ("Five", "Հինգ", "Hink"), ("Six", "Վեց", "Vets"), ("Seven", "Եօթը", "Yot"), ("Eight", "Ութը", "Out"), ("Nine", "Ինը", "Ine"), ("Ten", "Տասը", "Dase")]
 nums_11_20_data = [("Eleven", "Տասնըմէկ", "Tasnemeg"), ("Twelve", "Տասնըերկու", "Tasneyergoo"), ("Thirteen", "Տասնըերեք", "Tasneyerek"), ("Fourteen", "Տասնըչորս", "Tasnechors"), ("Fifteen", "Տասնըհինգ", "Tasnehink"), ("Sixteen", "Տասնըվեց", "Tasnevets"), ("Seventeen", "Տասնըեօթը", "Tasneyot"), ("Eighteen", "Տասնըութը", "Tasneout"), ("Nineteen", "Տասնըինը", "Tasneine"), ("Twenty", "Քսան", "Ksan")]
 tens_data = [("Ten", "Տասը", "Dase"), ("Twenty", "Քսան", "Ksan"), ("Thirty", "Երեսուն", "Yeresoun"), ("Forty", "Քառասուն", "Karasoun"), ("Fifty", "Հիսուն", "Hisoun"), ("Sixty", "Վաթսուն", "Vatsoun"), ("Seventy", "Եօթանասուն", "Yotanasoun"), ("Eighty", "Ութսուն", "Outsoun"), ("Ninety", "Իննսուն", "Innesoun"), ("Hundred", "Հարիւր", "Haryur")]
+
+family_data = [
+    ("Father", "Հայրիկ", "Hayrig"), ("Mother", "Մայրիկ", "Mayrig"), 
+    ("Brother", "Եղբայր", "Yeghpayr"), ("Sister", "Քոյր", "Kouyr"), 
+    ("Grandfather", "Մեծ հայր", "Medz hayr"), ("Grandmother", "Մեծ մայր", "Medz mayr"),
+    ("Son", "Տղայ", "Degha"), ("Daughter", "Աղջիկ", "Aghchig")
+]
 
 verb_data = {
     "to_answer": {"present": ["կը պատասխանեմ", "կը պատասխանես", "կը պատասխանէ", "կը պատասխանենք", "կը պատասխանէք", "կը պատասխանեն"], "past": ["պատասխանեցի", "պատասխանեցիր", "պատասխանեց", "պատասխանեցինք", "պատասխանեցիք", "պատասխանեցին"], "future": ["պիտի պատասխանեմ", "պիտի պատասխանես", "պիտի պատասխանէ", "պիտի պատասխանենք", "պիտի պատասխանէք", "պիտի պատասխանեն"]},
@@ -100,130 +116,4 @@ verb_data = {
     "to_think": {"present": ["կը մտածեմ", "կը մտածես", "կը մտածէ", "կը մտածենք", "կը մտածէք", "կը մտածեն"], "past": ["մտածեցի", "մտածեցիր", "մտածեց", "մտածեցինք", "մտածեցիք", "մտածեցին"], "future": ["պիտի մտածեմ", "պիտի մտածես", "պիտի մտածէ", "պիտի մտածենք", "պիտի մտածէք", "պիտի մտածեն"]},
     "to_try": {"present": ["կը փորձեմ", "կը փորձես", "կը փորձէ", "կը փորձենք", "կը փորձէք", "կը փորձեն"], "past": ["փորձեցի", "փորձեցիր", "փորձեց", "փորձեցինք", "փորձեցիք", "փորձեցին"], "future": ["պիտի փորձեմ", "պիտի փորձես", "պիտի փորձէ", "պիտի փորձենք", "պիտի փորձէք", "պիտի փորձեն"]},
     "to_understand": {"present": ["կը հասկնամ", "կը հասկնաս", "կը հասկնայ", "կը հասկնանք", "կը հասկնաք", "կը հասկնան"], "past": ["հասկցայ", "հասկցար", "հասկցաւ", "հասկցանք", "հասկցաք", "հասկցան"], "future": ["պիտի հասկնամ", "պիտի հասկնաս", "պիտի հասկնայ", "պիտի հասկնանք", "պիտի հասկնաք", "պիտի հասկնան"]},
-    "to_wait": {"present": ["կը սպասեմ", "կը սպասես", "կը սպասէ", "կը սպասենք", "կը սպասէք", "կը սպասեն"], "past": ["սպասեցի", "սպասեցիր", "սպասեց", "սպասեցինք", "սպասեցիք", "սպասեցին"], "future": ["պիտի սպասեմ", "պիտի սպասես", "պիտի սպասէ", "պիտի սպասենք", "պիտի սպասէք", "պիտի սպասեն"]},
-    "to_wake_up": {"present": ["կ՚արթննամ", "կ՚արթննաս", "կ՚արթննայ", "կ՚արթննանք", "կ՚արթննաք", "կ՚արթննան"], "past": ["արթնցայ", "արթնցար", "արթնցաւ", "արթնցանք", "արթնցաք", "արթնցան"], "future": ["պիտի արթննամ", "պիտի արթննաս", "պիտի արթննայ", "պիտի արթննանք", "պիտի արթննաք", "պիտի արթննան"]},
-    "to_walk": {"present": ["կը քալեմ", "կը քալես", "կը քալէ", "կը քալենք", "կը քալէք", "կը քալեն"], "past": ["քալեցի", "քալեցիր", "քալեց", "քալեցինք", "քալեցիք", "քալեցին"], "future": ["պիտի քալեմ", "պիտի քալես", "պիտի քալէ", "պիտի քալենք", "պիտի քալէք", "պիտի քալեն"]},
-    "to_wash": {"present": ["կը լուամ", "կը լուաս", "կը լուայ", "կը լուանք", "կը լուաք", "կը լուան"], "past": ["լուացի", "լուացիր", "լուաց", "լուացինք", "լուացիք", "լուացին"], "future": ["պիտի լուամ", "պիտի լուաս", "պիտի լուայ", "պիտի լուանք", "պիտի լուաք", "պիտի լուան"]},
-    "to_work": {"present": ["կ՚աշխատիմ", "կ՚աշխատիս", "կ՚աշխատի", "կ՚աշխատինք", "կ՚աշխատիք", "կ՚աշխատին"], "past": ["աշխատեցայ", "աշխատեցար", "աշխատեցաւ", "աշխատեցանք", "աշխատեցաք", "աշխատեցան"], "future": ["պիտի աշխատիմ", "պիտի աշխատիս", "պիտի աշխատի", "պիտի աշխատինք", "պիտի աշխատիք", "պիտի աշխատին"]},
-    "to_write": {"present": ["կը գրեմ", "կը գրես", "կը գրէ", "կը գրենք", "կը գրէք", "կը գրեն"], "past": ["գրեցի", "գրեցիր", "գրեց", "գրեցինք", "գրեցիք", "գրեցին"], "future": ["պիտի գրեմ", "պիտի գրես", "պիտի գրէ", "պիտի գրենք", "պիտի գրէք", "պիտի գրեն"]},
-    "to_want": {"present": ["կ՚ուզեմ", "կ՚ուզես", "կ՚ուզէ", "կ՚ուզենք", "կ՚ուզէք", "կ՚ուզեն"], "past": ["ուզեցի", "ուզեցիր", "ուզեց", "ուզեցինք", "ուզեցիք", "ուզեցին"], "future": ["պիտի ուզեմ", "պիտի ուզես", "պիտի ուզէ", "պիտի ուզենք", "պիտի ուզէք", "պիտի ուզեն"]}
-}
-
-verb_list = sorted([
-    "To Answer — Պատասխանել (Badaskhanel)", "To Ask — Հարցնել (Hartsnel)", "To Be — Ըլլալ (Eellal)", 
-    "To Bring — Բերել (Perel)", "To Buy — Գնել (Knel)", "To Call — Կանչել (Ganchel)", 
-    "To Clean — Մաքրել (Makrel)", "To Close — Գոցել (Kotsel)", "To Come — Գալ (Kal)", 
-    "To Cook — Եփել (Epel)", "To Do — Ընել (Enel)", "To Drink — Խմել (Khmel)", 
-    "To Eat — Ուտել (Oudel)", "To Finish — Վերջացնել (Verchatsnel)", "To Forget — Մոռնալ (Mornal)", 
-    "To Give — Տալ (Dal)", "To Go — Երթալ (Yertal)", "To Have — Ունենալ (Ounenal)", 
-    "To Hear — Լսել (Lsel)", "To Help — Օգնել (Okne)", "To Know — Գիտնալ (Kidenal)", 
-    "To Learn — Սորվիլ (Sorvil)", "To Live — Ապրիլ (Abril)", "To Look — Նայիլ (Nayil)", 
-    "To Love — Սիրել (Sirel)", "To Open — Բանալ (Panal)", "To Play — Խաղալ (Khaghal)", 
-    "To Put — Դնել (Tnel)", "To Read — Կարդալ (Gartal)", "To Remember — Յիշել (Hishel)", 
-    "To Run — Վազել (Vazel)", "To Say — Ըսել (Esel)", "To See — Տեսնել (Desnel)", 
-    "To Sell — Ծախել (Dzakhel)", "To Sit — Նստիլ (Nsdel)", "To Sleep — Քնանալ (Knanol)", 
-    "To Speak — Խօսիլ (Khosil)", "To Stand — Կայնիլ (Gaynil)", "To Start — Սկսիլ (Sgsil)", 
-    "To Take — Առնել (Arnel)", "To Think — Մտածել (Mdadzel)", "To Try — Փորձել (Portsel)", 
-    "To Understand — Հասկնալ (Hasknal)", "To Wait — Սպասել (Spasel)", "To Wake Up — Արթննալ (Artnnal)", 
-    "To Walk — Քալել (Kalel)", "To Wash — Լուալ (Lval)", "To Work — Աշխատիլ (Ashkhadil)", 
-    "To Write — Գրել (Krel)"
-])
-
-# --- 4. NAVIGATION ---
-with st.sidebar:
-    st.title("🇦🇲 HyeTutor")
-    mode = st.radio("Navigate:", ["Audio Gym", "Lesson 1: Greetings", "Verb Center", "AI Playground"])
-    st.divider()
-    st.caption("Version 2.7 (Master Build)")
-
-# --- 5. PAGE LOGIC ---
-
-if mode == "Audio Gym":
-    st.header("🏋️ Audio Gym")
-    st.markdown("Repetition drills for numbers, dates, and time.")
-    st.divider()
-    col1, col2 = st.columns(2)
-    with col1:
-        st.subheader("📅 Calendar")
-        st.write("**Days of the Week**"); play_audio("drill_days_of_week"); vocab_expander(days_data)
-        st.write("**Months of the Year**"); play_audio("drill_months_of_year"); vocab_expander(months_data)
-    with col2:
-        st.subheader("🔢 Numbers")
-        st.write("**1 - 10**"); play_audio("drill_numbers_1_10"); vocab_expander(nums_1_10_data)
-        st.write("**11 - 20**"); play_audio("drill_numbers_11_20"); vocab_expander(nums_11_20_data)
-        st.write("**10 - 100**"); play_audio("drill_tens_10_100"); vocab_expander(tens_data)
-
-elif mode == "Lesson 1: Greetings":
-    st.header("👋 Lesson 1: Basic Greetings")
-    st.divider()
-    play_audio("lesson_01_greetings")
-    st.subheader("📝 Vocabulary")
-    st.markdown("""| English | Armenian (Western) | Phonetic |
-| :--- | :--- | :--- |
-| Hello | **Բարեւ** | *Parev* |
-| How are you? | **Ինչպէ՞ս ես** | *Inchbes es?* |
-| I am well | **Լաւ եմ** | *Lav em* |
-| Thank you | **Շնորհակալ եմ** | *Shnorhagal em* |
-| Goodbye | **Ցտեսութիւն** | *Tsedesutyun* |""")
-
-elif mode == "Verb Center":
-    st.header("🏃 Verb Conjugation Center")
-    if 'current_tense' not in st.session_state: st.session_state.current_tense = 'present'
-    verb_choice = st.selectbox("1. Select a Verb:", verb_list)
-    tcol1, tcol2, tcol3 = st.columns(3)
-    with tcol1: 
-        if st.button("📍 Present"): st.session_state.current_tense = 'present'
-    with tcol2:
-        if st.button("🕰️ Past"): st.session_state.current_tense = 'past'
-    with tcol3:
-        if st.button("🚀 Future"): st.session_state.current_tense = 'future'
-    
-    active_tense = st.session_state.current_tense
-    english_label = verb_choice.split('—')[0].strip()
-    st.subheader(f"{english_label} — {active_tense.capitalize()}")
-    clean_name = english_label.lower().replace(" ", "_")
-    play_audio(f"verb_{clean_name}_{active_tense}")
-    
-    st.markdown('<div class="big-table">', unsafe_allow_html=True)
-    
-    if clean_name in verb_data:
-        display_list = verb_data[clean_name][active_tense]
-        pronouns_eng = ["I", "You", "He/She", "We", "You pl.", "They"]
-        pronouns_arm = ["Ես", "Դուն", "Ան", "Մենք", "Դուք", "Անոնք"]
-        
-        table_html = "| English | Pronoun | Conjugation |\n| :--- | :--- | :--- |\n"
-        for i in range(6):
-            table_html += f"| {pronouns_eng[i]} | **{pronouns_arm[i]}** | {display_list[i]} |\n"
-        st.markdown(table_html)
-    else:
-        st.info("Conjugation text coming soon.")
-    st.markdown('</div>', unsafe_allow_html=True)
-
-elif mode == "AI Playground":
-    st.header("🧪 AI Playground")
-    st.write("Translate and speak phrases in Western Armenian.")
-    input_mode = st.radio("Select Translation Mode:", ["English ➡️ Armenian", "Armenian ➡️ English"], horizontal=True)
-    user_input = st.text_area("Type your phrase here:", placeholder="Type here...")
-    
-    if st.button("🔊 Translate & Speak"):
-        if user_input:
-            with st.spinner("Anahit is thinking..."):
-                if "English ➡️ Armenian" in input_mode:
-                    armenian_text = GoogleTranslator(source='en', target='hy').translate(user_input)
-                    st.markdown(f'<p class="label-font">Armenian Spelling:</p>', unsafe_allow_html=True)
-                    st.markdown(f'<p class="big-font">{armenian_text}</p>', unsafe_allow_html=True)
-                else:
-                    english_text = GoogleTranslator(source='hy', target='en').translate(user_input)
-                    armenian_text = user_input
-                    st.markdown(f'<p class="label-font">English Meaning:</p>', unsafe_allow_html=True)
-                    st.markdown(f'<p class="translation-font">{english_text}</p>', unsafe_allow_html=True)
-                    st.markdown(f'<p class="label-font">Armenian Input:</p>', unsafe_allow_html=True)
-                    st.markdown(f'<p class="big-font">{armenian_text}</p>', unsafe_allow_html=True)
-                
-                audio_response = get_live_speech(armenian_text)
-                if isinstance(audio_response, bytes):
-                    st.audio(audio_response, format="audio/mp3")
-                else:
-                    st.error(f"Speech Error: {audio_response}")
-        else:
-            st.warning("Please enter text first.")
+    "to_wait": {"present": ["կը սպասեմ", "կը սպասես", "կը սպասէ", "կը սպասենք", "կը սպասէք", "կը ս
