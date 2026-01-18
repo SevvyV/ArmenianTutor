@@ -10,37 +10,47 @@ from data import (
     kitchen_data, food_data, furniture_data, animals_data, objects_data
 )
 
-# --- 1. CONFIGURATION & COMPACT STYLING ---
+# --- 1. CONFIGURATION & SUPER COMPACT STYLING ---
 st.set_page_config(page_title="HyeTutor Dev", page_icon="🇦🇲", layout="wide")
 
 st.markdown("""
     <style>
-    /* COMPACT BUTTONS - Reduce height and padding */
+    /* 1. COMPACT BUTTONS - Height reduced to 30px */
     div.stButton > button {
-        width: 100%; border-radius: 6px; height: 30px; font-size: 14px;
-        background-color: #f8f9fa; border: 1px solid #dee2e6;
-        margin-top: 0px; padding-top: 0px; padding-bottom: 0px;
+        width: 100%; 
+        border-radius: 4px; 
+        height: 30px; 
+        font-size: 13px;
+        background-color: #f8f9fa; 
+        border: 1px solid #dee2e6;
+        margin-top: 0px; 
+        padding-top: 0px; 
+        padding-bottom: 0px;
+        line-height: 1;
     }
     div.stButton > button:hover { border: 1px solid #007bff; color: #007bff; background-color: #fff; }
     
-    /* TIGHTER TEXT ROWS */
+    /* 2. REMOVE DEFAULT WIDGET MARGINS */
+    div.stButton { margin-bottom: 0px; }
+    div[data-testid="stMarkdownContainer"] p { margin-bottom: 0px; }
+    
+    /* 3. TIGHTER TEXT ROWS - Height matching buttons */
     .row-text { 
-        font-size: 18px; 
-        padding-top: 2px; 
+        font-size: 17px; 
+        padding-top: 4px; 
         padding-bottom: 2px; 
-        line-height: 1.4;
+        line-height: 1.2;
         display: flex;
         align-items: center;
+        height: 30px; /* Force text to match button height */
     }
-    .phonetic { font-size: 16px; color: #666; font-style: italic; padding-top: 8px; }
+    .phonetic { font-size: 15px; color: #666; font-style: italic; padding-top: 4px; }
     
-    /* CUSTOM THIN SEPARATOR */
-    .thin-hr { margin: 2px 0; border: 0; border-top: 1px solid #f0f0f0; }
+    /* 4. ULTRA THIN SEPARATOR */
+    .thin-hr { margin: 0px 0; border: 0; border-top: 1px solid #eaeaea; }
     
-    /* REDUCE BLOCK PADDING */
+    /* 5. REDUCE PAGE PADDING */
     .block-container { padding-top: 1rem; padding-bottom: 2rem; }
-    
-    /* HIDE STREAMLIT DEFAULT PADDING ON COLUMNS */
     div[data-testid="column"] { padding: 0px; }
     </style>
     """, unsafe_allow_html=True)
@@ -51,7 +61,6 @@ def play_audio(filename, debug_mode=False):
     """
     Smart Player with Debugging capabilities.
     """
-    # ⚠️ CHECK THIS PATH: Did you upload files directly or inside a folder?
     base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/dev/audio_library"
     url = f"{base_url}/{filename}.mp3"
     
@@ -68,7 +77,7 @@ def play_audio(filename, debug_mode=False):
 
 def vocab_player(data, category_prefix, debug_mode=False):
     """
-    Compact Active Drill Layout
+    Super Compact Active Drill Layout
     """
     # Header Row
     c1, c2, c3, c4 = st.columns([2, 2, 2, 1])
@@ -76,14 +85,13 @@ def vocab_player(data, category_prefix, debug_mode=False):
     c2.markdown("**Armenian**")
     c3.markdown("**Phonetic**")
     c4.markdown("**Play**")
-    st.markdown("<div style='border-bottom: 2px solid #ccc; margin-bottom: 10px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='border-bottom: 2px solid #ccc; margin-bottom: 5px;'></div>", unsafe_allow_html=True)
 
     # Data Rows
     for eng, arm, phon in data:
         c1, c2, c3, c4 = st.columns([2, 2, 2, 1])
         
         # Remove Emoji from filename if present (e.g. "🥄 Spoon" -> "spoon")
-        # We split by space and take the last part if there's an emoji
         clean_eng_for_file = eng.split(' ')[-1] if ' ' in eng else eng
         
         c1.markdown(f"<div class='row-text'>{eng}</div>", unsafe_allow_html=True)
@@ -95,7 +103,7 @@ def vocab_player(data, category_prefix, debug_mode=False):
             filename = f"{category_prefix}_{safe_eng}"
             play_audio(filename, debug_mode)
         
-        # Ultra-thin divider (CSS) instead of st.divider()
+        # Ultra-thin divider
         st.markdown("<hr class='thin-hr'>", unsafe_allow_html=True)
 
 def get_live_speech(text, voice_name):
@@ -125,7 +133,7 @@ def vocab_expander(data):
 # --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor")
-    st.caption("v3.3 Compact Build")
+    st.caption("v3.4 Density Build")
     st.divider()
     
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools", "🧪 AI Lab"])
@@ -257,6 +265,3 @@ elif module == "AI Playground":
                 audio_response = get_live_speech(armenian_text, voice_choice)
                 if isinstance(audio_response, bytes):
                     st.audio(audio_response, format="audio/mp3")
-
-
-
