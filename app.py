@@ -21,8 +21,8 @@ st.markdown("""
 
 # --- 2. HELPER FUNCTIONS ---
 def play_audio(filename):
-    # ⚠️ UPDATE THIS LINE with your GitHub details
-    base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/main/audio_library"
+    # 🛠️ AUDIO FIX: Pointing to 'dev' branch where we know files exist
+    base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/dev/audio_library"
     
     # Logic to handle verbs (which are in a subfolder) vs. regular files
     if "verb_" in filename:
@@ -130,6 +130,7 @@ verb_data = {
     "to_want": {"present": ["կ՚ուզեմ", "կ՚ուզես", "կ՚ուզէ", "կ՚ուզենք", "կ՚ուզէք", "կ՚ուզեն"], "past": ["ուզեցի", "ուզեցիր", "ուզեց", "ուզեցինք", "ուզեցիք", "ուզեցին"], "future": ["պիտի ուզեմ", "պիտի ուզես", "պիտի ուզէ", "պիտի ուզենք", "պիտի ուզէք", "պիտի ուզեն"]},
     "to_write": {"present": ["կը գրեմ", "կը գրես", "կը գրէ", "կը գրենք", "կը գրէք", "կը գրեն"], "past": ["գրեցի", "գրեցիր", "գրեց", "գրեցինք", "գրեցիք", "գրեցին"], "future": ["պիտի գրեմ", "պիտի գրես", "պիտի գրէ", "պիտի գրենք", "պիտի գրէք", "պիտի գրեն"]}
 }
+
 verb_list = sorted([
     "To Answer — Պատասխանել (Badaskhanel)", "To Ask — Հարցնել (Hartsnel)", "To Be — Ըլլալ (Eellal)", 
     "To Bring — Բերել (Perel)", "To Buy — Գնել (Knel)", "To Call — Կանչել (Ganchel)", 
@@ -210,7 +211,8 @@ elif mode == "Verb Center":
         if st.button("🚀 Future"): st.session_state.current_tense = 'future'
     
     active_tense = st.session_state.current_tense
-    english_label = verb_choice.split('—')[0].strip()
+    # 🛠️ ROBUST SPLIT: Handles Em Dash (—) AND Hyphen ( - ) just in case
+    english_label = verb_choice.split('—')[0].split(' - ')[0].strip()
     st.subheader(f"{english_label} — {active_tense.capitalize()}")
     clean_name = english_label.lower().replace(" ", "_")
     play_audio(f"verb_{clean_name}_{active_tense}")
@@ -227,7 +229,7 @@ elif mode == "Verb Center":
             table_html += f"| {pronouns_eng[i]} | **{pronouns_arm[i]}** | {display_list[i]} |\n"
         st.markdown(table_html)
     else:
-        st.info("Conjugation text coming soon.")
+        st.info(f"Conjugation text coming soon for: {clean_name}")
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif mode == "AI Playground":
@@ -264,7 +266,3 @@ elif mode == "AI Playground":
                     st.error(f"Speech Error: {audio_response}")
         else:
             st.warning("Please enter text first.")
-
-
-
-
