@@ -27,7 +27,7 @@ st.markdown("""
     .row-text { 
         font-size: 18px; 
         padding-top: 6px; 
-        padding-bottom: 6px; 
+        padding-bottom: 2px; 
         line-height: 1.4;
         display: flex;
         align-items: center;
@@ -257,3 +257,4 @@ elif module == "AI Playground":
                 audio_response = get_live_speech(armenian_text, voice_choice)
                 if isinstance(audio_response, bytes):
                     st.audio(audio_response, format="audio/mp3")
+
