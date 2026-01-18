@@ -10,25 +10,23 @@ from data import (
     kitchen_data, food_data, furniture_data, animals_data, objects_data
 )
 
-# --- 1. CONFIGURATION & ULTRA-COMPACT STYLING ---
+# --- 1. CONFIGURATION & SPREADSHEET STYLING ---
 st.set_page_config(page_title="HyeTutor Dev", page_icon="🇦🇲", layout="wide")
 
 st.markdown("""
     <style>
-    /* 1. BUTTONS: Make them small and tight */
+    /* 1. MICRO BUTTONS: Height reduced to 20px */
     div.stButton > button {
         width: 100%; 
-        border-radius: 4px; 
-        height: 28px;             /* FORCED HEIGHT */
-        font-size: 14px;
-        background-color: #f0f2f6; 
+        border-radius: 3px; 
+        height: 20px;             /* TARGET HEIGHT: 20px */
+        font-size: 11px;          /* Smaller font for button */
+        background-color: #f8f9fa; 
         border: 1px solid #d1d5db;
         margin: 0px; 
         padding: 0px;
         line-height: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        min-height: 0px !important; /* Override Streamlit minimums */
     }
     div.stButton > button:hover { 
         border-color: #007bff; 
@@ -36,79 +34,96 @@ st.markdown("""
         background-color: #fff; 
     }
     
-    /* 2. KILL MARGINS: Remove Streamlit's default whitespace */
-    .stButton { margin-bottom: 0px !important; }
+    /* 2. REMOVE ALL MARGINS */
+    .stButton { margin-bottom: 0px !important; height: 20px !important; }
     div[data-testid="column"] { padding: 0px !important; }
-    div.block-container { padding-top: 1rem; padding-bottom: 3rem; }
+    div.block-container { padding-top: 1rem; padding-bottom: 2rem; }
     
-    /* 3. ROW TEXT: Align perfectly with the 28px buttons */
+    /* 3. ROW TEXT: Compact Font (15px) & Height (20px) */
     .row-text { 
-        font-size: 16px; 
-        height: 28px;             /* Match Button Height */
+        font-size: 15px; 
+        height: 20px;             /* Match Button Height */
         display: flex;
         align-items: center;
-        padding-left: 5px;
-        white-space: nowrap;      /* Prevent text wrapping */
-        overflow: hidden;         /* Clean edges */
+        padding-left: 4px;
+        white-space: nowrap;      
+        overflow: hidden;         
         text-overflow: ellipsis; 
+        line-height: 20px;
     }
     .phonetic { 
-        font-size: 14px; 
-        color: #666; 
+        font-size: 13px; 
+        color: #777; 
         font-style: italic; 
     }
     
-    /* 4. SEPARATOR: Thin grey line */
-    .thin-hr { margin: 2px 0; border: 0; border-top: 1px solid #e5e7eb; }
+    /* 4. SEPARATOR: Micro line */
+    .thin-hr { margin: 0px 0; border: 0; border-top: 1px solid #eee; }
+    
+    /* 5. HEADER ADJUSTMENT */
+    .header-text {
+        font-size: 14px;
+        font-weight: bold;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding-bottom: 4px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
 # --- 2. HELPER FUNCTIONS ---
 
 def play_audio(filename):
-    """
-    Standard player for long files (Lessons/Drills)
-    """
+    """ Standard player for drills """
     base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/dev/audio_library"
     url = f"{base_url}/{filename}.mp3"
     st.audio(url, format="audio/mp3")
 
 def vocab_player_dense(data, category_prefix):
     """
-    DENSE MODE: Uses Buttons instead of Audio Players to save space.
+    SPREADSHEET MODE:
+    - Uses Spacer Columns to center the table (20% narrower).
+    - Uses 20px rows (35% shorter).
     """
-    # Header
-    c1, c2, c3, c4 = st.columns([3, 3, 3, 1])
-    c1.markdown("<div class='row-text' style='font-weight:bold'>English</div>", unsafe_allow_html=True)
-    c2.markdown("<div class='row-text' style='font-weight:bold'>Armenian</div>", unsafe_allow_html=True)
-    c3.markdown("<div class='row-text' style='font-weight:bold'>Phonetic</div>", unsafe_allow_html=True)
-    c4.markdown("<div class='row-text' style='font-weight:bold; justify-content:center'>Play</div>", unsafe_allow_html=True)
-    st.markdown("<hr style='margin: 0; border-top: 2px solid #bbb;'>", unsafe_allow_html=True)
+    
+    # COLUMN RATIO: [Spacer, Eng, Arm, Phon, Play, Spacer]
+    # We use roughly 20% spacers on sides to center the 60% content.
+    col_ratio = [3, 4, 4, 4, 1, 3]
 
-    # Base URL for ghost player
-    base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/dev/audio_library"
+    # --- HEADER ---
+    _, c1, c2, c3, c4, _ = st.columns(col_ratio)
+    c1.markdown("<div class='header-text'>English</div>", unsafe_allow_html=True)
+    c2.markdown("<div class='header-text'>Armenian</div>", unsafe_allow_html=True)
+    c3.markdown("<div class='header-text'>Phonetic</div>", unsafe_allow_html=True)
+    c4.markdown("<div class='header-text' style='text-align:center'>🔊</div>", unsafe_allow_html=True)
+    
+    # Use a container to group the rows closely
+    with st.container():
+        st.markdown("<hr style='margin: 0 0 4px 0; border-top: 2px solid #ccc;'>", unsafe_allow_html=True)
 
-    # Rows
-    for eng, arm, phon in data:
-        c1, c2, c3, c4 = st.columns([3, 3, 3, 1])
-        
-        # Clean emoji for filename: "🥄 Spoon" -> "spoon"
-        clean_eng_for_file = eng.split(' ')[-1] if ' ' in eng else eng
-        safe_eng = clean_eng_for_file.lower().replace("/", "_").replace(" ", "_")
-        filename = f"{category_prefix}_{safe_eng}"
-        url = f"{base_url}/{filename}.mp3"
-        
-        c1.markdown(f"<div class='row-text'>{eng}</div>", unsafe_allow_html=True)
-        c2.markdown(f"<div class='row-text' style='color:#0056b3; font-weight:600;'>{arm}</div>", unsafe_allow_html=True)
-        c3.markdown(f"<div class='row-text phonetic'>{phon}</div>", unsafe_allow_html=True)
-        
-        with c4:
-            # THE MAGIC: Button + Ghost Audio
-            if st.button("🔊", key=filename):
-                # This HTML plays audio invisibly when button is clicked
-                st.markdown(f'<audio src="{url}" autoplay></audio>', unsafe_allow_html=True)
-        
-        st.markdown("<hr class='thin-hr'>", unsafe_allow_html=True)
+        base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/dev/audio_library"
+
+        # --- DATA ROWS ---
+        for eng, arm, phon in data:
+            _, c1, c2, c3, c4, _ = st.columns(col_ratio)
+            
+            clean_eng_for_file = eng.split(' ')[-1] if ' ' in eng else eng
+            safe_eng = clean_eng_for_file.lower().replace("/", "_").replace(" ", "_")
+            filename = f"{category_prefix}_{safe_eng}"
+            url = f"{base_url}/{filename}.mp3"
+            
+            c1.markdown(f"<div class='row-text'>{eng}</div>", unsafe_allow_html=True)
+            c2.markdown(f"<div class='row-text' style='color:#0056b3; font-weight:600;'>{arm}</div>", unsafe_allow_html=True)
+            c3.markdown(f"<div class='row-text phonetic'>{phon}</div>", unsafe_allow_html=True)
+            
+            with c4:
+                # 20px high button
+                if st.button("▶", key=filename):
+                    st.markdown(f'<audio src="{url}" autoplay></audio>', unsafe_allow_html=True)
+            
+            # The Divider
+            st.markdown("<hr class='thin-hr'>", unsafe_allow_html=True)
 
 def get_live_speech(text, voice_name):
     try:
@@ -137,7 +152,7 @@ def vocab_expander(data):
 # --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor")
-    st.caption("v3.5 High Density Build")
+    st.caption("v3.6 Spreadsheet Build")
     st.divider()
     
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools", "🧪 AI Lab"])
@@ -199,7 +214,6 @@ elif module == "Lesson 7: Objects":
 # --- TOOLS ---
 elif module == "Audio Gym":
     st.header("🏋️ Audio Gym")
-    st.markdown("Repetition drills for numbers, dates, and time.")
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("📅 Calendar")
