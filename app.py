@@ -3,80 +3,121 @@ import azure.cognitiveservices.speech as speechsdk
 from deep_translator import GoogleTranslator
 import requests
 
-# 👇 IMPORT YOUR DATA (Ensure data.py is updated first!)
+# 👇 IMPORT DATA
 from data import (
     days_data, months_data, nums_1_10_data, nums_11_20_data, tens_data, 
     family_data, verb_data, verb_list,
-    # New Lists
     kitchen_data, food_data, furniture_data, animals_data, objects_data
 )
 
-# --- 1. CONFIGURATION & STYLING ---
+# --- 1. CONFIGURATION & BIG CARD STYLING ---
 st.set_page_config(page_title="HyeTutor Dev", page_icon="🇦🇲", layout="wide")
 
 st.markdown("""
     <style>
-    div.stButton > button {
-        width: 100%; border-radius: 5px; height: 3em; background-color: #ffffff; border: 1px solid #d1d3d8;
+    /* 1. THE CARD CONTAINER */
+    div.css-card {
+        background-color: #ffffff;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;           /* Softer corners */
+        padding: 15px;                 /* More internal breathing room */
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        height: 100%;
+        transition: transform 0.1s;
     }
-    div.stButton > button:hover { border: 1px solid #007bff; color: #007bff; }
-    .big-font { font-size: 32px !important; line-height: 1.6; color: #007bff; font-weight: bold; }
-    .label-font { font-size: 18px; color: #666; }
-    .translation-font { font-size: 24px; color: #28a745; font-style: italic; }
-    .row-text { font-size: 20px; padding-top: 10px; }
-    .big-table { font-size: 24px !important; }
+    div.css-card:hover {
+        border-color: #007bff;
+        box-shadow: 0 6px 12px rgba(0,123,255,0.15);
+        transform: translateY(-2px);   /* Slight lift effect */
+    }
+    
+    /* 2. TYPOGRAPHY (Larger & Bolder) */
+    .card-eng { 
+        font-size: 18px;               /* Was 14px */
+        color: #444; 
+        font-weight: 600; 
+        margin-bottom: 4px; 
+    }
+    .card-arm { 
+        font-size: 26px;               /* Was 18px - Much bigger for Armenian script */
+        color: #0056b3; 
+        font-weight: bold; 
+        margin-bottom: 4px; 
+        line-height: 1.4;
+    }
+    .card-phon { 
+        font-size: 16px;               /* Was 12px */
+        color: #666; 
+        font-style: italic; 
+        margin-bottom: 12px; 
+    }
+    
+    /* 3. PLAY BUTTON (Larger target) */
+    div.stButton > button {
+        width: 100%;
+        height: 32px;                  /* Taller for easier clicking */
+        font-size: 14px;
+        font-weight: 500;
+        border-radius: 6px;
+        background-color: #f1f3f4;
+        border: none;
+        color: #333;
+        transition: background 0.2s;
+    }
+    div.stButton > button:hover {
+        background-color: #007bff;
+        color: white;
+    }
+    
+    /* 4. LAYOUT CLEANUP */
+    div.block-container { padding-top: 1rem; padding-bottom: 3rem; }
+    div[data-testid="column"] { padding: 0.5rem; } /* More gap between cards */
     </style>
     """, unsafe_allow_html=True)
 
 # --- 2. HELPER FUNCTIONS ---
 
 def play_audio(filename):
-    """
-    Checks if the file exists on GitHub (Dev Branch) before rendering.
-    """
+    """ Standard player for drills """
     base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/dev/audio_library"
     url = f"{base_url}/{filename}.mp3"
+    st.audio(url, format="audio/mp3")
+
+def render_grid_player(data, category_prefix):
+    """
+    BIG GRID MODE: 3 Columns per row.
+    """
+    base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/dev/audio_library"
     
-    try:
-        # Check if file exists (status code 200 = OK)
-        response = requests.head(url)
-        if response.status_code == 200:
-            st.audio(url, format="audio/mp3")
-        else:
-            st.caption(f"🎧 Missing: `{filename}`")
-    except:
-        st.warning("⚠️ Connection Error")
-
-def vocab_player(data, category_prefix):
-    """
-    Active Drill Layout:
-    Renders each word as a row with an individual play button.
-    """
-    with st.expander("📖 Open Audio Drill", expanded=True):
-        # Header Row
-        h1, h2, h3, h4 = st.columns([2, 2, 2, 1])
-        h1.markdown("**English**")
-        h2.markdown("**Armenian**")
-        h3.markdown("**Phonetic**")
-        h4.markdown("**Audio**")
-        st.divider()
-
-        # Data Rows
-        for eng, arm, phon in data:
-            c1, c2, c3, c4 = st.columns([2, 2, 2, 1])
-            
-            c1.markdown(f"<div class='row-text'>{eng}</div>", unsafe_allow_html=True)
-            c2.markdown(f"<div class='row-text' style='color:#007bff;'>{arm}</div>", unsafe_allow_html=True)
-            c3.markdown(f"<div class='row-text' style='font-style:italic;'>{phon}</div>", unsafe_allow_html=True)
-            
-            with c4:
-                # Construct filename: category_englishword
-                # e.g. "Spoon" -> "kitchen_spoon"
-                safe_eng = eng.lower().replace("/", "_").replace(" ", "_")
+    # ⚠️ UPDATED: Now using 3 items per row for larger cards
+    cols_per_row = 3
+    
+    # Batch data
+    for i in range(0, len(data), cols_per_row):
+        cols = st.columns(cols_per_row)
+        batch = data[i:i+cols_per_row]
+        
+        for j, (eng, arm, phon) in enumerate(batch):
+            with cols[j]:
+                # Prepare filename
+                clean_eng_for_file = eng.split(' ')[-1] if ' ' in eng else eng
+                safe_eng = clean_eng_for_file.lower().replace("/", "_").replace(" ", "_")
                 filename = f"{category_prefix}_{safe_eng}"
-                play_audio(filename)
-            
-            st.divider()
+                url = f"{base_url}/{filename}.mp3"
+                
+                # Render Card HTML
+                st.markdown(f"""
+                <div class="css-card">
+                    <div class="card-eng">{eng}</div>
+                    <div class="card-arm">{arm}</div>
+                    <div class="card-phon">{phon}</div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Render Button
+                if st.button("🔊 Play", key=filename):
+                    st.markdown(f'<audio src="{url}" autoplay></audio>', unsafe_allow_html=True)
 
 def get_live_speech(text, voice_name):
     try:
@@ -96,25 +137,21 @@ def get_live_speech(text, voice_name):
         return f"CRASH: {str(e)}"
 
 def vocab_expander(data):
-    # Keep this for the older lessons (Days/Months) that don't have individual files yet
-    with st.expander("📖 View Vocabulary"):
+    with st.expander("📖 View Vocabulary List"):
         md_table = "| English | Armenian | Phonetic |\n| :--- | :--- | :--- |\n"
         for eng, arm, phon in data:
             md_table += f"| {eng} | **{arm}** | *{phon}* |\n"
         st.markdown(md_table)
 
-# --- 3. NAVIGATION (Tiered) ---
+# --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor")
-    st.caption("v3.2 Active Drills")
+    st.caption("v3.8 Big Grid Build")
     st.divider()
     
-    # TIER 1: Main Category
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools", "🧪 AI Lab"])
     
-    # TIER 2: Sub-Modules based on Category
     module = None
-    
     if nav_category == "📚 Curriculum":
         module = st.radio("Lessons:", [
             "Lesson 1: Greetings", 
@@ -125,22 +162,15 @@ with st.sidebar:
             "Lesson 6: Animals",
             "Lesson 7: Objects"
         ])
-        
     elif nav_category == "🛠️ Practice Tools":
         module = st.radio("Tools:", ["Audio Gym", "Verb Center"])
-        
     elif nav_category == "🧪 AI Lab":
-        module = "AI Playground" # Direct assignment
+        module = "AI Playground"
 
 # --- 4. PAGE LOGIC ---
 
-# ----------------------
-# 📚 CURRICULUM SECTION
-# ----------------------
 if module == "Lesson 1: Greetings":
     st.header("👋 Lesson 1: Basic Greetings")
-    st.divider()
-    # Lesson 1 uses the old single-file format
     play_audio("lesson_01_greetings")
     st.subheader("📝 Vocabulary")
     st.markdown("""| English | Armenian (Western) | Phonetic |
@@ -153,35 +183,31 @@ if module == "Lesson 1: Greetings":
 
 elif module == "Lesson 2: Family":
     st.header("👪 Lesson 2: Family Members")
-    vocab_player(family_data, "family")
+    render_grid_player(family_data, "family")
 
 elif module == "Lesson 3: Kitchen":
     st.header("🍴 Lesson 3: Kitchen")
-    vocab_player(kitchen_data, "kitchen")
+    render_grid_player(kitchen_data, "kitchen")
 
 elif module == "Lesson 4: Food":
     st.header("🍎 Lesson 4: Food")
-    vocab_player(food_data, "food")
+    render_grid_player(food_data, "food")
 
 elif module == "Lesson 5: Furniture":
     st.header("🪑 Lesson 5: Furniture")
-    vocab_player(furniture_data, "furniture")
+    render_grid_player(furniture_data, "furniture")
 
 elif module == "Lesson 6: Animals":
     st.header("🐶 Lesson 6: Animals")
-    vocab_player(animals_data, "animals")
+    render_grid_player(animals_data, "animals")
 
 elif module == "Lesson 7: Objects":
     st.header("📱 Lesson 7: Objects")
-    vocab_player(objects_data, "objects")
+    render_grid_player(objects_data, "objects")
 
-# ----------------------
-# 🛠️ PRACTICE TOOLS
-# ----------------------
+# --- TOOLS ---
 elif module == "Audio Gym":
     st.header("🏋️ Audio Gym")
-    st.markdown("Repetition drills for numbers, dates, and time.")
-    st.divider()
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("📅 Calendar")
@@ -206,36 +232,25 @@ elif module == "Verb Center":
         if st.button("🚀 Future"): st.session_state.current_tense = 'future'
     
     active_tense = st.session_state.current_tense
-    
-    # Robust cleanup
     english_label = verb_choice.split('—')[0].split('-')[0].strip()
     clean_name = english_label.lower().replace(" ", "_")
     
     st.subheader(f"{english_label} — {active_tense.capitalize()}")
     play_audio(f"verb_{clean_name}_{active_tense}")
     
-    st.markdown('<div class="big-table">', unsafe_allow_html=True)
-    
     if clean_name in verb_data:
         display_list = verb_data[clean_name][active_tense]
         pronouns_eng = ["I", "You", "He/She", "We", "You pl.", "They"]
         pronouns_arm = ["Ես", "Դուն", "Ան", "Մենք", "Դուք", "Անոնք"]
-        
-        table_html = "| English | Pronoun | Conjugation |\n| :--- | :--- | :--- |\n"
+        md_table = "| English | Pronoun | Conjugation |\n| :--- | :--- | :--- |\n"
         for i in range(6):
-            table_html += f"| {pronouns_eng[i]} | **{pronouns_arm[i]}** | {display_list[i]} |\n"
-        st.markdown(table_html)
-    else:
-        st.info(f"Conjugation text coming soon for: {clean_name}")
-    st.markdown('</div>', unsafe_allow_html=True)
+            md_table += f"| {pronouns_eng[i]} | **{pronouns_arm[i]}** | {display_list[i]} |\n"
+        st.markdown(md_table)
 
-# ----------------------
-# 🧪 AI LAB
-# ----------------------
+# --- AI LAB ---
 elif module == "AI Playground":
     st.header("🧪 AI Playground")
     st.write("Translate and speak phrases in Western Armenian.")
-    
     col1, col2 = st.columns(2)
     with col1:
         input_mode = st.radio("Translation Mode:", ["English ➡️ Armenian", "Armenian ➡️ English"])
@@ -243,26 +258,18 @@ elif module == "AI Playground":
         voice_choice = st.radio("Select Voice:", ["Anahit (Female)", "Hayk (Male)"])
     
     user_input = st.text_area("Type your phrase here:", placeholder="Type here...")
-    
     if st.button("🔊 Translate & Speak"):
         if user_input:
-            with st.spinner(f"{voice_choice.split(' ')[0]} is thinking..."):
+            with st.spinner("Thinking..."):
                 if "English ➡️ Armenian" in input_mode:
                     armenian_text = GoogleTranslator(source='en', target='hy').translate(user_input)
-                    st.markdown(f'<p class="label-font">Armenian Spelling:</p>', unsafe_allow_html=True)
                     st.markdown(f'<p class="big-font">{armenian_text}</p>', unsafe_allow_html=True)
                 else:
                     english_text = GoogleTranslator(source='hy', target='en').translate(user_input)
                     armenian_text = user_input
-                    st.markdown(f'<p class="label-font">English Meaning:</p>', unsafe_allow_html=True)
                     st.markdown(f'<p class="translation-font">{english_text}</p>', unsafe_allow_html=True)
-                    st.markdown(f'<p class="label-font">Armenian Input:</p>', unsafe_allow_html=True)
                     st.markdown(f'<p class="big-font">{armenian_text}</p>', unsafe_allow_html=True)
                 
                 audio_response = get_live_speech(armenian_text, voice_choice)
                 if isinstance(audio_response, bytes):
                     st.audio(audio_response, format="audio/mp3")
-                else:
-                    st.error(f"Speech Error: {audio_response}")
-        else:
-            st.warning("Please enter text first.")
