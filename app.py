@@ -3,11 +3,12 @@ import azure.cognitiveservices.speech as speechsdk
 from deep_translator import GoogleTranslator
 import requests
 
-# 👇 IMPORT YOUR DATA (from data.py)
-# Note: We are NOT importing colors_data yet to prevent errors until you update data.py
+# 👇 IMPORT YOUR DATA (Ensure data.py is updated with the new lists first!)
 from data import (
     days_data, months_data, nums_1_10_data, nums_11_20_data, tens_data, 
-    family_data, verb_data, verb_list
+    family_data, verb_data, verb_list,
+    # New Lists
+    kitchen_data, food_data, furniture_data, animals_data, objects_data
 )
 
 # --- 1. CONFIGURATION & STYLING ---
@@ -83,7 +84,15 @@ with st.sidebar:
     module = None
     
     if nav_category == "📚 Curriculum":
-        module = st.radio("Lessons:", ["Lesson 1: Greetings", "Lesson 2: Family", "Lesson 3: Colors"])
+        module = st.radio("Lessons:", [
+            "Lesson 1: Greetings", 
+            "Lesson 2: Family", 
+            "Lesson 3: Kitchen & Dining",
+            "Lesson 4: Foods",
+            "Lesson 5: Home & Furniture",
+            "Lesson 6: Animals",
+            "Lesson 7: Daily Objects"
+        ])
         
     elif nav_category == "🛠️ Practice Tools":
         module = st.radio("Tools:", ["Audio Gym", "Verb Center"])
@@ -112,23 +121,38 @@ if module == "Lesson 1: Greetings":
 elif module == "Lesson 2: Family":
     st.header("👪 Lesson 2: Family Members")
     st.divider()
-    st.info("Audio for this lesson is in production.")
     play_audio("lesson_02_family")
     vocab_expander(family_data)
 
-elif module == "Lesson 3: Colors":
-    st.header("🎨 Lesson 3: Colors")
+elif module == "Lesson 3: Kitchen & Dining":
+    st.header("🍴 Lesson 3: Kitchen & Dining")
     st.divider()
-    
-    # Temporary data list until you move it to data.py
-    colors_data = [
-        ("Red", "Կարմիր", "Garmir"), ("Blue", "Կապոյտ", "Gaboyd"), 
-        ("Green", "Կանաչ", "Ganach"), ("Yellow", "Դեղին", "Deghin"), 
-        ("Black", "Սեւ", "Sev"), ("White", "Սպիտակ", "Spidag")
-    ]
-    
-    play_audio("lesson_03_colors")
-    vocab_expander(colors_data)
+    play_audio("lesson_03_kitchen")
+    vocab_expander(kitchen_data)
+
+elif module == "Lesson 4: Foods":
+    st.header("🍎 Lesson 4: Foods")
+    st.divider()
+    play_audio("lesson_04_food")
+    vocab_expander(food_data)
+
+elif module == "Lesson 5: Home & Furniture":
+    st.header("🪑 Lesson 5: Home & Furniture")
+    st.divider()
+    play_audio("lesson_05_furniture")
+    vocab_expander(furniture_data)
+
+elif module == "Lesson 6: Animals":
+    st.header("🐶 Lesson 6: Animals")
+    st.divider()
+    play_audio("lesson_06_animals")
+    vocab_expander(animals_data)
+
+elif module == "Lesson 7: Daily Objects":
+    st.header("📱 Lesson 7: Daily Objects")
+    st.divider()
+    play_audio("lesson_07_objects")
+    vocab_expander(objects_data)
 
 # ----------------------
 # 🛠️ PRACTICE TOOLS
