@@ -1,9 +1,10 @@
 import streamlit as st
 import azure.cognitiveservices.speech as speechsdk
 from deep_translator import GoogleTranslator
-import requests # New import for checking if audio exists
+import requests
 
-# 👇 IMPORT YOUR DATA (Ensure data.py is in the repo)
+# 👇 IMPORT YOUR DATA (from data.py)
+# Note: We are NOT importing colors_data yet to prevent errors until you update data.py
 from data import (
     days_data, months_data, nums_1_10_data, nums_11_20_data, tens_data, 
     family_data, verb_data, verb_list
@@ -30,15 +31,13 @@ st.markdown("""
 
 def play_audio(filename):
     """
-    Smart Player: Checks if the file exists on GitHub before rendering the player.
-    Prevents the 'Greyed Out' broken player look.
+    Smart Player: Checks if the file exists on GitHub (Dev Branch) before rendering.
     """
-    # ⚠️ POINTING TO DEV BRANCH
     base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/dev/audio_library"
     url = f"{base_url}/{filename}.mp3"
     
-    # Check if file exists (status code 200 = OK)
     try:
+        # Check if file exists (status code 200 = OK)
         response = requests.head(url)
         if response.status_code == 200:
             st.audio(url, format="audio/mp3")
@@ -71,7 +70,7 @@ def vocab_expander(data):
             md_table += f"| {eng} | **{arm}** | *{phon}* |\n"
         st.markdown(md_table)
 
-# --- 3. IMPROVED NAVIGATION (Tiered) ---
+# --- 3. NAVIGATION (Fixed & Tiered) ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor")
     st.caption("v3.1 Dev Branch")
@@ -114,22 +113,23 @@ elif module == "Lesson 2: Family":
     st.header("👪 Lesson 2: Family Members")
     st.divider()
     st.info("Audio for this lesson is in production.")
-    play_audio("lesson_02_family") # This will now show 'Audio Coming Soon' text
+    play_audio("lesson_02_family")
     vocab_expander(family_data)
-
-if nav_category == "📚 Curriculum":
-    # Just add "Lesson 3: Colors" to this list 👇
-    module = st.radio("Lessons:", ["Lesson 1: Greetings", "Lesson 2: Family", "Lesson 3: Colors"])
 
 elif module == "Lesson 3: Colors":
     st.header("🎨 Lesson 3: Colors")
     st.divider()
     
-    # The app will look for "lesson_03_colors.mp3" on GitHub
-    play_audio("lesson_03_colors") 
+    # Temporary data list until you move it to data.py
+    colors_data = [
+        ("Red", "Կարմիր", "Garmir"), ("Blue", "Կապոյտ", "Gaboyd"), 
+        ("Green", "Կանաչ", "Ganach"), ("Yellow", "Դեղին", "Deghin"), 
+        ("Black", "Սեւ", "Sev"), ("White", "Սպիտակ", "Spidag")
+    ]
     
-    # This automatically builds the table from your data.py list
-    vocab_expander(colors_data) 
+    play_audio("lesson_03_colors")
+    vocab_expander(colors_data)
+
 # ----------------------
 # 🛠️ PRACTICE TOOLS
 # ----------------------
@@ -221,4 +221,3 @@ elif module == "AI Playground":
                     st.error(f"Speech Error: {audio_response}")
         else:
             st.warning("Please enter text first.")
-
