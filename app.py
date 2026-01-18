@@ -84,7 +84,7 @@ with st.sidebar:
     module = None
     
     if nav_category == "📚 Curriculum":
-        module = st.radio("Lessons:", ["Lesson 1: Greetings", "Lesson 2: Family"])
+        module = st.radio("Lessons:", ["Lesson 1: Greetings", "Lesson 2: Family", "Lesson 3: Colors"])
         
     elif nav_category == "🛠️ Practice Tools":
         module = st.radio("Tools:", ["Audio Gym", "Verb Center"])
@@ -117,6 +117,19 @@ elif module == "Lesson 2: Family":
     play_audio("lesson_02_family") # This will now show 'Audio Coming Soon' text
     vocab_expander(family_data)
 
+if nav_category == "📚 Curriculum":
+    # Just add "Lesson 3: Colors" to this list 👇
+    module = st.radio("Lessons:", ["Lesson 1: Greetings", "Lesson 2: Family", "Lesson 3: Colors"])
+
+elif module == "Lesson 3: Colors":
+    st.header("🎨 Lesson 3: Colors")
+    st.divider()
+    
+    # The app will look for "lesson_03_colors.mp3" on GitHub
+    play_audio("lesson_03_colors") 
+    
+    # This automatically builds the table from your data.py list
+    vocab_expander(colors_data) 
 # ----------------------
 # 🛠️ PRACTICE TOOLS
 # ----------------------
@@ -208,3 +221,4 @@ elif module == "AI Playground":
                     st.error(f"Speech Error: {audio_response}")
         else:
             st.warning("Please enter text first.")
+
