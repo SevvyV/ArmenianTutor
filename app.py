@@ -31,8 +31,8 @@ st.markdown("""
         
         /* 🚀 MAXIMIZE EMOJI SIZE */
         /* This controls the base size of everything in the button */
-        font-size: 60px !important; 
-        line-height: 0.8 !important;
+        font-size: 15px !important; 
+        line-height: 1.2 !important;
     }
     
     div.stButton > button:hover {
@@ -167,4 +167,5 @@ elif module == "Verb Center":
             c1.markdown(f"**{p_arm}** <span class='phonetic-label'>({p_phon})</span>", unsafe_allow_html=True)
             c2.markdown(f"**{conj_arm}**")
             st.markdown("<hr style='margin:0; border-top:1px solid #eee;'>", unsafe_allow_html=True)
+
 
