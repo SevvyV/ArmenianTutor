@@ -7,60 +7,66 @@ from data import (
     verb_data, verb_list
 )
 
-# --- 1. CONFIGURATION & WIDE GRID STYLING ---
+# --- 1. CONFIGURATION & MAXIMIZED GRID STYLING ---
 st.set_page_config(page_title="HyeTutor Dev", page_icon="🇦🇲", layout="wide")
 
 st.markdown("""
     <style>
-    /* 1. LOCK BOX DIMENSIONS & BOOST FONT */
+    /* 1. THE VISUAL CARD (Underneath) */
+    .big-card-container {
+        position: relative;
+        height: 400px; /* Increased height for larger emoji */
+        margin-bottom: 20px;
+    }
+
+    .visual-card {
+        background-color: #ffffff;
+        border: 2px solid #f0f2f6;
+        border-radius: 25px;
+        height: 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+        pointer-events: none; /* Let clicks pass through to the invisible button */
+        z-index: 1;
+        position: absolute;
+    }
+
+    /* 2. THE MASSIVE EMOJI (The setting you were adjusting) */
+    .huge-emoji {
+        font-size: 150px; /* Set to 150px as requested */
+        line-height: 1.2; /* Using your discovered spacing value */
+        margin-top: -20px;
+    }
+
+    .card-text-eng { font-size: 24px; color: #555; font-weight: 600; margin-top: 10px; }
+    .card-text-arm { font-size: 32px; color: #0056b3; font-weight: bold; }
+    .card-text-phon { font-size: 18px; color: #888; font-style: italic; }
+
+    /* 3. THE INVISIBLE CLICKER (On Top) */
     div.stButton > button {
+        height: 400px !important;
         width: 100% !important;
-        min-width: 300px !important; 
-        height: 380px !important;     /* Slightly taller to accommodate giant emoji */
-        background-color: #ffffff !important;
-        border: 2px solid #f0f2f6 !important;
-        border-radius: 25px !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.08) !important;
-        white-space: pre-wrap !important; 
-        transition: all 0.3s ease !important;
-        padding: 10px !important;
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        justify-content: center !important;
-        
-        /* 🚀 MAXIMIZE EMOJI SIZE */
-        /* This controls the base size of everything in the button */
-        font-size: 100px !important; 
-        line-height: 2.2 !important;
+        background-color: transparent !important;
+        color: transparent !important;
+        border: none !important;
+        z-index: 2;
+        position: relative;
+        box-shadow: none !important;
     }
     
     div.stButton > button:hover {
-        border-color: #007bff !important;
-        transform: translateY(-5px) !important;
-        box-shadow: 0 8px 25px rgba(0,123,255,0.2) !important;
+        background-color: rgba(0, 123, 255, 0.03) !important;
     }
-
-    /* 2. SCALE DOWN THE TEXT (Since base font is now huge) */
-    /* We use a 'span' or separate lines to manually shrink the text back down */
-    /* Note: Streamlit buttons strip most HTML, so we use CSS to target the text lines */
     
-    .card-text-small {
-        font-size: 20px !important;
-        line-height: 1.2 !important;
-        display: block;
-        font-weight: 500;
-        color: #555;
-    }
-
-    /* 3. NARROW ROW SPACING */
+    /* 4. LAYOUT FIXES */
     div[data-testid="column"] {
-        padding: 5px 15px !important; 
+        padding: 5px 15px !important;
     }
-    
-    .element-container {
-        margin-bottom: -15px !important;
-    }
+    .phonetic-label { font-size: 14px; color: #999; font-style: italic; margin-left: 8px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -73,7 +79,7 @@ def play_audio(filename):
     st.audio(url, format="audio/mp3", autoplay=True)
 
 def render_maximized_grid(data, category_prefix):
-    """ 3-Column Grid with Giant Emojis """
+    """ 3-Column Grid using Visual Cards for Maximum Emoji Size """
     cols_per_row = 3
     for i in range(0, len(data), cols_per_row):
         cols = st.columns(cols_per_row)
@@ -87,11 +93,20 @@ def render_maximized_grid(data, category_prefix):
                 safe_eng = eng_text.lower().replace("/", "_").replace(" ", "_")
                 filename = f"{category_prefix}_{safe_eng}"
                 
-                # Because we set the button font to 130px, the Emoji is huge.
-                # We add extra spacing to separate the text from the massive icon.
-                button_label = f"{emoji}\n\n\n\n\n\n{eng_text}\n{arm}\n({phon})"
+                # HTML Container for the Visual Card
+                st.markdown(f"""
+                    <div class="big-card-container">
+                        <div class="visual-card">
+                            <div class="huge-emoji">{emoji}</div>
+                            <div class="card-text-eng">{eng_text}</div>
+                            <div class="card-text-arm">{arm}</div>
+                            <div class="card-text-phon">({phon})</div>
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
                 
-                if st.button(button_label, key=filename):
+                # Invisible button positioned on top
+                if st.button("Click", key=filename):
                     play_audio(filename)
 
 # Pronoun Phonetics
@@ -103,7 +118,7 @@ pronoun_phonetics = {
 # --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor Dev")
-    st.caption("v4.6 Giant Emoji Build")
+    st.caption("v4.7 Visual Card Build")
     st.divider()
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools"])
     
@@ -136,11 +151,11 @@ elif module == "Verb Center":
 
     tcol1, tcol2, tcol3 = st.columns(3)
     with tcol1: 
-        if st.button("📍 Present", key="btn_present"): st.session_state.current_tense = 'present'
+        if st.button("📍 Present"): st.session_state.current_tense = 'present'
     with tcol2:
-        if st.button("🕰️ Past", key="btn_past"): st.session_state.current_tense = 'past'
+        if st.button("🕰️ Past"): st.session_state.current_tense = 'past'
     with tcol3:
-        if st.button("🚀 Future", key="btn_future"): st.session_state.current_tense = 'future'
+        if st.button("🚀 Future"): st.session_state.current_tense = 'future'
 
     active_tense = st.session_state.current_tense
     english_label = verb_choice.split('—')[0].split('-')[0].strip()
@@ -167,8 +182,3 @@ elif module == "Verb Center":
             c1.markdown(f"**{p_arm}** <span class='phonetic-label'>({p_phon})</span>", unsafe_allow_html=True)
             c2.markdown(f"**{conj_arm}**")
             st.markdown("<hr style='margin:0; border-top:1px solid #eee;'>", unsafe_allow_html=True)
-
-
-
-
-
