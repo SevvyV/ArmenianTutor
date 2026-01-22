@@ -7,27 +7,27 @@ from data import (
     verb_data, verb_list
 )
 
-# --- 1. CONFIGURATION & WIDE GRID STYLING ---
+# --- 1. CONFIGURATION & WIDE UI STYLING ---
 st.set_page_config(page_title="HyeTutor Dev", page_icon="🇦🇲", layout="wide")
 
 st.markdown("""
     <style>
-    /* 1. THE BIG CARD BOX */
+    /* 1. THE BIG EMOJI BOX */
     .big-card-container {
         background-color: #ffffff;
         border: 2px solid #f0f2f6;
-        border-radius: 25px 25px 0 0; /* Rounded top only */
+        border-radius: 25px 25px 0 0; 
         height: 350px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        margin-bottom: 0px; /* Flush with button below */
+        margin-bottom: 0px; 
     }
 
     .huge-emoji {
-        font-size: 150px; /* Your preferred large emoji size */
+        font-size: 150px; 
         line-height: 1.2;
     }
 
@@ -35,18 +35,20 @@ st.markdown("""
     .card-text-arm { font-size: 32px; color: #0056b3; font-weight: bold; }
     .card-text-phon { font-size: 18px; color: #888; font-style: italic; }
 
-    /* 2. THE MATCHING HORIZONTAL PLAY BUTTON */
+    /* 2. THE FULL-WIDTH LISTEN BUTTON */
+    /* This ensures the button matches the x-axis of the box perfectly */
     div.stButton > button {
-        width: 100% !important;
-        height: 50px !important;     /* Short and horizontal */
-        background-color: #e3f2fd !important; /* Light blue to match your screenshot */
+        width: 100% !important;      /* Forces it to be 3x wider (full container) */
+        height: 80px !important;      /* Taller for even easier pushing */
+        background-color: #e3f2fd !important; 
         color: #007bff !important;
         border: 2px solid #f0f2f6 !important;
-        border-top: none !important;  /* Connects to the box above */
-        border-radius: 0 0 25px 25px !important; /* Rounded bottom only */
+        border-top: none !important;  
+        border-radius: 0 0 25px 25px !important; 
         font-weight: bold !important;
-        font-size: 18px !important;
+        font-size: 22px !important;   /* Larger text for the button */
         margin-top: -1px !important;
+        display: block !important;
     }
 
     div.stButton > button:hover {
@@ -55,7 +57,7 @@ st.markdown("""
     }
 
     /* 3. LAYOUT SPACING */
-    div[data-testid="column"] { padding: 5px 15px !important; }
+    div[data-testid="column"] { padding: 10px 20px !important; }
     .element-container { margin-bottom: 5px !important; }
     </style>
     """, unsafe_allow_html=True)
@@ -63,13 +65,13 @@ st.markdown("""
 # --- 2. HELPER FUNCTIONS ---
 
 def play_audio(filename):
-    """ Fixed Audio: Plays on click without showing the ugly player bar """
+    """ Hidden audio trigger for iPad compatibility """
     base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/main/audio_library"
     url = f"{base_url}/{filename}.mp3"
     st.markdown(f'<audio src="{url}" autoplay></audio>', unsafe_allow_html=True)
 
 def render_maximized_grid(data, category_prefix):
-    """ 3-Column Grid with Horizontal Play Buttons beneath Big Cards """
+    """ Grid with full-width horizontal buttons beneath Big Cards """
     cols_per_row = 3
     for i in range(0, len(data), cols_per_row):
         cols = st.columns(cols_per_row)
@@ -83,7 +85,7 @@ def render_maximized_grid(data, category_prefix):
                 safe_eng = eng_text.lower().replace("/", "_").replace(" ", "_")
                 filename = f"{category_prefix}_{safe_eng}"
                 
-                # 1. The Visual Card (Top Half)
+                # Visual Box
                 st.markdown(f"""
                     <div class="big-card-container">
                         <div class="huge-emoji">{emoji}</div>
@@ -93,8 +95,8 @@ def render_maximized_grid(data, category_prefix):
                     </div>
                 """, unsafe_allow_html=True)
                 
-                # 2. The Horizontal Play Button (Bottom Half)
-                if st.button(f"🔊 Listen", key=filename):
+                # Full-Width Button
+                if st.button(f"🔊 Press to Play", key=filename):
                     play_audio(filename)
 
 # Mapping for Verb Center Phonetics
@@ -106,7 +108,7 @@ pronoun_phonetics = {
 # --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor Dev")
-    st.caption("v4.8 Horizontal Play Build")
+    st.caption("v4.9 Full-Width Build")
     st.divider()
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools"])
     
