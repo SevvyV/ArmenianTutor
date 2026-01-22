@@ -12,62 +12,41 @@ st.set_page_config(page_title="HyeTutor Dev", page_icon="🇦🇲", layout="wide
 
 st.markdown("""
     <style>
-    /* 1. THE VISUAL CARD (Underneath) */
-    .big-card-container {
-        position: relative;
-        height: 350px; /* Uniform Height */
-        margin-bottom: 20px;
-    }
-
-    .visual-card {
-        background-color: #ffffff;
-        border: 2px solid #f0f2f6;
-        border-radius: 25px;
-        height: 100%;
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 6px 15px rgba(0,0,0,0.08);
-        pointer-events: none; /* Let clicks pass through to the button */
-        z-index: 1;
-        position: absolute;
-    }
-
-    /* 2. THE MASSIVE EMOJI (Top Half) */
-    .huge-emoji {
-        font-size: 120px; /* Doubled size to fill half the box */
-        line-height: 1;
-        margin-top: -20px;
-        margin-bottom: 20px;
-    }
-
-    .card-text-eng { font-size: 24px; color: #555; font-weight: 600; }
-    .card-text-arm { font-size: 32px; color: #0056b3; font-weight: bold; }
-    .card-text-phon { font-size: 18px; color: #888; font-style: italic; }
-
-    /* 3. THE INVISIBLE CLICKER (On Top) */
-    /* This button is exactly the size of the box and completely transparent */
+    /* 1. THE BIG SQUARE BUTTON */
+    /* We style the standard button to LOOK like your card */
     div.stButton > button {
-        height: 350px !important;
         width: 100% !important;
-        background-color: transparent !important;
-        color: transparent !important;
-        border: none !important;
-        z-index: 2;
-        position: relative;
-        box-shadow: none !important;
-    }
-    
-    /* Hover effect for the visual card when the button is touched */
-    div.stButton > button:hover {
-        background-color: rgba(0, 123, 255, 0.05) !important;
-    }
-    
-    /* 4. LAYOUT FIXES */
-    div[data-testid="column"] {
+        height: 350px !important;     /* Perfect size from v4.3 */
+        background-color: #ffffff !important;
+        border: 2px solid #f0f2f6 !important;
+        border-radius: 25px !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08) !important;
+        white-space: pre-wrap !important; 
+        transition: all 0.3s ease !important;
         padding: 10px !important;
+        margin-bottom: -10px !important; /* Narrower row spacing */
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    div.stButton > button:hover {
+        border-color: #007bff !important;
+        transform: translateY(-5px) !important;
+        box-shadow: 0 8px 25px rgba(0,123,255,0.2) !important;
+    }
+
+    /* 2. TEXT SIZING INSIDE THE BUTTON */
+    /* Using CSS classes to style the different lines of text */
+    .huge-emoji-btn { font-size: 110px; line-height: 1; display: block; margin-top: -10px; }
+    .card-text-eng { font-size: 22px; color: #555; font-weight: 600; display: block; margin-top: 10px; }
+    .card-text-arm { font-size: 28px; color: #0056b3; font-weight: bold; display: block; }
+    .card-text-phon { font-size: 16px; color: #888; font-style: italic; display: block; }
+
+    /* 3. LAYOUT & SPACING */
+    div[data-testid="column"] {
+        padding: 5px !important; /* Tighter horizontal/vertical spacing */
     }
     .phonetic-label { font-size: 14px; color: #999; font-style: italic; margin-left: 8px; }
     </style>
@@ -76,13 +55,14 @@ st.markdown("""
 # --- 2. HELPER FUNCTIONS ---
 
 def play_audio(filename):
-    """ iPad-Safe Audio Trigger """
+    """ Fixed Audio for iPad: Standard st.audio with autoplay """
     base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/main/audio_library"
     url = f"{base_url}/{filename}.mp3"
+    # Autoplay=True is essential for iPad interaction triggers
     st.audio(url, format="audio/mp3", autoplay=True)
 
 def render_maximized_grid(data, category_prefix):
-    """ 3-Column Grid with Uniform 350px Boxes and 120px Emojis """
+    """ 3-Column Grid with Narrow Spacing and Fixed Audio """
     cols_per_row = 3
     for i in range(0, len(data), cols_per_row):
         cols = st.columns(cols_per_row)
@@ -94,24 +74,15 @@ def render_maximized_grid(data, category_prefix):
                 emoji = parts[0] if len(parts) > 1 else "❓"
                 eng_text = parts[1] if len(parts) > 1 else eng_with_emoji
                 
-                # Naming
+                # File naming
                 safe_eng = eng_text.lower().replace("/", "_").replace(" ", "_")
                 filename = f"{category_prefix}_{safe_eng}"
                 
-                # HTML Container for the Visual Look
-                st.markdown(f"""
-                    <div class="big-card-container">
-                        <div class="visual-card">
-                            <div class="huge-emoji">{emoji}</div>
-                            <div class="card-text-eng">{eng_text}</div>
-                            <div class="card-text-arm">{arm}</div>
-                            <div class="card-text-phon">({phon})</div>
-                        </div>
-                    </div>
-                """, unsafe_allow_html=True)
+                # We use HTML-like strings in the button but Streamlit renders them as plain text 
+                # if not careful. The CSS pre-wrap allows the newlines to work.
+                button_label = f"{emoji}\n{eng_text}\n{arm}\n({phon})"
                 
-                # Invisible button on top for iPad-safe sound
-                if st.button("Click", key=filename):
+                if st.button(button_label, key=filename):
                     play_audio(filename)
 
 # Pronoun Phonetics
@@ -123,7 +94,7 @@ pronoun_phonetics = {
 # --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor Dev")
-    st.caption("v4.3 Maximized Build")
+    st.caption("v4.4 Spacing & Audio Fix")
     st.divider()
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools"])
     
