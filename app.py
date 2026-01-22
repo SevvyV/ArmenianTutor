@@ -31,7 +31,7 @@ st.markdown("""
         
         /* 🚀 MAXIMIZE EMOJI SIZE */
         /* This controls the base size of everything in the button */
-        font-size: 15px !important; 
+        font-size: 30px !important; 
         line-height: 2.2 !important;
     }
     
@@ -167,6 +167,7 @@ elif module == "Verb Center":
             c1.markdown(f"**{p_arm}** <span class='phonetic-label'>({p_phon})</span>", unsafe_allow_html=True)
             c2.markdown(f"**{conj_arm}**")
             st.markdown("<hr style='margin:0; border-top:1px solid #eee;'>", unsafe_allow_html=True)
+
 
 
 
