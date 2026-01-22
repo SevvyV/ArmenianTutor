@@ -7,37 +7,68 @@ from data import (
     verb_data, verb_list
 )
 
-# --- 1. CONFIGURATION & BIG SQUARE STYLING ---
+# --- 1. CONFIGURATION & MAXIMIZED GRID STYLING ---
 st.set_page_config(page_title="HyeTutor Dev", page_icon="🇦🇲", layout="wide")
 
 st.markdown("""
     <style>
-    /* 1. MAKE BUTTONS LARGE SQUARES */
+    /* 1. THE VISUAL CARD (Underneath) */
+    .big-card-container {
+        position: relative;
+        height: 350px; /* Uniform Height */
+        margin-bottom: 20px;
+    }
+
+    .visual-card {
+        background-color: #ffffff;
+        border: 2px solid #f0f2f6;
+        border-radius: 25px;
+        height: 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+        pointer-events: none; /* Let clicks pass through to the button */
+        z-index: 1;
+        position: absolute;
+    }
+
+    /* 2. THE MASSIVE EMOJI (Top Half) */
+    .huge-emoji {
+        font-size: 120px; /* Doubled size to fill half the box */
+        line-height: 1;
+        margin-top: -20px;
+        margin-bottom: 20px;
+    }
+
+    .card-text-eng { font-size: 24px; color: #555; font-weight: 600; }
+    .card-text-arm { font-size: 32px; color: #0056b3; font-weight: bold; }
+    .card-text-phon { font-size: 18px; color: #888; font-style: italic; }
+
+    /* 3. THE INVISIBLE CLICKER (On Top) */
+    /* This button is exactly the size of the box and completely transparent */
     div.stButton > button {
+        height: 350px !important;
         width: 100% !important;
-        height: 300px !important;     /* Large Square Shape */
-        background-color: #ffffff !important;
-        border: 2px solid #f0f2f6 !important;
-        border-radius: 25px !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.08) !important;
-        white-space: pre-wrap !important; 
-        transition: all 0.3s ease !important;
-        padding: 20px !important;
+        background-color: transparent !important;
+        color: transparent !important;
+        border: none !important;
+        z-index: 2;
+        position: relative;
+        box-shadow: none !important;
     }
     
+    /* Hover effect for the visual card when the button is touched */
     div.stButton > button:hover {
-        border-color: #007bff !important;
-        transform: translateY(-5px) !important;
-        box-shadow: 0 8px 25px rgba(0,123,255,0.2) !important;
+        background-color: rgba(0, 123, 255, 0.05) !important;
     }
-
-    /* 2. TEXT SIZING INSIDE THE BUTTON */
-    /* We handle this via the label string, but we can set global font here */
-    div.stButton > button p {
-        font-family: 'Inter', sans-serif;
+    
+    /* 4. LAYOUT FIXES */
+    div[data-testid="column"] {
+        padding: 10px !important;
     }
-
-    /* 3. VERB CENTER UI */
     .phonetic-label { font-size: 14px; color: #999; font-style: italic; margin-left: 8px; }
     </style>
     """, unsafe_allow_html=True)
@@ -48,11 +79,10 @@ def play_audio(filename):
     """ iPad-Safe Audio Trigger """
     base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/main/audio_library"
     url = f"{base_url}/{filename}.mp3"
-    # Using the standard st.audio with autoplay for the best iPad compatibility
     st.audio(url, format="audio/mp3", autoplay=True)
 
-def render_big_square_grid(data, category_prefix):
-    """ 3-Column Square Grid with Massive Emojis """
+def render_maximized_grid(data, category_prefix):
+    """ 3-Column Grid with Uniform 350px Boxes and 120px Emojis """
     cols_per_row = 3
     for i in range(0, len(data), cols_per_row):
         cols = st.columns(cols_per_row)
@@ -64,17 +94,27 @@ def render_big_square_grid(data, category_prefix):
                 emoji = parts[0] if len(parts) > 1 else "❓"
                 eng_text = parts[1] if len(parts) > 1 else eng_with_emoji
                 
-                # Create a Massive Label
-                # We use many newlines to separate the giant emoji from the text
-                card_label = f"{emoji}\n\n\n{eng_text}\n{arm}\n({phon})"
-                
+                # Naming
                 safe_eng = eng_text.lower().replace("/", "_").replace(" ", "_")
                 filename = f"{category_prefix}_{safe_eng}"
                 
-                if st.button(card_label, key=filename):
+                # HTML Container for the Visual Look
+                st.markdown(f"""
+                    <div class="big-card-container">
+                        <div class="visual-card">
+                            <div class="huge-emoji">{emoji}</div>
+                            <div class="card-text-eng">{eng_text}</div>
+                            <div class="card-text-arm">{arm}</div>
+                            <div class="card-text-phon">({phon})</div>
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                # Invisible button on top for iPad-safe sound
+                if st.button("Click", key=filename):
                     play_audio(filename)
 
-# Pronoun Phonetics for Verb Center
+# Pronoun Phonetics
 pronoun_phonetics = {
     "Ես": "Yes", "Դուն": "Toun", "Ան": "An", 
     "Մենք": "Menq", "Դուք": "Touq", "Անոնք": "Anonq"
@@ -83,7 +123,7 @@ pronoun_phonetics = {
 # --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor Dev")
-    st.caption("v4.2 Big Square Build")
+    st.caption("v4.3 Maximized Build")
     st.divider()
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools"])
     
@@ -103,13 +143,12 @@ if "Lesson" in module:
     }
     data, prefix = lesson_map[module]
     st.header(f"📖 {module}")
-    render_big_square_grid(data, prefix)
+    render_maximized_grid(data, prefix)
 
 elif module == "Verb Center":
     st.header("🏃 Verb Conjugation Center")
     verb_choice = st.selectbox("Select a Verb:", verb_list)
     
-    # Auto-Play Logic
     if 'last_verb' not in st.session_state: st.session_state.last_verb = verb_choice
     if 'current_tense' not in st.session_state: st.session_state.current_tense = 'present'
 
@@ -128,7 +167,7 @@ elif module == "Verb Center":
 
     if st.session_state.last_verb != verb_choice:
         st.session_state.last_verb = verb_choice
-        time.sleep(1.0) # 1 second pause for auto-play
+        time.sleep(1.0)
         play_audio(filename)
 
     st.subheader(f"{english_label} — {active_tense.capitalize()}")
@@ -143,7 +182,6 @@ elif module == "Verb Center":
             conj_arm = display_list[i]
             
             c1, c2 = st.columns([1, 3])
-            # Added Phonetics next to pronouns
             c1.markdown(f"**{p_arm}** <span class='phonetic-label'>({p_phon})</span>", unsafe_allow_html=True)
             c2.markdown(f"**{conj_arm}**")
             st.markdown("<hr style='margin:0; border-top:1px solid #eee;'>", unsafe_allow_html=True)
