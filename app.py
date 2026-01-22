@@ -11,76 +11,56 @@ from data import (
     kitchen_data, food_data, furniture_data, animals_data, objects_data
 )
 
-# --- 1. CONFIGURATION & CHILD-FRIENDLY STYLING ---
+# --- 1. CONFIGURATION & STYLING ---
 st.set_page_config(page_title="HyeTutor Dev", page_icon="🇦🇲", layout="wide")
 
 st.markdown("""
     <style>
-    /* 1. THE PICTURE CARD CONTAINER */
-    .picture-card {
-        background-color: #ffffff;
-        border: 2px solid #f0f2f6;
-        border-radius: 20px;
-        padding: 20px;
-        text-align: center;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        transition: all 0.3s ease;
-        margin-bottom: 10px;
-        height: 250px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
-
-    /* 2. MAKE EMOJIS MASSIVE */
-    .card-emoji {
-        font-size: 80px; /* Huge emoji for kids */
-        margin-bottom: 10px;
-        display: block;
-    }
-
-    /* 3. TYPOGRAPHY */
-    .card-eng { font-size: 20px; color: #555; font-weight: 500; display: block; }
-    .card-arm { font-size: 28px; color: #0056b3; font-weight: bold; display: block; }
-    .card-phon { font-size: 16px; color: #888; font-style: italic; display: block; }
-
-    /* 4. THE HIDDEN BUTTON TRICK */
-    /* This sits on top of the card so the whole thing is clickable */
+    /* 1. STYLE THE BUTTON TO LOOK LIKE A LARGE PICTURE CARD */
     div.stButton > button {
-        position: relative;
-        top: -260px; /* Moves button over the card */
-        height: 250px !important;
         width: 100% !important;
-        background-color: transparent !important;
-        border: none !important;
-        color: transparent !important;
-        z-index: 10;
+        height: 280px !important;     /* Large tap target for iPad */
+        background-color: #ffffff !important;
+        border: 2px solid #f0f2f6 !important;
+        border-radius: 20px !important;
+        padding: 20px !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05) !important;
+        white-space: pre-wrap !important; /* CRITICAL: Allows new lines and large icons */
+        line-height: 1.4 !important;
     }
     
-    /* Hover effect for the visual card when the invisible button is hovered */
-    div.stButton:hover + .picture-card, .picture-card:hover {
-        border-color: #007bff;
-        transform: scale(1.02);
-        box-shadow: 0 8px 20px rgba(0,123,255,0.15);
+    div.stButton > button:hover {
+        border-color: #007bff !important;
+        box-shadow: 0 8px 20px rgba(0,123,255,0.15) !important;
+        transform: translateY(-5px) !important;
     }
 
-    /* 5. VERB CENTER FIXES */
+    /* 2. VERB TABLE PHONETICS */
     .phonetic-label { font-size: 14px; color: #999; font-style: italic; margin-left: 8px; }
+    
+    /* 3. LAYOUT CLEANUP */
     div.block-container { padding-top: 2rem; }
+    div[data-testid="column"] { padding: 1rem !important; }
     </style>
     """, unsafe_allow_html=True)
 
 # --- 2. HELPER FUNCTIONS ---
 
 def play_audio(filename):
+    """ Direct Audio Trigger """
     base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/main/audio_library"
     url = f"{base_url}/{filename}.mp3"
-    st.markdown(f'<audio src="{url}" autoplay></audio>', unsafe_allow_html=True)
+    # Using a hidden st.audio container that auto-plays
+    st.components.v1.html(f"""
+        <audio autoplay>
+            <source src="{url}" type="audio/mp3">
+        </audio>
+    """, height=0)
 
 def render_picture_grid(data, category_prefix):
     """
-    KIDS MODE: Large emojis and high-visibility cards.
+    BIG ICON GRID: Uses multi-line button labels for reliability.
     """
     cols_per_row = 3
     for i in range(0, len(data), cols_per_row):
@@ -88,27 +68,20 @@ def render_picture_grid(data, category_prefix):
         batch = data[i:i+cols_per_row]
         for j, (eng_with_emoji, arm, phon) in enumerate(batch):
             with cols[j]:
-                # Split emoji and text (e.g., "🍎 Apple" -> "🍎", "Apple")
+                # Extract emoji for the top of the card
                 parts = eng_with_emoji.split(' ', 1)
                 emoji = parts[0] if len(parts) > 1 else "❓"
                 eng_text = parts[1] if len(parts) > 1 else eng_with_emoji
+                
+                # Create the multi-line label (Emoji is first and huge)
+                # Note: We use spaces/newlines to size the emoji effectively
+                card_label = f"{emoji}\n\n{eng_text}\n{arm}\n({phon})"
                 
                 # File naming logic
                 safe_eng = eng_text.lower().replace("/", "_").replace(" ", "_")
                 filename = f"{category_prefix}_{safe_eng}"
                 
-                # 1. Visual Card (HTML)
-                st.markdown(f"""
-                <div class="picture-card">
-                    <span class="card-emoji">{emoji}</span>
-                    <span class="card-eng">{eng_text}</span>
-                    <span class="card-arm">{arm}</span>
-                    <span class="card-phon">({phon})</span>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # 2. Invisible Button (Functional)
-                if st.button("Play", key=filename):
+                if st.button(card_label, key=filename):
                     play_audio(filename)
 
 # Mapping for Verb Center Phonetics
@@ -117,17 +90,20 @@ pronoun_phonetics = {
     "Մենք": "Menq", "Դուք": "Touq", "Անոնք": "Anonq"
 }
 
-# --- 3. NAVIGATION & LOGIC ---
+# --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor Dev")
-    st.caption("v4.0 Picture Card Build")
+    st.caption("v4.1 Big Icon Build")
     st.divider()
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools"])
     
+    module = None
     if nav_category == "📚 Curriculum":
         module = st.radio("Lessons:", ["Lesson 2: Family", "Lesson 3: Kitchen", "Lesson 4: Food", "Lesson 5: Furniture", "Lesson 6: Animals", "Lesson 7: Objects"])
     else:
         module = st.radio("Tools:", ["Verb Center"])
+
+# --- 4. PAGE LOGIC ---
 
 if "Lesson" in module:
     lesson_map = {
@@ -144,7 +120,42 @@ if "Lesson" in module:
 
 elif module == "Verb Center":
     st.header("🏃 Verb Conjugation Center")
-    verb_choice = st.selectbox("Select a Verb:", verb_list)
+    verb_choice = st.selectbox("Select a Verb:", verb_list, key="verb_selector")
     
-    # ... (Keep existing Verb Center logic, ensuring pronoun_phonetics are used)
-    # Note: Ensure the display loop uses the c1, c2 columns we established earlier.
+    if 'last_verb' not in st.session_state: st.session_state.last_verb = verb_choice
+    if 'current_tense' not in st.session_state: st.session_state.current_tense = 'present'
+
+    tcol1, tcol2, tcol3 = st.columns(3)
+    with tcol1: 
+        if st.button("📍 Present"): st.session_state.current_tense = 'present'
+    with tcol2:
+        if st.button("🕰️ Past"): st.session_state.current_tense = 'past'
+    with tcol3:
+        if st.button("🚀 Future"): st.session_state.current_tense = 'future'
+
+    active_tense = st.session_state.current_tense
+    english_label = verb_choice.split('—')[0].split('-')[0].strip()
+    clean_name = english_label.lower().replace(" ", "_")
+    filename = f"verb_{clean_name}_{active_tense}"
+
+    # AUTO-PLAY Logic
+    if st.session_state.last_verb != verb_choice:
+        st.session_state.last_verb = verb_choice
+        time.sleep(0.8) 
+        play_audio(filename)
+
+    st.subheader(f"{english_label} — {active_tense.capitalize()}")
+    
+    if clean_name in verb_data:
+        display_list = verb_data[clean_name][active_tense]
+        pronouns_arm = ["Ես", "Դուն", "Ան", "Մենք", "Դուք", "Անոնք"]
+        
+        for i in range(6):
+            p_arm = pronouns_arm[i]
+            p_phon = pronoun_phonetics[p_arm]
+            conj_arm = display_list[i]
+            
+            c1, c2 = st.columns([1, 3])
+            c1.markdown(f"**{p_arm}** <span class='phonetic-label'>({p_phon})</span>", unsafe_allow_html=True)
+            c2.markdown(f"**{conj_arm}**")
+            st.markdown("<hr style='margin:0; border-top:1px solid #eee;'>", unsafe_allow_html=True)
