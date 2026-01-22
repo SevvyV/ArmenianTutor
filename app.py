@@ -12,11 +12,11 @@ st.set_page_config(page_title="HyeTutor Dev", page_icon="🇦🇲", layout="wide
 
 st.markdown("""
     <style>
-    /* 1. LOCK BOX WIDTH & HEIGHT */
+    /* 1. LOCK BOX DIMENSIONS & BOOST FONT */
     div.stButton > button {
         width: 100% !important;
-        min-width: 300px !important;  /* Prevents shrinking */
-        height: 350px !important; 
+        min-width: 300px !important; 
+        height: 380px !important;     /* Slightly taller to accommodate giant emoji */
         background-color: #ffffff !important;
         border: 2px solid #f0f2f6 !important;
         border-radius: 25px !important;
@@ -28,6 +28,11 @@ st.markdown("""
         flex-direction: column !important;
         align-items: center !important;
         justify-content: center !important;
+        
+        /* 🚀 MAXIMIZE EMOJI SIZE */
+        /* This controls the base size of everything in the button */
+        font-size: 130px !important; 
+        line-height: 0.8 !important;
     }
     
     div.stButton > button:hover {
@@ -36,19 +41,23 @@ st.markdown("""
         box-shadow: 0 8px 25px rgba(0,123,255,0.2) !important;
     }
 
-    /* 2. TEXT SIZING INSIDE THE BUTTON */
-    /* Huge emoji for children as requested */
-    .huge-emoji { font-size: 110px !important; line-height: 1; }
-    .card-text-eng { font-size: 24px; color: #555; font-weight: 600; }
-    .card-text-arm { font-size: 32px; color: #0056b3; font-weight: bold; }
-    .card-text-phon { font-size: 18px; color: #888; font-style: italic; }
+    /* 2. SCALE DOWN THE TEXT (Since base font is now huge) */
+    /* We use a 'span' or separate lines to manually shrink the text back down */
+    /* Note: Streamlit buttons strip most HTML, so we use CSS to target the text lines */
+    
+    .card-text-small {
+        font-size: 20px !important;
+        line-height: 1.2 !important;
+        display: block;
+        font-weight: 500;
+        color: #555;
+    }
 
     /* 3. NARROW ROW SPACING */
     div[data-testid="column"] {
-        padding: 5px 15px !important; /* Tight vertical, wide horizontal */
+        padding: 5px 15px !important; 
     }
     
-    /* Removes extra space between Streamlit elements */
     .element-container {
         margin-bottom: -15px !important;
     }
@@ -58,13 +67,13 @@ st.markdown("""
 # --- 2. HELPER FUNCTIONS ---
 
 def play_audio(filename):
-    """ iPad-Safe Audio Trigger: Direct URL for best compatibility """
+    """ iPad-Safe Audio Trigger """
     base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/main/audio_library"
     url = f"{base_url}/{filename}.mp3"
     st.audio(url, format="audio/mp3", autoplay=True)
 
 def render_maximized_grid(data, category_prefix):
-    """ 3-Column Grid with Massive Emojis and Locked Widths """
+    """ 3-Column Grid with Giant Emojis """
     cols_per_row = 3
     for i in range(0, len(data), cols_per_row):
         cols = st.columns(cols_per_row)
@@ -75,12 +84,12 @@ def render_maximized_grid(data, category_prefix):
                 emoji = parts[0] if len(parts) > 1 else "❓"
                 eng_text = parts[1] if len(parts) > 1 else eng_with_emoji
                 
-                # File naming
                 safe_eng = eng_text.lower().replace("/", "_").replace(" ", "_")
                 filename = f"{category_prefix}_{safe_eng}"
                 
-                # Using spaces to fake formatting since buttons escape raw HTML tags
-                button_label = f"{emoji}\n\n{eng_text}\n{arm}\n({phon})"
+                # Because we set the button font to 130px, the Emoji is huge.
+                # We add extra spacing to separate the text from the massive icon.
+                button_label = f"{emoji}\n\n\n\n\n\n{eng_text}\n{arm}\n({phon})"
                 
                 if st.button(button_label, key=filename):
                     play_audio(filename)
@@ -94,7 +103,7 @@ pronoun_phonetics = {
 # --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor Dev")
-    st.caption("v4.5 Wide Grid Build")
+    st.caption("v4.6 Giant Emoji Build")
     st.divider()
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools"])
     
@@ -127,11 +136,11 @@ elif module == "Verb Center":
 
     tcol1, tcol2, tcol3 = st.columns(3)
     with tcol1: 
-        if st.button("📍 Present"): st.session_state.current_tense = 'present'
+        if st.button("📍 Present", key="btn_present"): st.session_state.current_tense = 'present'
     with tcol2:
-        if st.button("🕰️ Past"): st.session_state.current_tense = 'past'
+        if st.button("🕰️ Past", key="btn_past"): st.session_state.current_tense = 'past'
     with tcol3:
-        if st.button("🚀 Future"): st.session_state.current_tense = 'future'
+        if st.button("🚀 Future", key="btn_future"): st.session_state.current_tense = 'future'
 
     active_tense = st.session_state.current_tense
     english_label = verb_choice.split('—')[0].split('-')[0].strip()
