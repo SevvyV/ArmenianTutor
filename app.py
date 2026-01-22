@@ -36,14 +36,13 @@ st.markdown("""
     .card-text-phon { font-size: 18px; color: #888; font-style: italic; }
 
     /* 2. THE STRETCHED LISTEN BUTTON */
-    /* This target specifically forces the button to fill the entire column width */
     [data-testid="stVerticalBlock"] > div:has(div.stButton) {
         width: 100% !important;
     }
 
     div.stButton > button {
-        width: 100% !important;      /* Forces full x-axis across the column */
-        height: 90px !important;      /* Even taller for iPad targets */
+        width: 100% !important;      
+        height: 90px !important;      
         background-color: #e3f2fd !important; 
         color: #007bff !important;
         border: 2px solid #f0f2f6 !important;
@@ -91,7 +90,6 @@ def render_maximized_grid(data, category_prefix):
                 safe_eng = eng_text.lower().replace("/", "_").replace(" ", "_")
                 filename = f"{category_prefix}_{safe_eng}"
                 
-                # Visual Box
                 st.markdown(f"""
                     <div class="big-card-container">
                         <div class="huge-emoji">{emoji}</div>
@@ -101,7 +99,6 @@ def render_maximized_grid(data, category_prefix):
                     </div>
                 """, unsafe_allow_html=True)
                 
-                # Full-Width Button
                 if st.button(f"🔊 Press to Play", key=filename):
                     play_audio(filename)
 
@@ -114,18 +111,38 @@ pronoun_phonetics = {
 # --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor Dev")
-    st.caption("v4.10 Stretched Button Build")
+    st.caption("v4.11 Emoji Fix Build")
     st.divider()
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools"])
     
     if nav_category == "📚 Curriculum":
-        module = st.radio("Lessons:", ["Lesson 2: Family", "Lesson 3: Kitchen", "Lesson 4: Food", "Lesson 5: Furniture", "Lesson 6: Animals", "Lesson 7: Objects"])
+        module = st.radio("Lessons:", [
+            "Lesson 1: Greetings",
+            "Lesson 2: Family", 
+            "Lesson 3: Kitchen", 
+            "Lesson 4: Food", 
+            "Lesson 5: Furniture", 
+            "Lesson 6: Animals", 
+            "Lesson 7: Objects"
+        ])
     else:
         module = st.radio("Tools:", ["Verb Center"])
 
 # --- 4. PAGE LOGIC ---
 
-if "Lesson" in module:
+if module == "Lesson 1: Greetings":
+    st.header("👋 Lesson 1: Basic Greetings")
+    greetings_data = [
+        ("👋 Hello", "Բարեւ", "Parev"),
+        ("❓ How are you?", "Ինչպէ՞ս ես", "Inchbes es?"),
+        ("😊 I am well", "Լաւ եմ", "Lav em"),
+        ("🙏 Thank you", "Շնորհակալ եմ", "Shnorhagal em"),
+        ("👋 Goodbye", "Ցտեսութիւն", "Tsedesutyun")
+    ]
+    render_maximized_grid(greetings_data, "lesson_01")
+
+elif "Lesson" in module:
+    # 修正後の絵文字データ
     lesson_map = {
         "Lesson 2: Family": (family_data, "family"),
         "Lesson 3: Kitchen": (kitchen_data, "kitchen"),
@@ -135,8 +152,20 @@ if "Lesson" in module:
         "Lesson 7: Objects": (objects_data, "objects")
     }
     data, prefix = lesson_map[module]
+    
+    # 修正: dataリスト内の絵文字を手動で微調整 (furniture, kitchen)
+    corrected_data = []
+    for eng, arm, phon in data:
+        if "Table" in eng: eng = "🏷️ Table" # 例: 🪑から修正
+        if "Carpet" in eng: eng = "🧶 Carpet" # 例: 🧵から修正
+        if "Stairs" in eng: eng = "🪜 Stairs" # 例: 🪜から修正
+        if "Napkin" in eng: eng = "🧻 Napkin" # 例: 🧻から修正
+        if "Pot" in eng: eng = "🍲 Pot" # 例: 🥣から修正
+        if "Pitcher" in eng: eng = "🍶 Pitcher" # 例: 🏺から修正
+        corrected_data.append((eng, arm, phon))
+
     st.header(f"📖 {module}")
-    render_maximized_grid(data, prefix)
+    render_maximized_grid(corrected_data, prefix)
 
 elif module == "Verb Center":
     st.header("🏃 Verb Conjugation Center")
@@ -175,6 +204,7 @@ elif module == "Verb Center":
             conj_arm = display_list[i]
             
             c1, c2 = st.columns([1, 3])
-            c1.markdown(f"**{p_arm}** <span class='phonetic-label'>({p_phon})</span>", unsafe_allow_html=True)
+            c1.markdown(f"**{p_arm}** <span style='font-size: 14px; color: #999; font-style: italic; margin-left: 8px;'>({p_phon})</span>", unsafe_allow_html=True)
             c2.markdown(f"**{conj_arm}**")
             st.markdown("<hr style='margin:0; border-top:1px solid #eee;'>", unsafe_allow_html=True)
+            
