@@ -7,79 +7,69 @@ from data import (
     verb_data, verb_list
 )
 
-# --- 1. CONFIGURATION & MAXIMIZED GRID STYLING ---
+# --- 1. CONFIGURATION & WIDE GRID STYLING ---
 st.set_page_config(page_title="HyeTutor Dev", page_icon="🇦🇲", layout="wide")
 
 st.markdown("""
     <style>
-    /* 1. THE VISUAL CARD (Underneath) */
+    /* 1. THE BIG CARD BOX */
     .big-card-container {
-        position: relative;
-        height: 400px; /* Increased height for larger emoji */
-        margin-bottom: 20px;
-    }
-
-    .visual-card {
         background-color: #ffffff;
         border: 2px solid #f0f2f6;
-        border-radius: 25px;
-        height: 100%;
-        width: 100%;
+        border-radius: 25px 25px 0 0; /* Rounded top only */
+        height: 350px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 6px 15px rgba(0,0,0,0.08);
-        pointer-events: none; /* Let clicks pass through to the invisible button */
-        z-index: 1;
-        position: absolute;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        margin-bottom: 0px; /* Flush with button below */
     }
 
-    /* 2. THE MASSIVE EMOJI (The setting you were adjusting) */
     .huge-emoji {
-        font-size: 150px; /* Set to 150px as requested */
-        line-height: 1.2; /* Using your discovered spacing value */
-        margin-top: -20px;
+        font-size: 150px; /* Your preferred large emoji size */
+        line-height: 1.2;
     }
 
-    .card-text-eng { font-size: 24px; color: #555; font-weight: 600; margin-top: 10px; }
+    .card-text-eng { font-size: 24px; color: #555; font-weight: 600; }
     .card-text-arm { font-size: 32px; color: #0056b3; font-weight: bold; }
     .card-text-phon { font-size: 18px; color: #888; font-style: italic; }
 
-    /* 3. THE INVISIBLE CLICKER (On Top) */
+    /* 2. THE MATCHING HORIZONTAL PLAY BUTTON */
     div.stButton > button {
-        height: 400px !important;
         width: 100% !important;
-        background-color: transparent !important;
-        color: transparent !important;
-        border: none !important;
-        z-index: 2;
-        position: relative;
-        box-shadow: none !important;
+        height: 50px !important;     /* Short and horizontal */
+        background-color: #e3f2fd !important; /* Light blue to match your screenshot */
+        color: #007bff !important;
+        border: 2px solid #f0f2f6 !important;
+        border-top: none !important;  /* Connects to the box above */
+        border-radius: 0 0 25px 25px !important; /* Rounded bottom only */
+        font-weight: bold !important;
+        font-size: 18px !important;
+        margin-top: -1px !important;
     }
-    
+
     div.stButton > button:hover {
-        background-color: rgba(0, 123, 255, 0.03) !important;
+        background-color: #007bff !important;
+        color: white !important;
     }
-    
-    /* 4. LAYOUT FIXES */
-    div[data-testid="column"] {
-        padding: 5px 15px !important;
-    }
-    .phonetic-label { font-size: 14px; color: #999; font-style: italic; margin-left: 8px; }
+
+    /* 3. LAYOUT SPACING */
+    div[data-testid="column"] { padding: 5px 15px !important; }
+    .element-container { margin-bottom: 5px !important; }
     </style>
     """, unsafe_allow_html=True)
 
 # --- 2. HELPER FUNCTIONS ---
 
 def play_audio(filename):
-    """ iPad-Safe Audio Trigger """
+    """ Fixed Audio: Plays on click without showing the ugly player bar """
     base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/main/audio_library"
     url = f"{base_url}/{filename}.mp3"
-    st.audio(url, format="audio/mp3", autoplay=True)
+    st.markdown(f'<audio src="{url}" autoplay></audio>', unsafe_allow_html=True)
 
 def render_maximized_grid(data, category_prefix):
-    """ 3-Column Grid using Visual Cards for Maximum Emoji Size """
+    """ 3-Column Grid with Horizontal Play Buttons beneath Big Cards """
     cols_per_row = 3
     for i in range(0, len(data), cols_per_row):
         cols = st.columns(cols_per_row)
@@ -93,23 +83,21 @@ def render_maximized_grid(data, category_prefix):
                 safe_eng = eng_text.lower().replace("/", "_").replace(" ", "_")
                 filename = f"{category_prefix}_{safe_eng}"
                 
-                # HTML Container for the Visual Card
+                # 1. The Visual Card (Top Half)
                 st.markdown(f"""
                     <div class="big-card-container">
-                        <div class="visual-card">
-                            <div class="huge-emoji">{emoji}</div>
-                            <div class="card-text-eng">{eng_text}</div>
-                            <div class="card-text-arm">{arm}</div>
-                            <div class="card-text-phon">({phon})</div>
-                        </div>
+                        <div class="huge-emoji">{emoji}</div>
+                        <div class="card-text-eng">{eng_text}</div>
+                        <div class="card-text-arm">{arm}</div>
+                        <div class="card-text-phon">({phon})</div>
                     </div>
                 """, unsafe_allow_html=True)
                 
-                # Invisible button positioned on top
-                if st.button("Click", key=filename):
+                # 2. The Horizontal Play Button (Bottom Half)
+                if st.button(f"🔊 Listen", key=filename):
                     play_audio(filename)
 
-# Pronoun Phonetics
+# Mapping for Verb Center Phonetics
 pronoun_phonetics = {
     "Ես": "Yes", "Դուն": "Toun", "Ան": "An", 
     "Մենք": "Menq", "Դուք": "Touq", "Անոնք": "Anonq"
@@ -118,7 +106,7 @@ pronoun_phonetics = {
 # --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor Dev")
-    st.caption("v4.7 Visual Card Build")
+    st.caption("v4.8 Horizontal Play Build")
     st.divider()
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools"])
     
