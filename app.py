@@ -35,20 +35,26 @@ st.markdown("""
     .card-text-arm { font-size: 32px; color: #0056b3; font-weight: bold; }
     .card-text-phon { font-size: 18px; color: #888; font-style: italic; }
 
-    /* 2. THE FULL-WIDTH LISTEN BUTTON */
-    /* This ensures the button matches the x-axis of the box perfectly */
+    /* 2. THE STRETCHED LISTEN BUTTON */
+    /* This target specifically forces the button to fill the entire column width */
+    [data-testid="stVerticalBlock"] > div:has(div.stButton) {
+        width: 100% !important;
+    }
+
     div.stButton > button {
-        width: 100% !important;      /* Forces it to be 3x wider (full container) */
-        height: 80px !important;      /* Taller for even easier pushing */
+        width: 100% !important;      /* Forces full x-axis across the column */
+        height: 90px !important;      /* Even taller for iPad targets */
         background-color: #e3f2fd !important; 
         color: #007bff !important;
         border: 2px solid #f0f2f6 !important;
         border-top: none !important;  
         border-radius: 0 0 25px 25px !important; 
         font-weight: bold !important;
-        font-size: 22px !important;   /* Larger text for the button */
-        margin-top: -1px !important;
-        display: block !important;
+        font-size: 24px !important;   
+        margin-top: -2px !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
     }
 
     div.stButton > button:hover {
@@ -57,8 +63,8 @@ st.markdown("""
     }
 
     /* 3. LAYOUT SPACING */
-    div[data-testid="column"] { padding: 10px 20px !important; }
-    .element-container { margin-bottom: 5px !important; }
+    div[data-testid="column"] { padding: 10px 15px !important; }
+    .element-container { margin-bottom: 0px !important; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -71,7 +77,7 @@ def play_audio(filename):
     st.markdown(f'<audio src="{url}" autoplay></audio>', unsafe_allow_html=True)
 
 def render_maximized_grid(data, category_prefix):
-    """ Grid with full-width horizontal buttons beneath Big Cards """
+    """ Grid with true full-width buttons """
     cols_per_row = 3
     for i in range(0, len(data), cols_per_row):
         cols = st.columns(cols_per_row)
@@ -99,7 +105,7 @@ def render_maximized_grid(data, category_prefix):
                 if st.button(f"🔊 Press to Play", key=filename):
                     play_audio(filename)
 
-# Mapping for Verb Center Phonetics
+# Pronoun Phonetics
 pronoun_phonetics = {
     "Ես": "Yes", "Դուն": "Toun", "Ան": "An", 
     "Մենք": "Menq", "Դուք": "Touq", "Անոնք": "Anonq"
@@ -108,7 +114,7 @@ pronoun_phonetics = {
 # --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor Dev")
-    st.caption("v4.9 Full-Width Build")
+    st.caption("v4.10 Stretched Button Build")
     st.divider()
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools"])
     
@@ -141,11 +147,11 @@ elif module == "Verb Center":
 
     tcol1, tcol2, tcol3 = st.columns(3)
     with tcol1: 
-        if st.button("📍 Present"): st.session_state.current_tense = 'present'
+        if st.button("📍 Present", key="p_btn"): st.session_state.current_tense = 'present'
     with tcol2:
-        if st.button("🕰️ Past"): st.session_state.current_tense = 'past'
+        if st.button("🕰️ Past", key="past_btn"): st.session_state.current_tense = 'past'
     with tcol3:
-        if st.button("🚀 Future"): st.session_state.current_tense = 'future'
+        if st.button("🚀 Future", key="f_btn"): st.session_state.current_tense = 'future'
 
     active_tense = st.session_state.current_tense
     english_label = verb_choice.split('—')[0].split('-')[0].strip()
