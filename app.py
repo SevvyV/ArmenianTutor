@@ -1,7 +1,7 @@
 import streamlit as st
 import time
 
-# 👇 IMPORT DATA
+# 👇 IMPORT DATA (Assumes data.py exists in the same directory)
 from data import (
     family_data, kitchen_data, food_data, furniture_data, animals_data, objects_data,
     verb_data, verb_list
@@ -35,7 +35,7 @@ st.markdown("""
     .card-text-arm { font-size: 32px; color: #0056b3; font-weight: bold; }
     .card-text-phon { font-size: 18px; color: #888; font-style: italic; }
 
-    /* 2. THE STRETCHED LISTEN BUTTON */
+    /* 2. THE STRETCHED LISTEN BUTTON (STRECHED TO 100% WIDTH) */
     [data-testid="stVerticalBlock"] > div:has(div.stButton) {
         width: 100% !important;
     }
@@ -61,22 +61,24 @@ st.markdown("""
         color: white !important;
     }
 
-    /* 3. LAYOUT SPACING */
+    /* 3. LAYOUT SPACING & TYPOGRAPHY */
     div[data-testid="column"] { padding: 10px 15px !important; }
     .element-container { margin-bottom: 0px !important; }
+    .phonetic-label { font-size: 14px; color: #999; font-style: italic; margin-left: 8px; }
     </style>
     """, unsafe_allow_html=True)
 
 # --- 2. HELPER FUNCTIONS ---
 
 def play_audio(filename):
-    """ Hidden audio trigger for iPad compatibility """
+    """ Hidden audio trigger optimized for iPad Safari compatibility """
+    # Using the 'main' branch as established
     base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/main/audio_library"
     url = f"{base_url}/{filename}.mp3"
     st.markdown(f'<audio src="{url}" autoplay></audio>', unsafe_allow_html=True)
 
 def render_maximized_grid(data, category_prefix):
-    """ Grid with true full-width buttons """
+    """ 3-Column Grid with full-width buttons and large emojis """
     cols_per_row = 3
     for i in range(0, len(data), cols_per_row):
         cols = st.columns(cols_per_row)
@@ -90,6 +92,7 @@ def render_maximized_grid(data, category_prefix):
                 safe_eng = eng_text.lower().replace("/", "_").replace(" ", "_")
                 filename = f"{category_prefix}_{safe_eng}"
                 
+                # Visual Flashcard
                 st.markdown(f"""
                     <div class="big-card-container">
                         <div class="huge-emoji">{emoji}</div>
@@ -99,10 +102,11 @@ def render_maximized_grid(data, category_prefix):
                     </div>
                 """, unsafe_allow_html=True)
                 
+                # Action Button
                 if st.button(f"🔊 Press to Play", key=filename):
                     play_audio(filename)
 
-# Pronoun Phonetics
+# Mapping for Verb Center Pronoun Phonetics
 pronoun_phonetics = {
     "Ես": "Yes", "Դուն": "Toun", "Ան": "An", 
     "Մենք": "Menq", "Դուք": "Touq", "Անոնք": "Anonq"
@@ -111,7 +115,7 @@ pronoun_phonetics = {
 # --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor Dev")
-    st.caption("v4.12 Final Visual Audit")
+    st.caption("v4.13 Complete Build")
     st.divider()
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools"])
     
@@ -150,28 +154,28 @@ elif "Lesson" in module:
         "Lesson 6: Animals": (animals_data, "animals"),
         "Lesson 7: Objects": (objects_data, "objects")
     }
-    data, prefix = lesson_map[module]
+    raw_data, prefix = lesson_map[module]
     
-    # Apply Visual Corrections
+    # Apply Visual Corrections for better child engagement
     corrected_data = []
-    for eng, arm, phon in data:
-        # Family Fixes
+    for eng, arm, phon in raw_data:
+        # Family Correction
         if "Son" in eng: eng = "👦 Son"
+        
+        # Furniture Fixes
+        if "Table" in eng: eng = "🪵 Table"
+        if "Sofa" in eng: eng = "🛋️ Sofa"
+        if "Window" in eng: eng = "🪟 Window"
+        if "Mirror" in eng: eng = "🪞 Mirror"
+        if "Carpet" in eng: eng = "🧶 Carpet"
+        if "Lamp" in eng: eng = "🏮 Lamp"
+        if "Stairs" in eng: eng = "🪜 Stairs"
+        if "Closet" in eng: eng = "🚪 Closet"
         
         # Kitchen Fixes
         if "Pot" in eng: eng = "🥘 Pot"
         if "Pitcher" in eng: eng = "🏺 Pitcher"
         if "Napkin" in eng: eng = "🧺 Napkin"
-        
-        # Furniture Fixes
-        if "Table" in eng: eng = "🖼️ Table"
-        if "Carpet" in eng: eng = "🖼️ Carpet"
-        if "Mirror" in eng: eng = "🪞 Mirror"
-        if "Window" in eng: eng = "🪟 Window"
-        if "Stairs" in eng: eng = "🪜 Stairs"
-        if "Sofa" in eng: eng = "🛋️ Sofa"
-        if "Chair" in eng: eng = "🪑 Chair"
-        if "Lamp" in eng: eng = "🛋️ Lamp"
         
         corrected_data.append((eng, arm, phon))
 
@@ -182,16 +186,17 @@ elif module == "Verb Center":
     st.header("🏃 Verb Conjugation Center")
     verb_choice = st.selectbox("Select a Verb:", verb_list)
     
+    # Auto-play logic on selection change
     if 'last_verb' not in st.session_state: st.session_state.last_verb = verb_choice
     if 'current_tense' not in st.session_state: st.session_state.current_tense = 'present'
 
     tcol1, tcol2, tcol3 = st.columns(3)
     with tcol1: 
-        if st.button("📍 Present", key="p_btn"): st.session_state.current_tense = 'present'
+        if st.button("📍 Present", key="verb_pres"): st.session_state.current_tense = 'present'
     with tcol2:
-        if st.button("🕰️ Past", key="past_btn"): st.session_state.current_tense = 'past'
+        if st.button("🕰️ Past", key="verb_past"): st.session_state.current_tense = 'past'
     with tcol3:
-        if st.button("🚀 Future", key="f_btn"): st.session_state.current_tense = 'future'
+        if st.button("🚀 Future", key="verb_fut"): st.session_state.current_tense = 'future'
 
     active_tense = st.session_state.current_tense
     english_label = verb_choice.split('—')[0].split('-')[0].strip()
@@ -200,7 +205,7 @@ elif module == "Verb Center":
 
     if st.session_state.last_verb != verb_choice:
         st.session_state.last_verb = verb_choice
-        time.sleep(1.0)
+        time.sleep(1.0) # 1-second auto-play delay
         play_audio(filename)
 
     st.subheader(f"{english_label} — {active_tense.capitalize()}")
@@ -211,10 +216,10 @@ elif module == "Verb Center":
         
         for i in range(6):
             p_arm = pronouns_arm[i]
-            p_phon = pronoun_phonetics[p_arm]
+            p_phon = pronoun_phonetics.get(p_arm, "")
             conj_arm = display_list[i]
             
             c1, c2 = st.columns([1, 3])
-            c1.markdown(f"**{p_arm}** <span style='font-size: 14px; color: #999; font-style: italic; margin-left: 8px;'>({p_phon})</span>", unsafe_allow_html=True)
+            c1.markdown(f"**{p_arm}** <span class='phonetic-label'>({p_phon})</span>", unsafe_allow_html=True)
             c2.markdown(f"**{conj_arm}**")
             st.markdown("<hr style='margin:0; border-top:1px solid #eee;'>", unsafe_allow_html=True)
