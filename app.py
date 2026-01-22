@@ -111,7 +111,7 @@ pronoun_phonetics = {
 # --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor Dev")
-    st.caption("v4.11 Emoji Fix Build")
+    st.caption("v4.12 Final Visual Audit")
     st.divider()
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools"])
     
@@ -142,7 +142,6 @@ if module == "Lesson 1: Greetings":
     render_maximized_grid(greetings_data, "lesson_01")
 
 elif "Lesson" in module:
-    # 修正後の絵文字データ
     lesson_map = {
         "Lesson 2: Family": (family_data, "family"),
         "Lesson 3: Kitchen": (kitchen_data, "kitchen"),
@@ -153,15 +152,27 @@ elif "Lesson" in module:
     }
     data, prefix = lesson_map[module]
     
-    # 修正: dataリスト内の絵文字を手動で微調整 (furniture, kitchen)
+    # Apply Visual Corrections
     corrected_data = []
     for eng, arm, phon in data:
-        if "Table" in eng: eng = "🏷️ Table" # 例: 🪑から修正
-        if "Carpet" in eng: eng = "🧶 Carpet" # 例: 🧵から修正
-        if "Stairs" in eng: eng = "🪜 Stairs" # 例: 🪜から修正
-        if "Napkin" in eng: eng = "🧻 Napkin" # 例: 🧻から修正
-        if "Pot" in eng: eng = "🍲 Pot" # 例: 🥣から修正
-        if "Pitcher" in eng: eng = "🍶 Pitcher" # 例: 🏺から修正
+        # Family Fixes
+        if "Son" in eng: eng = "👦 Son"
+        
+        # Kitchen Fixes
+        if "Pot" in eng: eng = "🥘 Pot"
+        if "Pitcher" in eng: eng = "🏺 Pitcher"
+        if "Napkin" in eng: eng = "🧺 Napkin"
+        
+        # Furniture Fixes
+        if "Table" in eng: eng = "🖼️ Table"
+        if "Carpet" in eng: eng = "🖼️ Carpet"
+        if "Mirror" in eng: eng = "🪞 Mirror"
+        if "Window" in eng: eng = "🪟 Window"
+        if "Stairs" in eng: eng = "🪜 Stairs"
+        if "Sofa" in eng: eng = "🛋️ Sofa"
+        if "Chair" in eng: eng = "🪑 Chair"
+        if "Lamp" in eng: eng = "🛋️ Lamp"
+        
         corrected_data.append((eng, arm, phon))
 
     st.header(f"📖 {module}")
@@ -207,4 +218,3 @@ elif module == "Verb Center":
             c1.markdown(f"**{p_arm}** <span style='font-size: 14px; color: #999; font-style: italic; margin-left: 8px;'>({p_phon})</span>", unsafe_allow_html=True)
             c2.markdown(f"**{conj_arm}**")
             st.markdown("<hr style='margin:0; border-top:1px solid #eee;'>", unsafe_allow_html=True)
-            
