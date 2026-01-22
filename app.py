@@ -145,7 +145,7 @@ def vocab_expander(data):
 
 # --- 3. NAVIGATION ---
 with st.sidebar:
-    st.title("🇦🇲 HyeTutor")
+    st.title("🇦🇲 HyeTutor Dev")
     st.caption("v3.8 Big Grid Build")
     st.divider()
     
@@ -273,3 +273,4 @@ elif module == "AI Playground":
                 audio_response = get_live_speech(armenian_text, voice_choice)
                 if isinstance(audio_response, bytes):
                     st.audio(audio_response, format="audio/mp3")
+
