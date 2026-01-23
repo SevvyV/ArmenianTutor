@@ -1,5 +1,14 @@
 # --- DATA REPOSITORY ---
 
+# 1. GREETINGS (Moved here for consistency)
+greetings_data = [
+    ("👋 Hello", "Բարեւ", "Parev"), 
+    ("❓ How are you?", "Ինչպէ՞ս ես", "Inchbes es?"),
+    ("😊 I am well", "Լաւ եմ", "Lav em"), 
+    ("🙏 Thank you", "Շնորհակալ եմ", "Shnorhagal em"),
+    ("👋 Goodbye", "Ցտեսութիւն", "Tsedesutyun")
+]
+
 days_data = [
     ("📅 Monday", "Երկուշաբթի", "Yergoushabti"), ("📅 Tuesday", "Երեքշաբթի", "Yerekshabti"), 
     ("📅 Wednesday", "Չորեքշաբթի", "Chorkshabti"), ("📅 Thursday", "Հինգշաբթի", "Hinkshabti"), 
@@ -14,6 +23,7 @@ months_data = [
     ("🍂 November", "Նոյեմբեր", "Noyemper"), ("❄️ December", "Դեկտեմբեր", "Tegtemper")
 ]
 
+# NUMBERS: Clean lists (audio logic handled in app.py via master buttons)
 nums_1_10_data = [
     ("1 One", "Մէկ", "Meg"), ("2 Two", "Երկու", "Yergoo"), ("3 Three", "Երեք", "Yerek"), 
     ("4 Four", "Չորս", "Chors"), ("5 Five", "Հինգ", "Hink"), ("6 Six", "Վեց", "Vets"), 
@@ -133,7 +143,7 @@ food_data = [
     ("🍎 Fruit", "Պտուղ", "Bdoogh"), ("🥕 Vegetable", "Բանջարեղէն", "Panchareghen")
 ]
 
-# Furniture data updated to ALL .png format per user request
+# Furniture corrected to strictly .png per user instruction
 furniture_data = [
     ("Lamp", "Լամբար", "Lambar", "Furniture_Lamp.png"), 
     ("Sofa", "Բազմոց", "Pazmots", "Furniture_couch.png"),
@@ -143,7 +153,7 @@ furniture_data = [
     ("Carpet", "Գորգ", "Gorg", "Furniture_carpet.png"),
     ("Mirror", "Հայելի", "Hayeli", "Furniture_Mirror.png"), 
     ("Window", "Պատուհան", "Badoohan", "Furniture_window.png"),
-    ("Stairs", "Աստիճան", "Asdijan", "Furniture_stairs.png"), 
+    ("Stairs", "Սանդուխք", "Santookht", "Furniture_stairs.png"), 
     ("Closet", "Պահարան", "Baharan", "Furniture_closet.png")
 ]
 
