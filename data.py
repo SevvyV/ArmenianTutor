@@ -1,3 +1,4 @@
+# --- Stable version 5.18 
 # --- DATA REPOSITORY ---
 
 greetings_data = [
