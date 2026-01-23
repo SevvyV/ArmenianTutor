@@ -167,9 +167,10 @@ if module == "Verb Conjugation Center":
     
     st.subheader(f"{english_label} — {active_tense.capitalize()}")
     
-    # Single Master Button for Verbs
+    # 🔊 SINGLE MASTER PLAY BUTTON FOR VERB TENSE
     st.markdown('<div class="master-play-btn">', unsafe_allow_html=True)
-    audio_file = f"verb_to_{clean_name}_{active_tense}"
+    # FIX: Removed extra 'to_' so it matches your file naming convention
+    audio_file = f"verb_{clean_name}_{active_tense}"
     if st.button("🔊 Play Conjugation", key=f"play_verb_{clean_name}_{active_tense}"):
         play_audio(audio_file)
     st.markdown('</div>', unsafe_allow_html=True)
@@ -226,7 +227,6 @@ elif module == "Counting by 10s":
     st.markdown('</div>', unsafe_allow_html=True)
     render_practice_grid(tens_data)
 
-# FIX: Greetings now uses the SINGLE BUTTON layout (like practice tools)
 elif module == "Lesson 1: Greetings":
     st.header("👋 Lesson 1: Basic Greetings")
     
