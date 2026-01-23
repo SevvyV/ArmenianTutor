@@ -2,7 +2,7 @@ import streamlit as st
 import time
 
 # 👇 IMPORT DATA
-# Ensure data.py is in the same folder and has no syntax errors
+# This section imports your lists from data.py
 from data import (
     family_data, kitchen_data, food_data, furniture_data, animals_data, objects_data,
     verb_data, verb_list
@@ -28,6 +28,7 @@ st.markdown("""
         overflow: hidden;
     }
 
+    /* 🖼️ REAL IMAGE STYLING */
     .card-image {
         width: 100%;
         height: 230px;
@@ -75,7 +76,7 @@ def play_audio(filename):
 def render_maximized_grid(data, category_prefix):
     """ 3-Column Grid with PNG Support """
     cols_per_row = 3
-    # Your GitHub username is pre-filled here
+    # ⚠️ Ensure this username matches your GitHub
     base_img_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/main/image_library"
     
     for i in range(0, len(data), cols_per_row):
@@ -115,7 +116,7 @@ def render_maximized_grid(data, category_prefix):
 # --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor Dev")
-    st.caption("v5.5 Strict Restoration")
+    st.caption("v5.5 Fixed Syntax Build")
     st.divider()
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools"])
     
@@ -125,7 +126,6 @@ with st.sidebar:
             "Lesson 4: Food", "Lesson 5: Furniture", "Lesson 6: Animals", "Lesson 7: Objects"
         ])
     else:
-        # Strictly restored Verb Center only
         module = st.radio("Tools:", ["Verb Conjugation Center"])
 
 # --- 4. PAGE LOGIC ---
