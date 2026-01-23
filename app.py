@@ -69,6 +69,19 @@ st.markdown("""
         padding: 15px !important;
         margin-bottom: 20px !important;
     }
+
+    /* --- NEW: VERB SELECTOR STYLING --- */
+    /* Target the container of the select box value to make it bigger */
+    div[data-baseweb="select"] > div {
+        font-size: 1.5rem !important; /* Bigger Text */
+        min-height: 60px !important;   /* Taller Box */
+        display: flex;
+        align-items: center;
+    }
+    /* Target the dropdown list items */
+    li[role="option"] {
+        font-size: 1.2rem !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -169,7 +182,6 @@ if module == "Verb Conjugation Center":
     
     # 🔊 SINGLE MASTER PLAY BUTTON FOR VERB TENSE
     st.markdown('<div class="master-play-btn">', unsafe_allow_html=True)
-    # FIX: Removed extra 'to_' so it matches your file naming convention
     audio_file = f"verb_{clean_name}_{active_tense}"
     if st.button("🔊 Play Conjugation", key=f"play_verb_{clean_name}_{active_tense}"):
         play_audio(audio_file)
@@ -182,7 +194,12 @@ if module == "Verb Conjugation Center":
         pronoun_phonetics = {"Ես": "Yes", "Դուն": "Toun", "Ան": "An", "Մենք": "Menq", "Դուք": "Touq", "Անոնք": "Anonq"}
         
         for i in range(6):
-            c1, c2, c3 = st.columns([1, 1, 2])
+            p_eng, p_arm, p_phon = pronouns_eng[i], pronouns_arm[i], pronoun_phonetics[pronouns_arm[i]]
+            
+            # --- FIX: TIGHTER COLUMNS ---
+            # Used [1.5, 1.5, 3, 5] ratio. The '5' acts as a spacer to push the first 3 columns together.
+            c1, c2, c3, _ = st.columns([1.5, 1.5, 3, 5])
+            
             c1.markdown(f"<span class='eng-pronoun'>{pronouns_eng[i]}</span>", unsafe_allow_html=True)
             c2.markdown(f"**{pronouns_arm[i]}** <span class='phonetic-label'>({pronoun_phonetics[pronouns_arm[i]]})</span>", unsafe_allow_html=True)
             c3.markdown(f"**{display_list[i]}**")
