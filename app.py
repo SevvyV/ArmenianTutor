@@ -279,3 +279,4 @@ elif "Lesson" in module:
     raw_data, prefix = lesson_map[module]
     st.header(f"📖 {module}")
     render_maximized_grid(raw_data, prefix)
+    
