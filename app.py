@@ -13,19 +13,25 @@ st.set_page_config(page_title="HyeTutor Dev", page_icon="🇦🇲", layout="wide
 
 st.markdown("""
     <style>
-    /* THE BIG IMAGE/EMOJI BOX */
+    /* 1. CARD STYLING */
     .big-card-container {
         background-color: #ffffff;
         border: 2px solid #f0f2f6;
-        border-radius: 25px; 
+        /* Rounded TOP only so button attaches to bottom */
+        border-radius: 25px 25px 0 0; 
         height: 380px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        margin-bottom: 0px; 
+        margin-bottom: 0px; /* Flush with button */
         overflow: hidden;
+    }
+    
+    /* For Practice Tools (No buttons below), give them full rounded corners */
+    .practice-card {
+        border-radius: 25px !important;
     }
 
     .card-image {
@@ -40,31 +46,33 @@ st.markdown("""
     .card-text-arm { font-size: 32px; color: #0056b3; font-weight: bold; }
     .card-text-phon { font-size: 18px; color: #888; font-style: italic; }
 
-    /* --- ROBUST FIX FOR LESSON BUTTONS --- */
-    /* This targets the Streamlit container holding the button that comes immediately 
-       after the container holding our 'lesson-btn-marker' */
-    div.element-container:has(div.lesson-btn-marker) + div.element-container button {
+    /* 2. THE BIG BUTTON FIX (Targeting Column Context) */
+    /* If a column contains our hidden marker, style the button inside it to be HUGE */
+    div[data-testid="column"]:has(div.lesson-btn-marker) .stButton button {
         width: 100% !important;      
         height: 90px !important;      
         background-color: #e3f2fd !important; 
         color: #007bff !important;
         border: 2px solid #f0f2f6 !important;
         border-top: none !important;  
-        border-radius: 0 0 25px 25px !important; 
+        border-radius: 0 0 25px 25px !important; /* Rounded BOTTOM only */
         font-weight: bold !important;
         font-size: 24px !important;   
-        margin-top: -2px !important;
+        margin-top: -15px !important; /* Pull up to touch card */
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+        z-index: 1;
     }
-    div.element-container:has(div.lesson-btn-marker) + div.element-container button:hover { 
+    div[data-testid="column"]:has(div.lesson-btn-marker) .stButton button:hover { 
         background-color: #007bff !important; 
         color: white !important; 
     }
     
+    /* 3. GENERAL UI */
     div[data-testid="column"] { padding: 10px 15px !important; }
     .phonetic-label { font-size: 14px; color: #999; font-style: italic; margin-left: 8px; }
     .eng-pronoun { font-size: 16px; color: #444; font-weight: 600; }
     
-    /* MASTER PLAY BUTTON (GREEN) */
+    /* 4. MASTER PLAY BUTTON (For Practice Tools) */
     .master-play-btn div.stButton > button {
         width: 100% !important;
         background-color: #28a745 !important;
@@ -75,7 +83,7 @@ st.markdown("""
         margin-bottom: 20px !important;
     }
 
-    /* VERB SELECTOR STYLING (Bigger Font) */
+    /* 5. VERB SELECTOR STYLING (Bigger Font) */
     div[data-baseweb="select"] > div {
         font-size: 1.5rem !important; 
         min-height: 60px !important;   
@@ -97,7 +105,7 @@ def play_audio(filename):
     st.markdown(f'<audio src="{url}" autoplay></audio>', unsafe_allow_html=True)
 
 def render_maximized_grid(data, category_prefix):
-    """ LESSON GRID: Visual Card + Individual Audio Button (For Lessons 2-7) """
+    """ LESSON GRID: Card + Big Button """
     cols_per_row = 3
     base_img_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/main/image_library"
     
@@ -118,8 +126,9 @@ def render_maximized_grid(data, category_prefix):
                 
                 visual_html = f'<img src="{base_img_url}/{image_file}" class="card-image">' if image_file else f'<div class="huge-emoji" style="text-align:center;">{emoji}</div>'
 
+                # Card Top
                 st.markdown(f"""
-                    <div class="big-card-container" style="border-radius: 25px 25px 0 0; margin-bottom: 0;">
+                    <div class="big-card-container">
                         {visual_html}
                         <div class="card-text-eng">{eng_text}</div>
                         <div class="card-text-arm">{arm}</div>
@@ -127,13 +136,15 @@ def render_maximized_grid(data, category_prefix):
                     </div>
                 """, unsafe_allow_html=True)
                 
-                # --- SIBLING MARKER FOR CSS ---
+                # --- INJECT MARKER FOR CSS ---
+                # This invisible div tells CSS "This column has a lesson button!"
                 st.markdown('<div class="lesson-btn-marker"></div>', unsafe_allow_html=True)
+                
                 if st.button(f"🔊 Press to Play", key=f"btn_{filename}_{i}_{j}"):
                     play_audio(filename)
 
 def render_practice_grid(data):
-    """ PRACTICE GRID: Visual cards only (For Practice Tools & Greetings) """
+    """ PRACTICE GRID: Visual cards only (No individual buttons) """
     cols_per_row = 3
     
     for i in range(0, len(data), cols_per_row):
@@ -148,8 +159,9 @@ def render_practice_grid(data):
                 parts = eng_label.split(' ', 1)
                 emoji, eng_text = (parts[0], parts[1]) if len(parts) > 1 else ("❓", eng_label)
 
+                # Added 'practice-card' class to give it full rounded corners since no button follows
                 st.markdown(f"""
-                    <div class="big-card-container">
+                    <div class="big-card-container practice-card">
                         <div class="huge-emoji" style="text-align:center;">{emoji}</div>
                         <div class="card-text-eng">{eng_text}</div>
                         <div class="card-text-arm">{arm}</div>
@@ -198,7 +210,7 @@ if module == "Verb Conjugation Center":
         for i in range(6):
             p_eng, p_arm, p_phon = pronouns_eng[i], pronouns_arm[i], pronoun_phonetics[pronouns_arm[i]]
             
-            # Tighter columns
+            # Tighter columns per your request
             c1, c2, c3, _ = st.columns([1.5, 1.5, 3, 5])
             
             c1.markdown(f"<span class='eng-pronoun'>{pronouns_eng[i]}</span>", unsafe_allow_html=True)
