@@ -230,7 +230,7 @@ elif module == "Counting by 10s":
     st.header("🔟 Counting by 10s")
     st.markdown('<div class="master-play-btn">', unsafe_allow_html=True)
     if st.button("🔊 Play 10-100", key="play_tens"):
-        play_audio("drill_numbers_10_100")
+        play_audio("drill_tens_10_100")
     st.markdown('</div>', unsafe_allow_html=True)
     render_practice_grid(tens_data)
 
@@ -250,5 +250,6 @@ elif "Lesson" in module:
     raw_data, prefix = lesson_map[module]
     st.header(f"📖 {module}")
     render_maximized_grid(raw_data, prefix)
+
 
 
