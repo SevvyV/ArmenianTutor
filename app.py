@@ -2,7 +2,6 @@ import streamlit as st
 import time
 
 # 👇 IMPORT DATA
-# This section imports your lists from data.py
 from data import (
     family_data, kitchen_data, food_data, furniture_data, animals_data, objects_data,
     verb_data, verb_list
@@ -76,7 +75,7 @@ def play_audio(filename):
 def render_maximized_grid(data, category_prefix):
     """ 3-Column Grid with PNG Support """
     cols_per_row = 3
-    # ⚠️ Ensure this username matches your GitHub
+    # ⚠️ Ensure this matches your GitHub username
     base_img_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/main/image_library"
     
     for i in range(0, len(data), cols_per_row):
@@ -116,7 +115,7 @@ def render_maximized_grid(data, category_prefix):
 # --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor Dev")
-    st.caption("v5.5 Fixed Syntax Build")
+    st.caption("v5.6 Fixed Build")
     st.divider()
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools"])
     
