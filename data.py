@@ -120,18 +120,23 @@ food_data = [
     ("🥕 Vegetable", "Բանջարեղէն", "Panchareghen")
 ]
 
+# data.py
+
+# ... (Keep your greetings_data, family_data, etc. above this)
+
 furniture_data = [
-    ("🪑 Table", "Սեղան", "Seghan"), 
-    ("💺 Chair", "Աթոռ", "Ator"), 
-    ("🛋️ Sofa", "Բազմոց", "Bazmots"), 
-    ("🛏️ Bed", "Անկողին", "Angoghin"), 
-    ("🚪 Door", "Դուռ", "Toor"), 
-    ("🪟 Window", "Պատուհան", "Badouhan"), 
-    ("💡 Lamp", "Լամբ", "Lamp"), 
-    ("🧶 Rug/Carpet", "Գորգ", "Kork"), 
-    ("🪞 Mirror", "Հայելի", "Hayeli"), 
-    ("🚪 Closet", "Պահարան", "Baharan"),
-    ("🪜 Stairs", "Սանդուխ", "Sandough")
+    ("Lamp", "Լամբար", "Lambar", "Furniture_Lamp.png"),
+    ("Sofa", "Բազմոց", "Pazmots", "Furniture_couch.png"),
+    ("Clock", "Ժամացոյց", "Jamatsuyts", "Furniture_Clock.png"),
+    ("Telephone", "Հեռաձայն", "Heratzayn", "Furniture_telephone.png"),
+    ("Table", "Սեղան", "Seghan", "Furniture_table.png"),
+    ("Mirror", "Հայելի", "Hayeli"),   # No PNG yet - will fallback to emoji
+    ("Window", "Պատուհան", "Badoohan"),
+    ("Stairs", "Աստիճան", "Asdijan"),
+    ("Closet", "Պահարան", "Baharan")
+]
+
+# ... (Keep animals_data and objects_data below this)
 ]
 
 animals_data = [
