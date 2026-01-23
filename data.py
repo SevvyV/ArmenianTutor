@@ -75,94 +75,6 @@ family_data = [
     ("👱‍♀️ Daughter", "Աղջիկ", "Aghchig")
 ]
 
-kitchen_data = [
-    ("🥄 Spoon", "Դգալ", "Tkal"), 
-    ("🍴 Fork", "Պատառաքաղ", "Badarakagh"), 
-    ("🔪 Knife", "Դանակ", "Danag"), 
-    ("🍽️ Plate", "Պնակ", "Pnag"), 
-    ("🥣 Bowl", "Աման", "Aman"), 
-    ("☕ Cup/Mug", "Գաւաթ", "Kavat"), 
-    ("🥃 Glass", "Բաժակ", "Pajag"), 
-    ("🧻 Napkin", "Անձեռոցիկ", "Antzerotsig"), 
-    ("🍲 Pot", "Պտուկ", "Btdoug"), 
-    ("🍳 Pan", "Տապակ", "Dabag"),
-    ("🍶 Pitcher", "Փարչ", "Parch"),
-    ("🍼 Bottle", "Շիշ", "Shish")
-]
-
-food_data = [
-    ("🍞 Bread", "Հաց", "Hats"), 
-    ("💧 Water", "Ջուր", "Joor"), 
-    ("🧀 Cheese", "Պանիր", "Banir"), 
-    ("🥛 Milk", "Կաթ", "Gat"), 
-    ("☕ Coffee", "Սուրճ", "Soorj"), 
-    ("🍵 Tea", "Թէյ", "Tey"), 
-    ("🥚 Egg", "Հաւկիթ", "Havgit"), 
-    ("🥩 Meat", "Միս", "Mis"), 
-    ("🍗 Chicken", "Հաւ", "Hav"), 
-    ("🐟 Fish", "Ձուկ", "Tzoog"),
-    ("🍎 Fruit", "Պտուղ", "Bdoogh"),
-    ("🥕 Vegetable", "Բանջարեղէն", "Panchareghen")
-]
-
-furniture_data = [
-    ("Lamp", "Լամբար", "Lambar", "Furniture_Lamp.png"),
-    ("Sofa", "Բազմոց", "Pazmots", "Furniture_couch.png"),
-    ("Clock", "Ժամացոյց", "Jamatsuyts", "Furniture_Clock.png"),
-    ("Telephone", "Հեռաձայն", "Heratzayn", "Furniture_telephone.png"),
-    ("Table", "Սեղան", "Seghan", "Furniture_table.png"),
-    ("Mirror", "Հայելի", "Hayeli"),   
-    ("Window", "Պատուհան", "Badoohan"),
-    ("Stairs", "Աստիճան", "Asdijan"),
-    ("Closet", "Պահարան", "Baharan")
-]
-
-animals_data = [
-    ("🐶 Dog", "Շուն", "Shoon"), 
-    ("🐱 Cat", "Կատու", "Gadoo"), 
-    ("🐦 Bird", "Թռչուն", "Trchoon"), 
-    ("🐴 Horse", "Ձի", "Tzi"), 
-    ("🐄 Cow", "Կով", "Gov"), 
-    ("🐑 Sheep", "Ոչխար", "Vochkhar"), 
-    ("🐔 Chicken", "Հաւ", "Hav"), 
-    ("🐭 Mouse", "Մուկ", "Mook"), 
-    ("🐻 Bear", "Արջ", "Arch"), 
-    ("🦁 Lion", "Առիւծ", "Ariudz")
-]
-
-objects_data = [
-    ("📖 Book", "Գիրք", "Kirk"), 
-    ("📰 Newspaper", "Թերթ", "Tert"), 
-    ("🖊️ Pen", "Գրիչ", "Krich"), 
-    ("📄 Paper", "Թուղթ", "Tought"), 
-    ("📱 Phone", "Հեռաձայն", "Heratsayn"), 
-    ("💻 Computer", "Համակարգիչ", "Hamakarkich"), 
-    ("⌚ Watch/Clock", "Ժամացոյց", "Jamatsouyt"), 
-    ("👓 Glasses", "Ակնոց", "Aknots"), 
-    ("🎒 Bag", "Պայուսակ", "Bayousag"), 
-    ("🔑 Key", "Բանալի", "Panali")
-]
-
-verb_list = sorted([
-    "To Answer — Պատասխանել (Badaskhanel)", "To Ask — Հարցնել (Hartsnel)", "To Be — Ըլլալ (Eellal)", 
-    "To Bring — Բերել (Perel)", "To Buy — Գնել (Knel)", "To Call — Կանչել (Ganchel)", 
-    "To Clean — Մաքրել (Makrel)", "To Close — Գոցել (Kotsel)", "To Come — Գալ (Kal)", 
-    "To Cook — Եփել (Epel)", "To Do — Ընել (Enel)", "To Drink — Խմել (Khmel)", 
-    "To Eat — Ուտել (Oudel)", "To Finish — Վերջացնել (Verchatsnel)", "To Forget — Մոռնալ (Mornal)", 
-    "To Give — Տալ (Dal)", "To Go — Երթալ (Yertal)", "To Have — Ունենալ (Ounenal)", 
-    "To Hear — Լսել (Lsel)", "To Help — Օգնել (Okne)", "To Know — Գիտնալ (Kidenal)", 
-    "To Learn — Սորվիլ (Sorvil)", "To Live — Ապրիլ (Abril)", "To Look — Նայիլ (Nayil)", 
-    "To Love — Սիրել (Sirel)", "To Open — Բանալ (Panal)", "To Play — Խաղալ (Khaghal)", 
-    "To Put — Դնել (Tnel)", "To Read — Կարդալ (Gartal)", "To Remember — Յիշել (Hishel)", 
-    "To Run — Վազել (Vazel)", "To Say — Ըսել (Esel)", "To See — Տեսնել (Desnel)", 
-    "To Sell — Ծախել (Dzakhel)", "To Sit — Նստիլ (Nsdel)", "To Sleep — Քնանալ (Knanol)", 
-    "To Speak — Խօսիլ (Khosil)", "To Stand — Կայնիլ (Gaynil)", "To Start — Սկսիլ (Sgsil)", 
-    "To Take — Առնել (Arnel)", "To Think — Մտածել (Mdadzel)", "To Try — Փորձել (Portsel)", 
-    "To Understand — Հասկնալ (Hasknal)", "To Wait — Սպասել (Spasel)", "To Wake Up — Արթննալ (Artnnal)", 
-    "To Walk — Քալել (Kalel)", "To Wash — Լուալ (Lval)", "To Want — Ուզել (Ouzel)", "To Work — Աշխատիլ (Ashkhadil)", 
-    "To Write — Գրել (Krel)"
-])
-
 verb_data = {
     "to_answer": {"present": ["կը պատասխանեմ", "կը պատասխանես", "կը պատասխանէ", "կը պատասխանենք", "կը պատասխանէք", "կը պատասխանեն"], "past": ["պատասխանեցի", "պատասխանեցիր", "պատասխանեց", "պատասխանեցինք", "պատասխանեցիք", "պատասխանեցին"], "future": ["պիտի պատասխանեմ", "պիտի պատասխանես", "պիտի պատասխանէ", "պիտի պատասխանենք", "պիտի պատասխանէք", "պիտի պատասխանեն"]},
     "to_ask": {"present": ["կը հարցնեմ", "կը հարցնես", "կը հարցնէ", "կը հարցնենք", "կը հարցնէք", "կը հարցնեն"], "past": ["հարցուցի", "հարցուցիր", "հարցուց", "հարցուցինք", "հարցուցիք", "հարցուցին"], "future": ["պիտի հարցնեմ", "պիտի հարցնես", "պիտի հարցնէ", "պիտի հարցնենք", "պիտի հարցնէք", "պիտի հարցնեն"]},
@@ -215,3 +127,92 @@ verb_data = {
     "to_work": {"present": ["կ՚աշխատիմ", "կ՚աշխատիս", "կ՚աշխատի", "կ՚աշխատինք", "կ՚աշխատիք", "կ՚աշխատին"], "past": ["աշխատեցայ", "աշխատեցար", "աշխատեցաւ", "աշխատեցանք", "աշխատեցաք", "աշխատեցան"], "future": ["պիտի աշխատիմ", "պիտի աշխատիս", "պիտի աշխատի", "պիտի աշխատինք", "պիտի աշխատիք", "պիտի աշխատին"]},
     "to_write": {"present": ["կը գրեմ", "կը գրես", "կը գրէ", "կը գրենք", "կը գրէք", "կը գրեն"], "past": ["գրեցի", "գրեցիր", "գրեց", "գրեցինք", "գրեցիք", "գրեցին"], "future": ["պիտի գրեմ", "պիտի գրես", "պիտի գրէ", "պիտի գրենք", "պիտի գրէք", "պիտի գրեն"]}
 }
+
+verb_list = sorted([
+    "To Answer — Պատասխանել (Badaskhanel)", "To Ask — Հարցնել (Hartsnel)", "To Be — Ըլլալ (Eellal)", 
+    "To Bring — Բերել (Perel)", "To Buy — Գնել (Knel)", "To Call — Կանչել (Ganchel)", 
+    "To Clean — Մաքրել (Makrel)", "To Close — Գոցել (Kotsel)", "To Come — Գալ (Kal)", 
+    "To Cook — Եփել (Epel)", "To Do — Ընել (Enel)", "To Drink — Խմել (Khmel)", 
+    "To Eat — Ուտել (Oudel)", "To Finish — Վերջացնել (Verchatsnel)", "To Forget — Մոռնալ (Mornal)", 
+    "To Give — Տալ (Dal)", "To Go — Երթալ (Yertal)", "To Have — Ունենալ (Ounenal)", 
+    "To Hear — Լսել (Lsel)", "To Help — Օգնել (Okne)", "To Know — Գիտնալ (Kidenal)", 
+    "To Learn — Սորվիլ (Sorvil)", "To Live — Ապրիլ (Abril)", "To Look — Նայիլ (Nayil)", 
+    "To Love — Սիրել (Sirel)", "To Open — Բանալ (Panal)", "To Play — Խաղալ (Khaghal)", 
+    "To Put — Դնել (Tnel)", "To Read — Կարդալ (Gartal)", "To Remember — Յիշել (Hishel)", 
+    "To Run — Վազել (Vazel)", "To Say — Ըսել (Esel)", "To See — Տեսնել (Desnel)", 
+    "To Sell — Ծախել (Dzakhel)", "To Sit — Նստիլ (Nsdel)", "To Sleep — Քնանալ (Knanol)", 
+    "To Speak — Խօսիլ (Khosil)", "To Stand — Կայնիլ (Gaynil)", "To Start — Սկսիլ (Sgsil)", 
+    "To Take — Առնել (Arnel)", "To Think — Մտածել (Mdadzel)", "To Try — Փորձել (Portsel)", 
+    "To Understand — Հասկնալ (Hasknal)", "To Wait — Սպասել (Spasel)", "To Wake Up — Արթննալ (Artnnal)", 
+    "To Walk — Քալել (Kalel)", "To Wash — Լուալ (Lval)", "To Want — Ուզել (Ouzel)", "To Work — Աշխատիլ (Ashkhadil)", 
+    "To Write — Գրել (Krel)"
+])
+
+kitchen_data = [
+    ("🥄 Spoon", "Դգալ", "Tkal"), 
+    ("🍴 Fork", "Պատառաքաղ", "Badarakagh"), 
+    ("🔪 Knife", "Դանակ", "Danag"), 
+    ("🍽️ Plate", "Պնակ", "Pnag"), 
+    ("🥣 Bowl", "Աման", "Aman"), 
+    ("☕ Cup/Mug", "Գաւաթ", "Kavat"), 
+    ("🥃 Glass", "Բաժակ", "Pajag"), 
+    ("🧻 Napkin", "Անձեռոցիկ", "Antzerotsig"), 
+    ("🍲 Pot", "Պտուկ", "Btdoug"), 
+    ("🍳 Pan", "Տապակ", "Dabag"),
+    ("🍶 Pitcher", "Փարչ", "Parch"),
+    ("🍼 Bottle", "Շիշ", "Shish")
+]
+
+food_data = [
+    ("🍞 Bread", "Հաց", "Hats"), 
+    ("💧 Water", "Ջուր", "Joor"), 
+    ("🧀 Cheese", "Պանիր", "Banir"), 
+    ("🥛 Milk", "Կաթ", "Gat"), 
+    ("☕ Coffee", "Սուրճ", "Soorj"), 
+    ("🍵 Tea", "Թէյ", "Tey"), 
+    ("🥚 Egg", "Հաւկիթ", "Havgit"), 
+    ("🥩 Meat", "Միս", "Mis"), 
+    ("🍗 Chicken", "Հաւ", "Hav"), 
+    ("🐟 Fish", "Ձուկ", "Tzoog"),
+    ("🍎 Fruit", "Պտուղ", "Bdoogh"),
+    ("🥕 Vegetable", "Բանջարեղէն", "Panchareghen")
+]
+
+furniture_data = [
+    ("Lamp", "Լամբար", "Lambar", "Furniture_Lamp.png"),
+    ("Sofa", "Բազմոց", "Pazmots", "Furniture_couch.png"),
+    ("Clock", "Ժամացոյց", "Jamatsuyts", "Furniture_Clock.png"),
+    ("Telephone", "Հեռաձայն", "Heratzayn", "Furniture_telephone.png"),
+    ("Table", "Սեղան", "Seghan", "Furniture_table.png"),
+    ("Carpet", "Գորգ", "Gorg", "Furniture_carpet.png"),
+    ("Mirror", "Հայելի", "Hayeli", "Furniture_Mirror.png"),   
+    ("Window", "Պատուհան", "Badoohan", "Furniture_window.png"),
+    ("Stairs", "Աստիճան", "Asdijan", "Furniture_stairs.png"),
+    ("Closet", "Պահարան", "Baharan", "Furniture_closet.png")
+]
+
+animals_data = [
+    ("🐶 Dog", "Շուն", "Shoon"), 
+    ("🐱 Cat", "Կատու", "Gadoo"), 
+    ("🐦 Bird", "Թռչուն", "Trchoon"), 
+    ("🐴 Horse", "Ձի", "Tzi"), 
+    ("🐄 Cow", "Կով", "Gov"), 
+    ("🐑 Sheep", "Ոչխար", "Vochkhar"), 
+    ("🐔 Chicken", "Հաւ", "Hav"), 
+    ("🐭 Mouse", "Մուկ", "Mook"), 
+    ("🐻 Bear", "Արջ", "Arch"), 
+    ("🦁 Lion", "Առիւծ", "Ariudz")
+]
+
+objects_data = [
+    ("📖 Book", "Գիրք", "Kirk"), 
+    ("📰 Newspaper", "Թերթ", "Tert"), 
+    ("🖊️ Pen", "Գրիչ", "Krich"), 
+    ("📄 Paper", "Թուղթ", "Tought"), 
+    ("📱 Phone", "Հեռաձայն", "Heratsayn"), 
+    ("💻 Computer", "Համակարգիչ", "Hamakarkich"), 
+    ("⌚ Watch/Clock", "Ժամացոյց", "Jamatsouyt"), 
+    ("👓 Glasses", "Ակնոց", "Aknots"), 
+    ("🎒 Bag", "Պայուսակ", "Bayousag"), 
+    ("🔑 Key", "Բանալի", "Panali")
+]
