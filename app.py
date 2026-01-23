@@ -207,7 +207,7 @@ elif module == "Months of the Year":
     st.header("🗓️ Months of the Year")
     st.markdown('<div class="master-play-btn">', unsafe_allow_html=True)
     if st.button("🔊 Play All Months", key="play_months"):
-        play_audio("vocab_months")
+        play_audio("drill_months_of_year")
     st.markdown('</div>', unsafe_allow_html=True)
     render_practice_grid(months_data)
 
@@ -250,4 +250,5 @@ elif "Lesson" in module:
     raw_data, prefix = lesson_map[module]
     st.header(f"📖 {module}")
     render_maximized_grid(raw_data, prefix)
+
 
