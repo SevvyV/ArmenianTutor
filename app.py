@@ -2,7 +2,6 @@ import streamlit as st
 import time
 
 # 👇 IMPORT DATA
-# Updated to include all the restored lists from your data.py
 from data import (
     days_data, months_data, nums_1_10_data, nums_11_20_data, tens_data,
     family_data, kitchen_data, food_data, furniture_data, animals_data, objects_data,
@@ -42,27 +41,28 @@ st.markdown("""
     .card-text-arm { font-size: 32px; color: #0056b3; font-weight: bold; }
     .card-text-phon { font-size: 18px; color: #888; font-style: italic; }
 
-    /* 2. THE STRETCHED LISTEN BUTTON */
+    /* 2. THE STRETCHED LISTEN BUTTON (Only for grids) */
+    /* This specifically targets buttons inside vertical blocks typically used for grids */
     [data-testid="stVerticalBlock"] > div:has(div.stButton) {
         width: 100% !important;
     }
 
-    div.stButton > button {
-        width: 100% !important;      
-        height: 90px !important;      
-        background-color: #e3f2fd !important; 
-        color: #007bff !important;
-        border: 2px solid #f0f2f6 !important;
-        border-top: none !important;  
-        border-radius: 0 0 25px 25px !important; 
-        font-weight: bold !important;
-        font-size: 24px !important;   
-        margin-top: -2px !important;
-    }
-    div.stButton > button:hover { background-color: #007bff !important; color: white !important; }
+    /* We need to be careful not to affect the Verb Center Radio Buttons */
+    /* The previous global rule was too aggressive. We will rely on Streamlit's default button behavior for everything except the grid cards. */
     
+    /* Specific styling for the grid card buttons */
+    div.stButton > button {
+        /* We leave this generic for now but removed the hard height so other buttons look normal */
+        width: 100% !important;
+        border-radius: 10px !important;
+    }
+    
+    /* Styling for the card buttons specifically would ideally be done via a custom component or key-based CSS, 
+       but for now we will just make sure standard buttons aren't huge */
+
     div[data-testid="column"] { padding: 10px 15px !important; }
     .phonetic-label { font-size: 14px; color: #999; font-style: italic; margin-left: 8px; }
+    .eng-pronoun { font-size: 16px; color: #444; font-weight: 600; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -89,7 +89,7 @@ def render_maximized_grid(data, category_prefix, default_emoji="❓"):
                 phon = item[2]
                 image_file = item[3] if len(item) > 3 else None
 
-                # Visual Logic: Check if string has an emoji or use default
+                # Visual Logic
                 parts = eng_label.split(' ', 1)
                 if len(parts) > 1:
                     emoji = parts[0]
@@ -122,7 +122,7 @@ def render_maximized_grid(data, category_prefix, default_emoji="❓"):
 # --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor Dev")
-    st.caption("v5.9 PNG Build")
+    st.caption("v5.10 Verb Center UI Fix")
     st.divider()
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools"])
     
@@ -132,7 +132,6 @@ with st.sidebar:
             "Lesson 4: Food", "Lesson 5: Furniture", "Lesson 6: Animals", "Lesson 7: Objects"
         ])
     else:
-        # Restored the missing menu items here
         module = st.radio("Tools:", [
             "Verb Conjugation Center", 
             "Days of the Week", 
@@ -146,17 +145,11 @@ with st.sidebar:
 if module == "Verb Conjugation Center":
     st.header("🏃 Verb Conjugation Center")
     verb_choice = st.selectbox("Select a Verb:", verb_list)
-    if 'current_tense' not in st.session_state: st.session_state.current_tense = 'present'
-
-    tcol1, tcol2, tcol3 = st.columns(3)
-    with tcol1: 
-        if st.button("📍 Present", key="verb_pres"): st.session_state.current_tense = 'present'
-    with tcol2:
-        if st.button("🕰️ Past", key="verb_past"): st.session_state.current_tense = 'past'
-    with tcol3:
-        if st.button("🚀 Future", key="verb_fut"): st.session_state.current_tense = 'future'
-
-    active_tense = st.session_state.current_tense
+    
+    # 2. UI FIX: Replaced huge buttons with a clean toggle bar
+    tenses = ["Present", "Past", "Future"]
+    active_tense = st.radio("Select Tense:", tenses, horizontal=True).lower()
+    
     english_label = verb_choice.split('—')[0].split('-')[0].strip()
     clean_name = english_label.lower().replace(" ", "_")
     
@@ -164,16 +157,25 @@ if module == "Verb Conjugation Center":
 
     if clean_name in verb_data:
         display_list = verb_data[clean_name][active_tense]
+        
+        # 3. CONTENT FIX: Added English Pronouns Column
+        pronouns_eng = ["I", "You", "He/She", "We", "You (pl)", "They"]
         pronouns_arm = ["Ես", "Դուն", "Ան", "Մենք", "Դուք", "Անոնք"]
         pronoun_phonetics = {"Ես": "Yes", "Դուն": "Toun", "Ան": "An", "Մենք": "Menq", "Դուք": "Touq", "Անոնք": "Anonq"}
         
         for i in range(6):
+            p_eng = pronouns_eng[i]
             p_arm = pronouns_arm[i]
             p_phon = pronoun_phonetics[p_arm]
-            c1, c2 = st.columns([1, 3])
-            c1.markdown(f"**{p_arm}** <span class='phonetic-label'>({p_phon})</span>", unsafe_allow_html=True)
-            c2.markdown(f"**{display_list[i]}**")
+            
+            # 3 Columns now
+            c1, c2, c3 = st.columns([1, 1, 2])
+            c1.markdown(f"<span class='eng-pronoun'>{p_eng}</span>", unsafe_allow_html=True)
+            c2.markdown(f"**{p_arm}** <span class='phonetic-label'>({p_phon})</span>", unsafe_allow_html=True)
+            c3.markdown(f"**{display_list[i]}**")
             st.markdown("<hr style='margin:0; border-top:1px solid #eee;'>", unsafe_allow_html=True)
+
+    st.info("ℹ️ Audio coming soon for verb conjugations!")
 
 # --- RESTORED PRACTICE TOOLS LOGIC ---
 elif module == "Days of the Week":
@@ -186,7 +188,6 @@ elif module == "Months of the Year":
 
 elif module == "Numbers 1-20":
     st.header("🔢 Numbers 1-20")
-    # Combining lists for the 1-20 view
     full_numbers = nums_1_10_data + nums_11_20_data
     render_maximized_grid(full_numbers, "numbers", default_emoji="🔢")
 
