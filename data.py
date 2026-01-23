@@ -127,7 +127,7 @@ kitchen_data = [
     ("🥄 Spoon", "Դգալ", "Tkal"), ("🍴 Fork", "Պատառաքաղ", "Badarakagh"), 
     ("🔪 Knife", "Դանակ", "Danag"), ("🍽️ Plate", "Պնակ", "Pnag"), 
     ("🥣 Bowl", "Աման", "Aman"), ("☕ Cup/Mug", "Գաւաթ", "Kavat"), 
-    ("🥃 Glass", "Բաժակ", "Pajag"), ("🧻 Napkin", "Անձեռոցիկ", "Antzerotsig"), 
+    ("🥃 Glass", "Բաժակ", "Pajag"), ("🧻 Napkin", "Անձեռոցիկ", "Antzerotsig", "Napkin.jpg"), 
     ("🍲 Pot", "Պտուկ", "Btdoug"), ("🍳 Pan", "Տապակ", "Dabag"),
     ("🍶 Pitcher", "Փարչ", "Parch"), ("🍼 Bottle", "Շիշ", "Shish")
 ]
