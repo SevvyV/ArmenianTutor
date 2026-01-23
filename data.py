@@ -120,23 +120,16 @@ food_data = [
     ("🥕 Vegetable", "Բանջարեղէն", "Panchareghen")
 ]
 
-# data.py
-
-# ... (Keep your greetings_data, family_data, etc. above this)
-
 furniture_data = [
     ("Lamp", "Լամբար", "Lambar", "Furniture_Lamp.png"),
     ("Sofa", "Բազմոց", "Pazmots", "Furniture_couch.png"),
     ("Clock", "Ժամացոյց", "Jamatsuyts", "Furniture_Clock.png"),
     ("Telephone", "Հեռաձայն", "Heratzayn", "Furniture_telephone.png"),
     ("Table", "Սեղան", "Seghan", "Furniture_table.png"),
-    ("Mirror", "Հայելի", "Hayeli"),   # No PNG yet - will fallback to emoji
+    ("Mirror", "Հայելի", "Hayeli"),   
     ("Window", "Պատուհան", "Badoohan"),
     ("Stairs", "Աստիճան", "Asdijan"),
     ("Closet", "Պահարան", "Baharan")
-]
-
-# ... (Keep animals_data and objects_data below this)
 ]
 
 animals_data = [
