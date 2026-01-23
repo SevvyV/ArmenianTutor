@@ -1,281 +1,171 @@
-import streamlit as st
-import time
+# --- DATA REPOSITORY ---
 
-# 👇 IMPORT DATA
-from data import (
-    greetings_data, days_data, months_data, nums_1_10_data, nums_11_20_data, tens_data,
-    family_data, kitchen_data, food_data, furniture_data, animals_data, objects_data,
-    verb_data, verb_list
-)
+greetings_data = [
+    ("👋 Hello", "Բարեւ", "Parev"), 
+    ("❓ How are you?", "Ինչպէ՞ս ես", "Inchbes es?"),
+    ("😊 I am well", "Լաւ եմ", "Lav em"), 
+    ("🙏 Thank you", "Շնորհակալ եմ", "Shnorhagal em"),
+    ("👋 Goodbye", "Ցտեսութիւն", "Tsedesutyun")
+]
 
-# --- 1. CONFIGURATION & WIDE UI STYLING ---
-st.set_page_config(page_title="HyeTutor Dev", page_icon="🇦🇲", layout="wide")
+days_data = [
+    ("📅 Monday", "Երկուշաբթի", "Yergoushabti"), ("📅 Tuesday", "Երեքշաբթի", "Yerekshabti"), 
+    ("📅 Wednesday", "Չորեքշաբթի", "Chorkshabti"), ("📅 Thursday", "Հինգշաբթի", "Hinkshabti"), 
+    ("📅 Friday", "Ուրբաթ", "Ourpat"), ("📅 Saturday", "Շաբաթ", "Shapat"), ("📅 Sunday", "Կիրակի", "Giragi")
+]
 
-st.markdown("""
-    <style>
-    /* 1. CARD STYLING */
-    .big-card-container {
-        background-color: #ffffff;
-        border: 2px solid #f0f2f6;
-        /* Rounded TOP only so button attaches to bottom */
-        border-radius: 25px 25px 0 0; 
-        height: 380px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        margin-bottom: 0px; /* Flush with button */
-        overflow: hidden;
-    }
-    
-    /* For Practice Tools (No buttons below), give them full rounded corners */
-    .practice-card {
-        border-radius: 25px !important;
-    }
+months_data = [
+    ("❄️ January", "Յունուար", "Hounvar"), ("❄️ February", "Փետրուար", "Pedrvar"), 
+    ("🌱 March", "Մարտ", "Mard"), ("🌱 April", "Ապրիլ", "Abril"), ("🌱 May", "Մայիս", "Mayis"), 
+    ("☀️ June", "Յունիս", "Hounis"), ("☀️ July", "Յուլիս", "Houlis"), ("☀️ August", "Օգոստոս", "Okostos"), 
+    ("🍂 September", "Սեպտեմբեր", "Sebdemper"), ("🍂 October", "Հոկտեմբեր", "Hoktemper"), 
+    ("🍂 November", "Նոյեմբեր", "Noyemper"), ("❄️ December", "Դեկտեմբեր", "Tegtemper")
+]
 
-    .card-image {
-        width: 100%;
-        height: 230px;
-        object-fit: contain;
-        padding: 15px;
-    }
+nums_1_10_data = [
+    ("1 One", "Մէկ", "Meg"), ("2 Two", "Երկու", "Yergoo"), ("3 Three", "Երեք", "Yerek"), 
+    ("4 Four", "Չորս", "Chors"), ("5 Five", "Հինգ", "Hink"), ("6 Six", "Վեց", "Vets"), 
+    ("7 Seven", "Եօթը", "Yot"), ("8 Eight", "Ութը", "Out"), ("9 Nine", "Ինը", "Ine"), ("10 Ten", "Տասը", "Dase")
+]
 
-    .huge-emoji { font-size: 150px; line-height: 1.2; }
-    .card-text-eng { font-size: 24px; color: #555; font-weight: 600; margin-top: 5px; }
-    .card-text-arm { font-size: 32px; color: #0056b3; font-weight: bold; }
-    .card-text-phon { font-size: 18px; color: #888; font-style: italic; }
+nums_11_20_data = [
+    ("11 Eleven", "Տասնըմէկ", "Tasnemeg"), ("12 Twelve", "Տասնըերկու", "Tasneyergoo"), 
+    ("13 Thirteen", "Տասնըերեք", "Tasneyerek"), ("14 Fourteen", "Տասնըչորս", "Tasnechors"), 
+    ("15 Fifteen", "Տասնըհինգ", "Tasnehink"), ("16 Sixteen", "Տասնըվեց", "Tasnevets"), 
+    ("17 Seventeen", "Տասնըեօթը", "Tasneyot"), ("18 Eighteen", "Տասնըութը", "Tasneout"), 
+    ("19 Nineteen", "Տասնըինը", "Tasneine"), ("20 Twenty", "Քսան", "Ksan")
+]
 
-    /* 2. THE BIG BUTTON FIX (Targeting Column Context) */
-    /* If a column contains our hidden marker, style the button inside it to be HUGE */
-    div[data-testid="column"]:has(div.lesson-btn-marker) .stButton button {
-        width: 100% !important;      
-        height: 90px !important;      
-        background-color: #e3f2fd !important; 
-        color: #007bff !important;
-        border: 2px solid #f0f2f6 !important;
-        border-top: none !important;  
-        border-radius: 0 0 25px 25px !important; /* Rounded BOTTOM only */
-        font-weight: bold !important;
-        font-size: 24px !important;   
-        margin-top: -15px !important; /* Pull up to touch card */
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
-        z-index: 1;
-    }
-    div[data-testid="column"]:has(div.lesson-btn-marker) .stButton button:hover { 
-        background-color: #007bff !important; 
-        color: white !important; 
-    }
-    
-    /* 3. GENERAL UI */
-    div[data-testid="column"] { padding: 10px 15px !important; }
-    .phonetic-label { font-size: 14px; color: #999; font-style: italic; margin-left: 8px; }
-    .eng-pronoun { font-size: 16px; color: #444; font-weight: 600; }
-    
-    /* 4. MASTER PLAY BUTTON (For Practice Tools) */
-    .master-play-btn div.stButton > button {
-        width: 100% !important;
-        background-color: #28a745 !important;
-        color: white !important;
-        font-size: 20px !important;
-        font-weight: bold !important;
-        padding: 15px !important;
-        margin-bottom: 20px !important;
-    }
+tens_data = [
+    ("10 Ten", "Տասը", "Dase"), ("20 Twenty", "Քսան", "Ksan"), ("30 Thirty", "Երեսուն", "Yeresoun"), 
+    ("40 Forty", "Քառասուն", "Karasoun"), ("50 Fifty", "Հիսուն", "Hisoun"), ("60 Sixty", "Վաթսուն", "Vatsoun"), 
+    ("70 Seventy", "Եօթանասուն", "Yotanasoun"), ("80 Eighty", "Ութսուն", "Outsoun"), 
+    ("90 Ninety", "Իննսուն", "Innesoun"), ("100 Hundred", "Հարիւր", "Haryur")
+]
 
-    /* 5. VERB SELECTOR STYLING (Bigger Font) */
-    div[data-baseweb="select"] > div {
-        font-size: 1.5rem !important; 
-        min-height: 60px !important;   
-        display: flex;
-        align-items: center;
-    }
-    li[role="option"] {
-        font-size: 1.2rem !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+family_data = [
+    ("👨 Father", "Հայրիկ", "Hayrig"), ("👩 Mother", "Մայրիկ", "Mayrig"), 
+    ("👦 Brother", "Եղբայր", "Yeghpayr"), ("👧 Sister", "Քոյր", "Kouyr"), 
+    ("👴 Grandfather", "Մեծ հայր", "Medz hayr"), ("👵 Grandmother", "Մեծ մայր", "Medz mayr"),
+    ("👶 Son", "Տղայ", "Degha"), ("👱‍♀️ Daughter", "Աղջիկ", "Aghchig")
+]
 
-# --- 2. HELPER FUNCTIONS ---
+verb_data = {
+    "to_answer": {"present": ["կը պատասխանեմ", "կը պատասխանես", "կը պատասխանէ", "կը պատասխանենք", "կը պատասխանէք", "կը պատասխանեն"], "past": ["պատասխանեցի", "պատասխանեցիր", "պատասխանեց", "պատասխանեցինք", "պատասխանեցիք", "պատասխանեցին"], "future": ["պիտի պատասխանեմ", "պիտի պատասխանես", "պիտի պատասխանէ", "պիտի պատասխանենք", "պիտի պատասխանէք", "պիտի պատասխանեն"]},
+    "to_ask": {"present": ["կը հարցնեմ", "կը հարցնես", "կը հարցնէ", "կը հարցնենք", "կը հարցնէք", "կը հարցնեն"], "past": ["հարցուցի", "հարցուցիր", "հարցուց", "հարցուցինք", "հարցուցիք", "հարցուցին"], "future": ["պիտի հարցնեմ", "պիտի հարցնես", "պիտի հարցնէ", "պիտի հարցնենք", "պիտի հարցնէք", "պիտի հարցնեն"]},
+    "to_be": {"present": ["եմ", "ես", "է", "ենք", "էք", "են"], "past": ["էի", "էիր", "էր", "էինք", "էիք", "էին"], "future": ["պիտի ըլլամ", "պիտի ըլլաս", "պիտի ըլլայ", "պիտի ըլլանք", "պիտի ըլլաք", "պիտի ըլլան"]},
+    "to_bring": {"present": ["կը բերեմ", "կը բերես", "կը բերէ", "կը բերենք", "կը բերէք", "կը բերեն"], "past": ["բերի", "բերիր", "բերաւ", "բերինք", "բերիք", "բերին"], "future": ["պիտի բերեմ", "պիտի բերես", "պիտի բերէ", "պիտի բերենք", "պիտի բերէք", "պիտի բերեն"]},
+    "to_buy": {"present": ["կը գնեմ", "կը գնես", "կը գնէ", "կը գնենք", "կը գնէք", "կը գնեն"], "past": ["գնեցի", "գնեցիր", "գնեց", "գնեցինք", "գնեցիք", "գնեցին"], "future": ["պիտի գնեմ", "պիտի գնես", "պիտի գնէ", "պիտի գնենք", "պիտի գնէք", "պիտի գնեն"]},
+    "to_call": {"present": ["կը կանչեմ", "կը կանչես", "կը կանչէ", "կը կանչենք", "կը կանչէք", "կը կանչեն"], "past": ["կանչեցի", "կանչեցիր", "կանչեց", "կանչեցինք", "կանչեցիք", "կանչեցին"], "future": ["պիտի կանչեմ", "պիտի կանչես", "պիտի կանչէ", "պիտի կանչենք", "պիտի կանչէք", "պիտի կանչեն"]},
+    "to_clean": {"present": ["կը մաքրեմ", "կը մաքրես", "կը մաքրէ", "կը մաքրենք", "կը մաքրէք", "կը մաքրեն"], "past": ["մաքրեցի", "մաքրեցիր", "մաքրեց", "մաքրեցինք", "մաքրեցիք", "մաքրեցին"], "future": ["պիտի մաքրեմ", "պիտի մաքրես", "պիտի մաքրէ", "պիտի մաքրենք", "պիտի մաքրէք", "պիտի մաքրեն"]},
+    "to_close": {"present": ["կը գոցեմ", "կը գոցես", "կը գոցէ", "կը գոցենք", "կը գոցէք", "կը գոցեն"], "past": ["գոցեցի", "գոցեցիր", "գոցեց", "գոցեցինք", "գոցեցիք", "գոցեցին"], "future": ["պիտի գոցեմ", "պիտի գոցես", "պիտի գոցէ", "պիտի գոցենք", "պիտի գոցէք", "պիտի գոցեն"]},
+    "to_come": {"present": ["կու գամ", "կու գաս", "կու գայ", "կու գանք", "կու գաք", "կու գան"], "past": ["եկայ", "եկար", "եկաւ", "եկանք", "եկաք", "եկան"], "future": ["պիտի գամ", "պիտի գաս", "պիտի գայ", "պիտի գանք", "պիտի գաք", "պիտի գան"]},
+    "to_cook": {"present": ["կը եփեմ", "կը եփես", "կը եփէ", "կը եփենք", "կը եփէք", "կը եփեն"], "past": ["եփեցի", "եփեցիր", "եփեց", "եփեցինք", "եփեցիք", "եփեցին"], "future": ["պիտի եփեմ", "պիտի եփես", "պիտի եփէ", "պիտի եփենք", "պիտի եփէք", "պիտի եփեն"]},
+    "to_do": {"present": ["կ՚ընեմ", "կ՚ընես", "կ՚ընէ", "կ՚ընենք", "կ՚ընէք", "կ՚ընեն"], "past": ["ըրի", "ըրիր", "ըրաւ", "ըրինք", "ըրիք", "ըրին"], "future": ["պիտի ընեմ", "պիտի ընես", "պիտի ընէ", "պիտի ընենք", "պիտի ընէք", "պիտի ընեն"]},
+    "to_drink": {"present": ["կը խմեմ", "կը խմես", "կը խմէ", "կը խմենք", "կը խմէք", "կը խմեն"], "past": ["խմեցի", "խմեցիր", "խմեց", "խմեցինք", "խմեցիք", "խմեցին"], "future": ["պիտի խմեմ", "պիտի խմես", "պիտի խմէ", "պիտի խմենք", "պիտի խմէք", "պիտի խմեն"]},
+    "to_eat": {"present": ["կ՚ուտեմ", "կ՚ուտես", "կ՚ուտէ", "կ՚ուտենք", "կ՚ուտէք", "կ՚ուտեն"], "past": ["կերայ", "կերար", "կերաւ", "կերանք", "կերաք", "կերան"], "future": ["պիտի ուտեմ", "պիտի ուտես", "պիտի ուտէ", "պիտի ուտենք", "պիտի ուտէք", "պիտի ուտեն"]},
+    "to_finish": {"present": ["կը վերջացնեմ", "կը վերջացնես", "կը վերջացնէ", "կը վերջացնենք", "կը վերջացնէք", "կը վերջացնեն"], "past": ["վերջացուցի", "վերջացուցիր", "վերջացուց", "վերջացուցինք", "վերջացուցիք", "վերջացուցին"], "future": ["պիտի վերջացնեմ", "պիտի վերջացնես", "պիտի վերջացնէ", "պիտի վերջացնենք", "պիտի վերջացնէք", "պիտի վերջացնեն"]},
+    "to_forget": {"present": ["կը մոռնամ", "կը մոռնաս", "կը մոռնայ", "կը մոռնանք", "կը մոռնաք", "կը մոռնան"], "past": ["մոռցայ", "մոռցար", "մոռցաւ", "մոռցանք", "մոռցաք", "մոռցան"], "future": ["պիտի մոռնամ", "պիտի մոռնաս", "պիտի մոռնայ", "պիտի մոռնանք", "պիտի մոռնաք", "պիտի մոռնան"]},
+    "to_give": {"present": ["կը տամ", "կը տաս", "կը տայ", "կը տանք", "կը տաք", "կը տան"], "past": ["տուի", "տուիր", "տուաւ", "տուինք", "տուիք", "տուին"], "future": ["պիտի տամ", "պիտի տաս", "պիտի տայ", "պիտի տանք", "պիտի տաք", "պիտի տան"]},
+    "to_go": {"present": ["կ՚երթամ", "կ՚երթաս", "կ՚երթայ", "կ՚երթանք", "կ՚երթաք", "կ՚երթան"], "past": ["գացի", "գացիր", "գաց", "գացինք", "գացիք", "գացին"], "future": ["պիտի երթամ", "պիտի երթաս", "պիտի երթայ", "պիտի երթանք", "պիտի երթաք", "պիտի երթան"]},
+    "to_have": {"present": ["ունիմ", "ունիս", "ունի", "ունինք", "ունիք", "ունին"], "past": ["ունէի", "ունէիր", "ունէր", "ունէինք", "ունէիք", "ունէին"], "future": ["պիտի ունենամ", "պիտի ունենաս", "պիտի ունենայ", "պիտի ունենանք", "պիտի ունենաք", "պիտի ունենան"]},
+    "to_hear": {"present": ["կը լսեմ", "կը լսես", "կը լսէ", "կը լսենք", "կը լսէք", "կը լսեն"], "past": ["լսեցի", "լսեցիր", "լսեց", "լսեցինք", "լսեցիք", "լսեցին"], "future": ["պիտի լսեմ", "պիտի լսես", "պիտի լսէ", "պիտի լսենք", "պիտի լսէք", "պիտի լսեն"]},
+    "to_help": {"present": ["կ՚օգնեմ", "կ՚օգնես", "կ՚օգնէ", "կ՚օգնենք", "կ՚օգնէք", "կ՚օգնեն"], "past": ["օգնեցի", "օգնեցիր", "օգնեց", "օգնեցինք", "օգնեցիք", "օգնեցին"], "future": ["պիտի օգնեմ", "պիտի օգնես", "պիտի օգնէ", "պիտի օգնենք", "պիտի օգնէք", "պիտի օգնեն"]},
+    "to_know": {"present": ["գիտեմ", "գիտես", "գիտէ", "գիտենք", "գիտէք", "գիտեն"], "past": ["գիտէի", "գիտէիր", "գիտէր", "գիտէինք", "գիտէիք", "գիտէին"], "future": ["պիտի գիտնամ", "պիտի գիտնաս", "պիտի գիտնայ", "պիտի գիտնանք", "պիտի գիտնաք", "պիտի գիտնան"]},
+    "to_learn": {"present": ["կը սորվիմ", "կը սորվիս", "կը սորվի", "կը սորվինք", "կը սորվիք", "կը սորվին"], "past": ["սորվեցայ", "սորվեցար", "սորվեցաւ", "սորվեցանք", "սորվեցաք", "սորվեցան"], "future": ["պիտի սորվիմ", "պիտի սորվիս", "պիտի սորվի", "պիտի սորվինք", "պիտի սորվիք", "պիտի սորվին"]},
+    "to_live": {"present": ["կ՚ապրիմ", "կ՚ապրիս", "կ՚ապրի", "կ՚ապրինք", "կ՚ապրիք", "կ՚ապրին"], "past": ["ապրեցայ", "ապրեցար", "ապրեցաւ", "ապրեցանք", "ապրեցաք", "ապրեցան"], "future": ["պիտի ապրիմ", "պիտի ապրիս", "պիտի ապրի", "պիտի ապրինք", "պիտի ապրիք", "պիտի ապրին"]},
+    "to_look": {"present": ["կը նայիմ", "կը նայիս", "կը նայի", "կը նայինք", "կը նայիք", "կը նային"], "past": ["նայեցայ", "նայեցար", "նայեցաւ", "նայեցանք", "նայեցաք", "նայեցան"], "future": ["պիտի նայիմ", "պիտի նայիս", "պիտի նայի", "պիտի նայինք", "պիտի նայիք", "պիտի նային"]},
+    "to_love": {"present": ["կը սիրեմ", "կը սիրես", "կը սիրէ", "կը սիրենք", "կը սիրէք", "կը սիրեն"], "past": ["սիրեցի", "սիրեցիր", "սիրեց", "սիրեցինք", "սիրեցիք", "սիրեցին"], "future": ["պիտի սիրեմ", "պիտի սիրես", "պիտի սիրէ", "պիտի սիրենք", "պիտի սիրէք", "պիտի սիրեն"]},
+    "to_open": {"present": ["կը բանամ", "կը բանաս", "կը բանայ", "կը բանանք", "կը բանաք", "կը բանան"], "past": ["բացի", "բացիր", "բացաւ", "բացինք", "բացիք", "բացին"], "future": ["պիտի բանամ", "պիտի բանաս", "պիտի բանայ", "պիտի բանանք", "պիտի բանաք", "պիտի բանան"]},
+    "to_play": {"present": ["կը խաղամ", "կը խաղաս", "կը խաղայ", "կը խաղանք", "կը խաղաք", "կը խաղան"], "past": ["խաղացի", "խաղացիր", "խաղաց", "խաղացինք", "խաղացիք", "խաղացին"], "future": ["պիտի խաղամ", "պիտի խաղաս", "պիտի խաղայ", "պիտի խաղանք", "պիտի խաղաք", "պիտի խաղան"]},
+    "to_put": {"present": ["կը դնեմ", "կը դնես", "կը դնէ", "կը դնենք", "կը դնէք", "կը դնեն"], "past": ["դրի", "դրիր", "դրաւ", "դրինք", "դրիք", "դրին"], "future": ["պիտի դնեմ", "պիտի դնես", "պիտի դնէ", "պիտի դնենք", "պիտի դնէք", "պիտի դնեն"]},
+    "to_read": {"present": ["կը կարդամ", "կը կարդաս", "կը կարդայ", "կը կարդանք", "կը կարդաք", "կը կարդան"], "past": ["կարդացի", "կարդացիր", "կարդաց", "կարդացինք", "կարդացիք", "կարդացին"], "future": ["պիտի կարդամ", "պիտի կարդաս", "պիտի կարդայ", "պիտի կարդանք", "պիտի կարդաք", "պիտի կարդան"]},
+    "to_remember": {"present": ["կը յիշեմ", "կը յիշես", "կը յիշէ", "կը յիշենք", "կը յիշէք", "կը յիշեն"], "past": ["յիշեցի", "յիշեցիր", "յիշեց", "յիշեցինք", "յիշեցիք", "յիշեցին"], "future": ["պիտի յիշեմ", "պիտի յիշես", "պիտի յիշէ", "պիտի յիշենք", "պիտի յիշէք", "պիտի յիշեն"]},
+    "to_run": {"present": ["կը վազեմ", "կը վազես", "կը վազէ", "կը վազենք", "կը վազէք", "կը վազեն"], "past": ["վազեցի", "վազեցիր", "վազեց", "վազեցինք", "վազեցիք", "վազեցին"], "future": ["պիտի վազեմ", "պիտի վազես", "պիտի վազէ", "պիտի վազենք", "պիտի վազէք", "պիտի վազեն"]},
+    "to_say": {"present": ["կ՚ըսեմ", "կ՚ըսես", "կ՚ըսէ", "կ՚ըսենք", "կ՚ըսէք", "կ՚ըսեն"], "past": ["ըսի", "ըսիր", "ըսաւ", "ըսինք", "ըսիք", "ըսին"], "future": ["պիտի ըսեմ", "պիտի ըսես", "պիտի ըսէ", "պիտի ըսենք", "պիտի ըսէք", "պիտի ըսեն"]},
+    "to_see": {"present": ["կը տեսնեմ", "կը տեսնես", "կը տեսնէ", "կը տեսնենք", "կը տեսնէք", "կը տեսնեն"], "past": ["տեսայ", "տեսար", "տեսաւ", "տեսանք", "տեսաք", "տեսան"], "future": ["պիտի տեսնեմ", "պիտի տեսնես", "պիտի տեսնէ", "պիտի տեսնենք", "պիտի տեսնէք", "պիտի տեսնեն"]},
+    "to_sell": {"present": ["կը ծախեմ", "կը ծախես", "կը ծախէ", "կը ծախենք", "կը ծախէք", "կը ծախեն"], "past": ["ծախեցի", "ծախեցիր", "ծախեց", "ծախեցինք", "ծախեցիք", "ծախեցին"], "future": ["պիտի ծախեմ", "պիտի ծախես", "պիտի ծախէ", "պիտի ծախենք", "պիտի ծախէք", "պիտի ծախեն"]},
+    "to_sit": {"present": ["կը նստիմ", "կը նստիս", "կը նստի", "կը նստինք", "կը նստիք", "կը նստին"], "past": ["նստայ", "նստար", "նստաւ", "նստանք", "նստաք", "նստան"], "future": ["պիտի նստիմ", "պիտի նստիս", "պիտի նստի", "պիտի նստինք", "պիտի նստիք", "պիտի նստին"]},
+    "to_sleep": {"present": ["կը քնանամ", "կը քնանաս", "կը քնանայ", "կը քնանանք", "կը քնանաք", "կը քնանան"], "past": ["քնացայ", "քնացար", "քնացաւ", "քնացանք", "քնացաք", "քնացան"], "future": ["պիտի քնանամ", "պիտի քնանաս", "պիտի քնանայ", "պիտի քնանանք", "պիտի քնանաք", "պիտի քնանան"]},
+    "to_speak": {"present": ["կը խօսիմ", "կը խօսիս", "կը խօսի", "կը խօսինք", "կը խօսիք", "կը խօսին"], "past": ["խօսեցայ", "խօսեցար", "խօսեցաւ", "խօսեցանք", "խօսեցաք", "խօսեցան"], "future": ["պիտի խօսիմ", "պիտի խօսիս", "պիտի խօսի", "պիտի խօսինք", "պիտի խօսիք", "պիտի խօսին"]},
+    "to_stand": {"present": ["կը կայնիմ", "կը կայնիս", "կը կայնի", "կը կայինք", "կը կայինք", "կը կային"], "past": ["կայնեցայ", "կայնեցար", "կայնեցաւ", "կայնեցանք", "կայնեցաք", "կայնեցան"], "future": ["պիտի կայնիմ", "պիտի կայնիս", "պիտի կայնի", "պիտի կայնինք", "պիտի կայնիք", "պիտի կայնին"]},
+    "to_start": {"present": ["կը սկսիմ", "կը սկսիս", "կը սկսի", "կը սկսինք", "կը սկսիք", "կը սկսին"], "past": ["սկսայ", "սկսար", "սկսաւ", "սկսանք", "սկսաք", "սկսան"], "future": ["պիտի սկսիմ", "պիտի սկսիս", "պիտի սկսի", "պիտի սկսինք", "պիտի սկսիք", "պիտի սկսին"]},
+    "to_take": {"present": ["կ՚առնել", "կ՚առնես", "կ՚առնէ", "կ՚առնենք", "կ՚առնէք", "կ՚առնեն"], "past": ["առի", "առիր", "առաւ", "առինք", "առիք", "առին"], "future": ["պիտի առնեմ", "պիտի առնես", "պիտի առնէ", "պիտի առնենք", "պիտի առնէք", "պիտի առնեն"]},
+    "to_think": {"present": ["կը մտածեմ", "կը մտածես", "կը մտածէ", "կը մտածենք", "կը մտածէք", "կը մտածեն"], "past": ["մտածեցի", "մտածեցիր", "մտածեց", "մտածեցինք", "մտածեցիք", "մտածեցին"], "future": ["պիտի մտածեմ", "պիտի մտածես", "պիտի մտածէ", "պիտի մտածենք", "պիտի մտածէք", "պիտի մտածեն"]},
+    "to_try": {"present": ["կը փորձեմ", "կը փորձես", "կը փորձէ", "կը փորձենք", "կը փորձէք", "կը փորձեն"], "past": ["փորձեցի", "փորձեցիր", "փորձեց", "փորձեցինք", "փորձեցիք", "փորձեցին"], "future": ["պիտի փորձեմ", "պիտի փորձես", "պիտի փորձէ", "պիտի փորձենք", "պիտի փորձէք", "պիտի փորձեն"]},
+    "to_understand": {"present": ["կը հասկնամ", "կը հասկնաս", "կը հասկնայ", "կը հասկնանք", "կը հասկնաք", "կը հասկնան"], "past": ["հասկցայ", "հասկցար", "հասկցաւ", "հասկցանք", "հասկցաք", "հասկցան"], "future": ["պիտի հասկնամ", "պիտի հասկնաս", "պիտի հասկնայ", "պիտի հասկնանք", "պիտի հասկնաք", "պիտի հասկնան"]},
+    "to_wait": {"present": ["կը սպասեմ", "կը սպասես", "կը սպասէ", "կը սպասենք", "կը սպասէք", "կը սպասեն"], "past": ["սպասեցի", "սպասեցիր", "սպասեց", "սպասեցինք", "սպասեցիք", "սպասեցին"], "future": ["պիտի սպասեմ", "պիտի սպասես", "պիտի սպասէ", "պիտի սպասենք", "պիտի սպասէք", "պիտի սպասեն"]},
+    "to_wake_up": {"present": ["կ՚արթննամ", "կ՚արթննաս", "կ՚արթննայ", "կ՚արթննանք", "կ՚արթննաք", "կ՚արթննան"], "past": ["արթնցայ", "արթնցար", "արթնցաւ", "արթնցանք", "արթնցաք", "արթնցան"], "future": ["պիտի արթննամ", "պիտի արթննաս", "պիտի արթննայ", "պիտի արթննանք", "պիտի արթննաք", "պիտի արթննան"]},
+    "to_walk": {"present": ["կը քալեմ", "կը քալես", "կը քալէ", "կը քալենք", "կը քալէք", "կը քալեն"], "past": ["քալեցի", "քալեցիր", "քալեց", "քալեցինք", "քալեցիք", "քալեցին"], "future": ["պիտի քալեմ", "պիտի քալես", "պիտի քալէ", "պիտի քալենք", "պիտի քալէք", "պիտի քալեն"]},
+    "to_want": {"present": ["կ՚ուզեմ", "կ՚ուզես", "կ՚ուզէ", "կ՚ուզենք", "կ՚ուզէք", "կ՚ուզեն"], "past": ["ուզեցի", "ուզեցիր", "ուզեց", "ուզեցինք", "ուզեցիք", "ուզեցին"], "future": ["պիտի ուզեմ", "պիտի ուզես", "պիտի ուզէ", "պիտի ուզենք", "պիտի ուզէք", "պիտի ուզեն"]},
+    "to_wash": {"present": ["կը լուամ", "կը լուաս", "կը լուայ", "կը լուանք", "կը լուաք", "կը լուան"], "past": ["լուացի", "լուացիր", "լուաց", "լուացինք", "լուացիք", "լուացին"], "future": ["պիտի լուամ", "պիտի լուաս", "պիտի լուայ", "պիտի լուանք", "պիտի լուաք", "պիտի լուան"]},
+    "to_work": {"present": ["կ՚աշխատիմ", "կ՚աշխատիս", "կ՚աշխատի", "կ՚աշխատինք", "կ՚աշխատիք", "կ՚աշխատին"], "past": ["աշխատեցայ", "աշխատեցար", "աշխատեցաւ", "աշխատեցանք", "աշխատեցաք", "աշխատեցան"], "future": ["պիտի աշխատիմ", "պիտի աշխատիս", "պիտի աշխատի", "պիտի աշխատինք", "պիտի աշխատիք", "պիտի աշխատին"]},
+    "to_write": {"present": ["կը գրեմ", "կը գրես", "կը գրէ", "կը գրենք", "կը գրէք", "կը գրեն"], "past": ["գրեցի", "գրեցիր", "գրեց", "գրեցինք", "գրեցիք", "գրեցին"], "future": ["պիտի գրեմ", "պիտի գրես", "պիտի գրէ", "պիտի գրենք", "պիտի գրէք", "պիտի գրեն"]}
+}
 
-def play_audio(filename):
-    """ iPad-Safe Audio Trigger """
-    base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/main/audio_library"
-    url = f"{base_url}/{filename}.mp3"
-    st.markdown(f'<audio src="{url}" autoplay></audio>', unsafe_allow_html=True)
+verb_list = sorted([
+    "To Answer — Պատասխանել (Badaskhanel)", "To Ask — Հարցնել (Hartsnel)", "To Be — Ըլլալ (Eellal)", 
+    "To Bring — Բերել (Perel)", "To Buy — Գնել (Knel)", "To Call — Կանչել (Ganchel)", 
+    "To Clean — Մաքրել (Makrel)", "To Close — Գոցել (Kotsel)", "To Come — Գալ (Kal)", 
+    "To Cook — Եփել (Epel)", "To Do — Ընել (Enel)", "To Drink — Խմել (Khmel)", 
+    "To Eat — Ուտել (Oudel)", "To Finish — Վերջացնել (Verchatsnel)", "To Forget — Մոռնալ (Mornal)", 
+    "To Give — Տալ (Dal)", "To Go — Երթալ (Yertal)", "To Have — Ունենալ (Ounenal)", 
+    "To Hear — Լսել (Lsel)", "To Help — Օգնել (Okne)", "To Know — Գիտնալ (Kidenal)", 
+    "To Learn — Սորվիլ (Sorvil)", "To Live — Ապրիլ (Abril)", "To Look — Նայիլ (Nayil)", 
+    "To Love — Սիրել (Sirel)", "To Open — Բանալ (Panal)", "To Play — Խաղալ (Khaghal)", 
+    "To Put — Դնել (Tnel)", "To Read — Կարդալ (Gartal)", "To Remember — Յիշել (Hishel)", 
+    "To Run — Վազել (Vazel)", "To Say — Ըսել (Esel)", "To See — Տեսնել (Desnel)", 
+    "To Sell — Ծախել (Dzakhel)", "To Sit — Նստիլ (Nsdel)", "To Sleep — Քնանալ (Knanol)", 
+    "To Speak — Խօսիլ (Khosil)", "To Stand — Կայնիլ (Gaynil)", "To Start — Սկսիլ (Sgsil)", 
+    "To Take — Առնել (Arnel)", "To Think — Մտածել (Mdadzel)", "To Try — Փորձել (Portsel)", 
+    "To Understand — Հասկնալ (Hasknal)", "To Wait — Սպասել (Spasel)", "To Wake Up — Արթննալ (Artnnal)", 
+    "To Walk — Քալել (Kalel)", "To Wash — Լուալ (Lval)", "To Want — Ուզել (Ouzel)", "To Work — Աշխատիլ (Ashkhadil)", 
+    "To Write — Գրել (Krel)"
+])
 
-def render_maximized_grid(data, category_prefix):
-    """ LESSON GRID: Card + Big Button """
-    cols_per_row = 3
-    base_img_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/main/image_library"
-    
-    for i in range(0, len(data), cols_per_row):
-        cols = st.columns(cols_per_row)
-        batch = data[i:i+cols_per_row]
-        for j, item in enumerate(batch):
-            with cols[j]:
-                eng_label = item[0]
-                arm = item[1]
-                phon = item[2]
-                image_file = item[3] if len(item) > 3 else None
+kitchen_data = [
+    ("🥄 Spoon", "Դգալ", "Tkal"), ("🍴 Fork", "Պատառաքաղ", "Badarakagh"), 
+    ("🔪 Knife", "Դանակ", "Danag"), ("🍽️ Plate", "Պնակ", "Pnag"), 
+    ("🥣 Bowl", "Աման", "Aman"), ("☕ Cup/Mug", "Գաւաթ", "Kavat"), 
+    ("🥃 Glass", "Բաժակ", "Pajag"), ("🧻 Napkin", "Անձեռոցիկ", "Antzerotsig"), 
+    ("🍲 Pot", "Պտուկ", "Btdoug"), ("🍳 Pan", "Տապակ", "Dabag"),
+    ("🍶 Pitcher", "Փարչ", "Parch"), ("🍼 Bottle", "Շիշ", "Shish")
+]
 
-                parts = eng_label.split(' ', 1)
-                emoji, eng_text = (parts[0], parts[1]) if len(parts) > 1 else ("❓", eng_label)
-                safe_eng = eng_text.lower().replace("/", "_").replace(" ", "_")
-                filename = f"{category_prefix}_{safe_eng}"
-                
-                visual_html = f'<img src="{base_img_url}/{image_file}" class="card-image">' if image_file else f'<div class="huge-emoji" style="text-align:center;">{emoji}</div>'
+food_data = [
+    ("🍞 Bread", "Հաց", "Hats"), ("💧 Water", "Ջուր", "Joor"), 
+    ("🧀 Cheese", "Պանիր", "Banir"), ("🥛 Milk", "Կաթ", "Gat"), 
+    ("☕ Coffee", "Սուրճ", "Soorj"), ("🍵 Tea", "Թէյ", "Tey"), 
+    ("🥚 Egg", "Հաւկիթ", "Havgit"), ("🥩 Meat", "Միս", "Mis"), 
+    ("🍗 Chicken", "Հաւ", "Hav"), ("🐟 Fish", "Ձուկ", "Tzoog"),
+    ("🍎 Fruit", "Պտուղ", "Bdoogh"), ("🥕 Vegetable", "Բանջարեղէն", "Panchareghen")
+]
 
-                # Card Top
-                st.markdown(f"""
-                    <div class="big-card-container">
-                        {visual_html}
-                        <div class="card-text-eng">{eng_text}</div>
-                        <div class="card-text-arm">{arm}</div>
-                        <div class="card-text-phon">({phon})</div>
-                    </div>
-                """, unsafe_allow_html=True)
-                
-                # --- INJECT MARKER FOR CSS ---
-                # This invisible div tells CSS "This column has a lesson button!"
-                st.markdown('<div class="lesson-btn-marker"></div>', unsafe_allow_html=True)
-                
-                if st.button(f"🔊 Press to Play", key=f"btn_{filename}_{i}_{j}"):
-                    play_audio(filename)
+furniture_data = [
+    ("Lamp", "Լամբար", "Lambar", "Furniture_Lamp.png"), 
+    ("Sofa", "Բազմոց", "Pazmots", "Furniture_couch.png"),
+    ("Clock", "Ժամացոյց", "Jamatsuyts", "Furniture_Clock.png"), 
+    ("Telephone", "Հեռաձայն", "Heratzayn", "Furniture_telephone.png"),
+    ("Table", "Սեղան", "Seghan", "Furniture_table.png"), 
+    ("Carpet", "Գորգ", "Gorg", "Furniture_carpet.png"),
+    ("Mirror", "Հայելի", "Hayeli", "Furniture_Mirror.png"), 
+    ("Window", "Պատուհան", "Badoohan", "Furniture_window.png"),
+    ("Stairs", "Սանդուխք", "Santookht", "Furniture_stairs.png"), 
+    ("Closet", "Պահարան", "Baharan", "Furniture_closet.png")
+]
 
-def render_practice_grid(data):
-    """ PRACTICE GRID: Visual cards only (No individual buttons) """
-    cols_per_row = 3
-    
-    for i in range(0, len(data), cols_per_row):
-        cols = st.columns(cols_per_row)
-        batch = data[i:i+cols_per_row]
-        for j, item in enumerate(batch):
-            with cols[j]:
-                eng_label = item[0]
-                arm = item[1]
-                phon = item[2]
+animals_data = [
+    ("🐶 Dog", "Շուն", "Shoon"), ("🐱 Cat", "Կատու", "Gadoo"), 
+    ("🐦 Bird", "Թռչուն", "Trchoon"), ("🐴 Horse", "Ձի", "Tzi"), 
+    ("🐄 Cow", "Կով", "Gov"), ("🐑 Sheep", "Ոչխար", "Vochkhar"), 
+    ("🐔 Chicken", "Հաւ", "Hav"), ("🐭 Mouse", "Մուկ", "Mook"), 
+    ("🐻 Bear", "Արջ", "Arch"), ("🦁 Lion", "Առիւծ", "Ariudz")
+]
 
-                parts = eng_label.split(' ', 1)
-                emoji, eng_text = (parts[0], parts[1]) if len(parts) > 1 else ("❓", eng_label)
-
-                # Added 'practice-card' class to give it full rounded corners since no button follows
-                st.markdown(f"""
-                    <div class="big-card-container practice-card">
-                        <div class="huge-emoji" style="text-align:center;">{emoji}</div>
-                        <div class="card-text-eng">{eng_text}</div>
-                        <div class="card-text-arm">{arm}</div>
-                        <div class="card-text-phon">({phon})</div>
-                    </div>
-                """, unsafe_allow_html=True)
-
-# --- 3. NAVIGATION ---
-with st.sidebar:
-    st.title("🇦🇲 HyeTutor Dev")
-    st.divider()
-    nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools"])
-    
-    if nav_category == "📚 Curriculum":
-        module = st.radio("Lessons:", [
-            "Lesson 1: Greetings", "Lesson 2: Family", "Lesson 3: Kitchen", 
-            "Lesson 4: Food", "Lesson 5: Furniture", "Lesson 6: Animals", "Lesson 7: Objects"
-        ])
-    else:
-        module = st.radio("Tools:", ["Verb Conjugation Center", "Days of the Week", "Months of the Year", "Numbers 1-20", "Counting by 10s"])
-
-# --- 4. PAGE LOGIC ---
-
-if module == "Verb Conjugation Center":
-    st.header("🏃 Verb Conjugation Center")
-    verb_choice = st.selectbox("Select a Verb:", verb_list)
-    active_tense = st.radio("Select Tense:", ["Present", "Past", "Future"], horizontal=True).lower()
-    
-    english_label = verb_choice.split('—')[0].split('-')[0].strip()
-    clean_name = english_label.lower().replace(" ", "_")
-    
-    st.subheader(f"{english_label} — {active_tense.capitalize()}")
-    
-    st.markdown('<div class="master-play-btn">', unsafe_allow_html=True)
-    audio_file = f"verb_{clean_name}_{active_tense}"
-    if st.button("🔊 Play Conjugation", key=f"play_verb_{clean_name}_{active_tense}"):
-        play_audio(audio_file)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    if clean_name in verb_data:
-        display_list = verb_data[clean_name][active_tense]
-        pronouns_eng = ["I", "You", "He/She", "We", "You (pl)", "They"]
-        pronouns_arm = ["Ես", "Դուն", "Ան", "Մենք", "Դուք", "Անոնք"]
-        pronoun_phonetics = {"Ես": "Yes", "Դուն": "Toun", "Ան": "An", "Մենք": "Menq", "Դուք": "Touq", "Անոնք": "Anonq"}
-        
-        for i in range(6):
-            p_eng, p_arm, p_phon = pronouns_eng[i], pronouns_arm[i], pronoun_phonetics[pronouns_arm[i]]
-            
-            # Tighter columns per your request
-            c1, c2, c3, _ = st.columns([1.5, 1.5, 3, 5])
-            
-            c1.markdown(f"<span class='eng-pronoun'>{pronouns_eng[i]}</span>", unsafe_allow_html=True)
-            c2.markdown(f"**{pronouns_arm[i]}** <span class='phonetic-label'>({pronoun_phonetics[pronouns_arm[i]]})</span>", unsafe_allow_html=True)
-            c3.markdown(f"**{display_list[i]}**")
-            st.markdown("<hr style='margin:0; border-top:1px solid #eee;'>", unsafe_allow_html=True)
-
-elif module == "Days of the Week":
-    st.header("📅 Days of the Week")
-    st.markdown('<div class="master-play-btn">', unsafe_allow_html=True)
-    if st.button("🔊 Play Sequence", key="play_days"):
-        play_audio("drill_days_of_week") 
-    st.markdown('</div>', unsafe_allow_html=True)
-    render_practice_grid(days_data)
-
-elif module == "Months of the Year":
-    st.header("🗓️ Months of the Year")
-    st.markdown('<div class="master-play-btn">', unsafe_allow_html=True)
-    if st.button("🔊 Play Sequence", key="play_months"):
-        play_audio("drill_months_of_year")
-    st.markdown('</div>', unsafe_allow_html=True)
-    render_practice_grid(months_data)
-
-elif module == "Numbers 1-20":
-    st.header("🔢 Numbers 1-20")
-    st.markdown('<div class="master-play-btn">', unsafe_allow_html=True)
-    c1, c2 = st.columns(2)
-    with c1:
-        if st.button("🔊 Play 1-10", key="play_1_10"):
-            play_audio("drill_numbers_1_10")
-    with c2:
-        if st.button("🔊 Play 11-20", key="play_11_20"):
-            play_audio("drill_numbers_11_20")
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    full_numbers = nums_1_10_data + nums_11_20_data
-    render_practice_grid(full_numbers)
-
-elif module == "Counting by 10s":
-    st.header("🔟 Counting by 10s")
-    st.markdown('<div class="master-play-btn">', unsafe_allow_html=True)
-    if st.button("🔊 Play 10-100", key="play_tens"):
-        play_audio("drill_tens_10_100")
-    st.markdown('</div>', unsafe_allow_html=True)
-    render_practice_grid(tens_data)
-
-elif module == "Lesson 1: Greetings":
-    st.header("👋 Lesson 1: Basic Greetings")
-    
-    st.markdown('<div class="master-play-btn">', unsafe_allow_html=True)
-    if st.button("🔊 Play All Greetings", key="play_greetings_all"):
-        play_audio("lesson_01_greetings")
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    render_practice_grid(greetings_data)
-
-elif "Lesson" in module:
-    lesson_map = {
-        "Lesson 2: Family": (family_data, "family"),
-        "Lesson 3: Kitchen": (kitchen_data, "kitchen"),
-        "Lesson 4: Food": (food_data, "food"),
-        "Lesson 5: Furniture": (furniture_data, "furniture"),
-        "Lesson 6: Animals": (animals_data, "animals"),
-        "Lesson 7: Objects": (objects_data, "objects")
-    }
-    raw_data, prefix = lesson_map[module]
-    st.header(f"📖 {module}")
-    render_maximized_grid(raw_data, prefix)
+objects_data = [
+    ("📖 Book", "Գիրք", "Kirk"), ("📰 Newspaper", "Թերթ", "Tert"), 
+    ("🖊️ Pen", "Գրիչ", "Krich"), ("📄 Paper", "Թուղթ", "Tought"), 
+    ("📱 Phone", "Հեռաձայն", "Heratsayn"), ("💻 Computer", "Համակարգիչ", "Hamakarkich"), 
+    ("⌚ Watch/Clock", "Ժամացոյց", "Jamatsouyt"), ("👓 Glasses", "Ակնոց", "Aknots"), 
+    ("🎒 Bag", "Պայուսակ", "Bayousag"), ("🔑 Key", "Բանալի", "Panali")
+]
