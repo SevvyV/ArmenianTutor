@@ -1,5 +1,6 @@
 import streamlit as st
 import time
+import random  # Added for the Quiz logic
 
 # 👇 IMPORT DATA
 from data import (
@@ -39,7 +40,7 @@ st.markdown("""
     .card-text-arm { font-size: 32px; color: #0056b3; font-weight: bold; }
     .card-text-phon { font-size: 18px; color: #888; font-style: italic; }
 
-    /* 2. THE STRETCHED LISTEN BUTTON (v4.10 logic) */
+    /* 2. THE STRETCHED LISTEN BUTTON */
     [data-testid="stVerticalBlock"] > div:has(div.stButton) {
         width: 100% !important;
     }
@@ -57,6 +58,7 @@ st.markdown("""
         margin-top: -2px !important;
     }
     div.stButton > button:hover { background-color: #007bff !important; color: white !important; }
+    
     div[data-testid="column"] { padding: 10px 15px !important; }
     .phonetic-label { font-size: 14px; color: #999; font-style: italic; margin-left: 8px; }
     </style>
@@ -65,14 +67,15 @@ st.markdown("""
 # --- 2. HELPER FUNCTIONS ---
 
 def play_audio(filename):
-    """ iPad-Safe Audio Trigger (v4.4 logic) """
+    """ iPad-Safe Audio Trigger """
     base_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/main/audio_library"
     url = f"{base_url}/{filename}.mp3"
     st.markdown(f'<audio src="{url}" autoplay></audio>', unsafe_allow_html=True)
 
 def render_maximized_grid(data, category_prefix):
-    """ Restored 3-Column Grid with PNG Support """
+    """ 3-Column Grid with PNG Support """
     cols_per_row = 3
+    # ⚠️ REPLACE WITH YOUR GITHUB USERNAME
     base_img_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/main/image_library"
     
     for i in range(0, len(data), cols_per_row):
@@ -80,7 +83,6 @@ def render_maximized_grid(data, category_prefix):
         batch = data[i:i+cols_per_row]
         for j, item in enumerate(batch):
             with cols[j]:
-                # Support for 4-item lists (with image) or 3-item lists (emoji only)
                 eng_label = item[0]
                 arm = item[1]
                 phon = item[2]
@@ -109,10 +111,10 @@ def render_maximized_grid(data, category_prefix):
                 if st.button(f"🔊 Press to Play", key=f"btn_{filename}_{i}_{j}"):
                     play_audio(filename)
 
-# --- 3. NAVIGATION (v4.11 sidebar restore) ---
+# --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor Dev")
-    st.caption("v5.3 Full Feature Restoration")
+    st.caption("v5.5 Restoration + Quiz")
     st.divider()
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools"])
     
@@ -122,36 +124,82 @@ with st.sidebar:
             "Lesson 4: Food", "Lesson 5: Furniture", "Lesson 6: Animals", "Lesson 7: Objects"
         ])
     else:
-        module = st.radio("Tools:", ["Verb Center"])
+        # RESTORED: Now includes both Verb Center and Vocabulary Quiz
+        module = st.radio("Tools:", ["Verb Conjugation Center", "Vocabulary Quiz"])
 
 # --- 4. PAGE LOGIC ---
 
-if module == "Lesson 1: Greetings":
-    st.header("👋 Lesson 1: Basic Greetings")
-    greetings_data = [
-        ("👋 Hello", "Բարեւ", "Parev"), ("❓ How are you?", "Ինչպէ՞ս ես", "Inchbes es?"),
-        ("😊 I am well", "Լաւ եմ", "Lav em"), ("🙏 Thank you", "Շնորհակալ եմ", "Shnorhagal em"),
-        ("👋 Goodbye", "Ցտեսութիւն", "Tsedesutyun")
-    ]
-    render_maximized_grid(greetings_data, "lesson_01")
+if module == "Vocabulary Quiz":
+    st.header("🧠 Vocabulary Quiz")
+    st.info("Test your knowledge! A random word will appear below.")
+    
+    # Initialize Quiz Session State
+    if 'quiz_word' not in st.session_state:
+        # Combine all data for the pool
+        all_vocab = family_data + kitchen_data + food_data + furniture_data + animals_data + objects_data
+        st.session_state.quiz_word = random.choice(all_vocab)
+        st.session_state.reveal = False
 
-elif module == "Verb Center":
+    # Next Word Button
+    if st.button("🎲 Next Word"):
+        all_vocab = family_data + kitchen_data + food_data + furniture_data + animals_data + objects_data
+        st.session_state.quiz_word = random.choice(all_vocab)
+        st.session_state.reveal = False
+        st.rerun()
+
+    # Display Quiz Card
+    item = st.session_state.quiz_word
+    eng_label = item[0]
+    arm = item[1]
+    phon = item[2]
+    image_file = item[3] if len(item) > 3 else None
+    
+    eng_text = eng_label.split(' ')[-1] if ' ' in eng_label else eng_label
+    emoji = eng_label.split(' ')[0] if ' ' in eng_label else "❓"
+    
+    # Center the Quiz Card
+    c1, c2, c3 = st.columns([1, 2, 1])
+    with c2:
+        # Visual Logic for Quiz
+        base_img_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/main/image_library"
+        visual_html = ""
+        if image_file:
+            visual_html = f'<img src="{base_img_url}/{image_file}" class="card-image">'
+        else:
+            visual_html = f'<div class="huge-emoji" style="text-align:center;">{emoji}</div>'
+
+        st.markdown(f"""
+            <div class="big-card-container">
+                {visual_html}
+                <div class="card-text-eng">{eng_text}</div>
+                <div class="card-text-arm" style="color: {'#0056b3' if st.session_state.reveal else 'transparent'}; user-select: none;">{arm}</div>
+                <div class="card-text-phon" style="color: {'#888' if st.session_state.reveal else 'transparent'}; user-select: none;">({phon})</div>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("👁️ Reveal Answer"):
+            st.session_state.reveal = True
+            st.rerun()
+
+elif module == "Verb Conjugation Center":
     st.header("🏃 Verb Conjugation Center")
     verb_choice = st.selectbox("Select a Verb:", verb_list)
     if 'current_tense' not in st.session_state: st.session_state.current_tense = 'present'
 
     tcol1, tcol2, tcol3 = st.columns(3)
     with tcol1: 
-        if st.button("📍 Present", key="p_btn"): st.session_state.current_tense = 'present'
+        if st.button("📍 Present", key="verb_pres"): st.session_state.current_tense = 'present'
     with tcol2:
-        if st.button("🕰️ Past", key="past_btn"): st.session_state.current_tense = 'past'
+        if st.button("🕰️ Past", key="verb_past"): st.session_state.current_tense = 'past'
     with tcol3:
-        if st.button("🚀 Future", key="f_btn"): st.session_state.current_tense = 'future'
+        if st.button("🚀 Future", key="verb_fut"): st.session_state.current_tense = 'future'
 
     active_tense = st.session_state.current_tense
     english_label = verb_choice.split('—')[0].split('-')[0].strip()
     clean_name = english_label.lower().replace(" ", "_")
     
+    st.subheader(f"{english_label} — {active_tense.capitalize()}")
+
     if clean_name in verb_data:
         display_list = verb_data[clean_name][active_tense]
         pronouns_arm = ["Ես", "Դուն", "Ան", "Մենք", "Դուք", "Անոնք"]
@@ -164,6 +212,15 @@ elif module == "Verb Center":
             c1.markdown(f"**{p_arm}** <span class='phonetic-label'>({p_phon})</span>", unsafe_allow_html=True)
             c2.markdown(f"**{display_list[i]}**")
             st.markdown("<hr style='margin:0; border-top:1px solid #eee;'>", unsafe_allow_html=True)
+
+elif module == "Lesson 1: Greetings":
+    st.header("👋 Lesson 1: Basic Greetings")
+    greetings_data = [
+        ("👋 Hello", "Բարեւ", "Parev"), ("❓ How are you?", "Ինչպէ՞ս ես", "Inchbes es?"),
+        ("😊 I am well", "Լաւ եմ", "Lav em"), ("🙏 Thank you", "Շնորհակալ եմ", "Shnorhagal em"),
+        ("👋 Goodbye", "Ցտեսութիւն", "Tsedesutyun")
+    ]
+    render_maximized_grid(greetings_data, "lesson_01")
 
 elif "Lesson" in module:
     lesson_map = {
