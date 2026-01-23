@@ -3,7 +3,7 @@ import time
 
 # 👇 IMPORT DATA
 from data import (
-    days_data, months_data, nums_1_10_data, nums_11_20_data, tens_data,
+    greetings_data, days_data, months_data, nums_1_10_data, nums_11_20_data, tens_data,
     family_data, kitchen_data, food_data, furniture_data, animals_data, objects_data,
     verb_data, verb_list
 )
@@ -83,7 +83,7 @@ def play_audio(filename):
     st.markdown(f'<audio src="{url}" autoplay></audio>', unsafe_allow_html=True)
 
 def render_maximized_grid(data, category_prefix, default_emoji="❓"):
-    """ INTERACTIVE Grid: Checks for individual audio file in data tuple """
+    """ INTERACTIVE Grid: Each card has its own audio button (For Lessons) """
     cols_per_row = 3
     base_img_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/main/image_library"
     
@@ -95,31 +95,13 @@ def render_maximized_grid(data, category_prefix, default_emoji="❓"):
                 eng_label = item[0]
                 arm = item[1]
                 phon = item[2]
-                
-                # Check for 4th item (File: either image OR audio)
-                extra_file = item[3] if len(item) > 3 else None
-                
-                # Determine if it's an image or audio based on extension
-                image_file = None
-                audio_file = None
-                
-                if extra_file:
-                    if extra_file.endswith(('.png', '.jpg', '.jpeg')):
-                        image_file = extra_file
-                    elif extra_file.endswith('.mp3'):
-                        audio_file = extra_file
+                image_file = item[3] if len(item) > 3 else None
 
-                # Visual Logic
                 parts = eng_label.split(' ', 1)
                 emoji, eng_text = (parts[0], parts[1]) if len(parts) > 1 else (default_emoji, eng_label)
 
-                # Generate default filename only if specific audio file isn't provided
-                if not audio_file:
-                    safe_eng = eng_text.lower().replace("/", "_").replace(" ", "_")
-                    filename = f"{category_prefix}_{safe_eng}"
-                else:
-                    # Remove .mp3 extension for the player function
-                    filename = audio_file.replace('.mp3', '')
+                safe_eng = eng_text.lower().replace("/", "_").replace(" ", "_")
+                filename = f"{category_prefix}_{safe_eng}"
                 
                 visual_html = f'<img src="{base_img_url}/{image_file}" class="card-image">' if image_file else f'<div class="huge-emoji" style="text-align:center;">{emoji}</div>'
 
@@ -133,21 +115,41 @@ def render_maximized_grid(data, category_prefix, default_emoji="❓"):
                     </div>
                 """, unsafe_allow_html=True)
                 
-                # Card Bottom (Audio Button) - Always show button for lessons, or if specific audio exists
-                # For Practice Tools without individual audio, we SKIP the button
-                if category_prefix != "practice" or audio_file:
-                    st.markdown('<div class="lesson-btn-container">', unsafe_allow_html=True)
-                    if st.button(f"🔊 Press to Play", key=f"btn_{filename}_{i}_{j}"):
-                        play_audio(filename)
-                    st.markdown('</div>', unsafe_allow_html=True)
-                else:
-                     # Just close the card cleanly if no button
-                    st.markdown('<div style="height: 10px;"></div>', unsafe_allow_html=True)
+                # Card Bottom (Audio Button)
+                st.markdown('<div class="lesson-btn-container">', unsafe_allow_html=True)
+                if st.button(f"🔊 Press to Play", key=f"btn_{filename}_{i}_{j}"):
+                    play_audio(filename)
+                st.markdown('</div>', unsafe_allow_html=True)
+
+def render_practice_grid(data):
+    """ STATIC Grid: No individual buttons, just visuals (For Practice Tools) """
+    cols_per_row = 3
+    
+    for i in range(0, len(data), cols_per_row):
+        cols = st.columns(cols_per_row)
+        batch = data[i:i+cols_per_row]
+        for j, item in enumerate(batch):
+            with cols[j]:
+                eng_label = item[0]
+                arm = item[1]
+                phon = item[2]
+
+                parts = eng_label.split(' ', 1)
+                emoji, eng_text = (parts[0], parts[1]) if len(parts) > 1 else ("❓", eng_label)
+
+                st.markdown(f"""
+                    <div class="big-card-container">
+                        <div class="huge-emoji" style="text-align:center;">{emoji}</div>
+                        <div class="card-text-eng">{eng_text}</div>
+                        <div class="card-text-arm">{arm}</div>
+                        <div class="card-text-phon">({phon})</div>
+                    </div>
+                """, unsafe_allow_html=True)
 
 # --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor Dev")
-    st.caption("v5.13 Corrected Logic")
+    st.caption("v5.14 Final Fixes")
     st.divider()
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools"])
     
@@ -170,6 +172,13 @@ if module == "Verb Conjugation Center":
     clean_name = english_label.lower().replace(" ", "_")
     
     st.subheader(f"{english_label} — {active_tense.capitalize()}")
+    
+    # 🔊 SINGLE MASTER PLAY BUTTON FOR VERB TENSE
+    st.markdown('<div class="master-play-btn">', unsafe_allow_html=True)
+    audio_file = f"verb_{clean_name}_{active_tense}"
+    if st.button("🔊 Play Conjugation", key=f"play_verb_{clean_name}_{active_tense}"):
+        play_audio(audio_file)
+    st.markdown('</div>', unsafe_allow_html=True)
 
     if clean_name in verb_data:
         display_list = verb_data[clean_name][active_tense]
@@ -180,28 +189,19 @@ if module == "Verb Conjugation Center":
         for i in range(6):
             p_eng, p_arm, p_phon = pronouns_eng[i], pronouns_arm[i], pronoun_phonetics[pronouns_arm[i]]
             
-            c1, c2, c3, c4 = st.columns([1, 1, 2, 1])
+            c1, c2, c3 = st.columns([1, 1, 2])
             c1.markdown(f"<span class='eng-pronoun'>{p_eng}</span>", unsafe_allow_html=True)
             c2.markdown(f"**{p_arm}** <span class='phonetic-label'>({p_phon})</span>", unsafe_allow_html=True)
             c3.markdown(f"**{display_list[i]}**")
-            
-            # RESTORED AUDIO: Individual buttons for each conjugation
-            with c4:
-                st.markdown('<div class="verb-audio-btn">', unsafe_allow_html=True)
-                audio_file = f"verb_{clean_name}_{active_tense}_{p_arm.lower()}"
-                if st.button("🔊 Play", key=f"v_btn_{audio_file}_{i}"):
-                    play_audio(audio_file)
-                st.markdown('</div>', unsafe_allow_html=True)
             st.markdown("<hr style='margin:0; border-top:1px solid #eee;'>", unsafe_allow_html=True)
 
 elif module == "Days of the Week":
     st.header("📅 Days of the Week")
-    # Master Play Button for the whole section
     st.markdown('<div class="master-play-btn">', unsafe_allow_html=True)
     if st.button("🔊 Play All Days", key="play_days"):
         play_audio("vocab_days_of_week") 
     st.markdown('</div>', unsafe_allow_html=True)
-    render_maximized_grid(days_data, "practice")
+    render_practice_grid(days_data)
 
 elif module == "Months of the Year":
     st.header("🗓️ Months of the Year")
@@ -209,42 +209,34 @@ elif module == "Months of the Year":
     if st.button("🔊 Play All Months", key="play_months"):
         play_audio("vocab_months")
     st.markdown('</div>', unsafe_allow_html=True)
-    render_maximized_grid(months_data, "practice")
+    render_practice_grid(months_data)
 
 elif module == "Numbers 1-20":
     st.header("🔢 Numbers 1-20")
-    
-    # Master buttons for ranges
     st.markdown('<div class="master-play-btn">', unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     with c1:
         if st.button("🔊 Play 1-10", key="play_1_10"):
             play_audio("vocab_numbers_1_10")
     with c2:
-        if st.button("🔊 Play 11-20 (All)", key="play_11_20"):
+        if st.button("🔊 Play 11-20", key="play_11_20"):
             play_audio("vocab_numbers_11_20")
     st.markdown('</div>', unsafe_allow_html=True)
     
     full_numbers = nums_1_10_data + nums_11_20_data
-    render_maximized_grid(full_numbers, "practice")
+    render_practice_grid(full_numbers)
 
 elif module == "Counting by 10s":
     st.header("🔟 Counting by 10s")
     st.markdown('<div class="master-play-btn">', unsafe_allow_html=True)
-    if st.button("🔊 Play 10-100 (All)", key="play_tens"):
+    if st.button("🔊 Play 10-100", key="play_tens"):
         play_audio("vocab_numbers_10_100")
     st.markdown('</div>', unsafe_allow_html=True)
-    render_maximized_grid(tens_data, "practice")
+    render_practice_grid(tens_data)
 
-# --- LESSON LOGIC ---
 elif module == "Lesson 1: Greetings":
     st.header("👋 Lesson 1: Basic Greetings")
-    greetings_data = [
-        ("👋 Hello", "Բարեւ", "Parev"), ("❓ How are you?", "Ինչպէ՞ս ես", "Inchbes es?"),
-        ("😊 I am well", "Լաւ եմ", "Lav em"), ("🙏 Thank you", "Շնորհակալ եմ", "Shnorhagal em"),
-        ("👋 Goodbye", "Ցտեսութիւն", "Tsedesutyun")
-    ]
-    render_maximized_grid(greetings_data, "lesson_01")
+    render_maximized_grid(greetings_data, "greetings")
 
 elif "Lesson" in module:
     lesson_map = {
