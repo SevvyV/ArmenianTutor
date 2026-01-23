@@ -40,8 +40,9 @@ st.markdown("""
     .card-text-arm { font-size: 32px; color: #0056b3; font-weight: bold; }
     .card-text-phon { font-size: 18px; color: #888; font-style: italic; }
 
-    /* FULL-WIDTH 90PX BUTTONS FOR LESSONS (Individual Cards) */
-    .lesson-btn-container div.stButton > button {
+    /* --- FIX: TARGETING LESSON BUTTONS VIA SIBLING SELECTOR --- */
+    /* This targets the button immediately following our hidden marker div */
+    div.lesson-btn-marker + div.stButton > button {
         width: 100% !important;      
         height: 90px !important;      
         background-color: #e3f2fd !important; 
@@ -53,13 +54,16 @@ st.markdown("""
         font-size: 24px !important;   
         margin-top: -2px !important;
     }
-    .lesson-btn-container div.stButton > button:hover { background-color: #007bff !important; color: white !important; }
+    div.lesson-btn-marker + div.stButton > button:hover { 
+        background-color: #007bff !important; 
+        color: white !important; 
+    }
     
     div[data-testid="column"] { padding: 10px 15px !important; }
     .phonetic-label { font-size: 14px; color: #999; font-style: italic; margin-left: 8px; }
     .eng-pronoun { font-size: 16px; color: #444; font-weight: 600; }
     
-    /* MASTER PLAY BUTTON (GREEN - For Practice Tools & Greetings) */
+    /* MASTER PLAY BUTTON (GREEN) */
     .master-play-btn div.stButton > button {
         width: 100% !important;
         background-color: #28a745 !important;
@@ -70,15 +74,13 @@ st.markdown("""
         margin-bottom: 20px !important;
     }
 
-    /* --- NEW: VERB SELECTOR STYLING --- */
-    /* Target the container of the select box value to make it bigger */
+    /* VERB SELECTOR STYLING */
     div[data-baseweb="select"] > div {
-        font-size: 1.5rem !important; /* Bigger Text */
-        min-height: 60px !important;   /* Taller Box */
+        font-size: 1.5rem !important; 
+        min-height: 60px !important;   
         display: flex;
         align-items: center;
     }
-    /* Target the dropdown list items */
     li[role="option"] {
         font-size: 1.2rem !important;
     }
@@ -124,10 +126,10 @@ def render_maximized_grid(data, category_prefix):
                     </div>
                 """, unsafe_allow_html=True)
                 
-                st.markdown('<div class="lesson-btn-container">', unsafe_allow_html=True)
+                # --- SIBLING MARKER FOR CSS ---
+                st.markdown('<div class="lesson-btn-marker"></div>', unsafe_allow_html=True)
                 if st.button(f"🔊 Press to Play", key=f"btn_{filename}_{i}_{j}"):
                     play_audio(filename)
-                st.markdown('</div>', unsafe_allow_html=True)
 
 def render_practice_grid(data):
     """ PRACTICE GRID: Visual cards only (For Practice Tools & Greetings) """
@@ -180,7 +182,6 @@ if module == "Verb Conjugation Center":
     
     st.subheader(f"{english_label} — {active_tense.capitalize()}")
     
-    # 🔊 SINGLE MASTER PLAY BUTTON FOR VERB TENSE
     st.markdown('<div class="master-play-btn">', unsafe_allow_html=True)
     audio_file = f"verb_{clean_name}_{active_tense}"
     if st.button("🔊 Play Conjugation", key=f"play_verb_{clean_name}_{active_tense}"):
@@ -196,8 +197,7 @@ if module == "Verb Conjugation Center":
         for i in range(6):
             p_eng, p_arm, p_phon = pronouns_eng[i], pronouns_arm[i], pronoun_phonetics[pronouns_arm[i]]
             
-            # --- FIX: TIGHTER COLUMNS ---
-            # Used [1.5, 1.5, 3, 5] ratio. The '5' acts as a spacer to push the first 3 columns together.
+            # Adjusted column spacing [1.5, 1.5, 3, 5]
             c1, c2, c3, _ = st.columns([1.5, 1.5, 3, 5])
             
             c1.markdown(f"<span class='eng-pronoun'>{pronouns_eng[i]}</span>", unsafe_allow_html=True)
