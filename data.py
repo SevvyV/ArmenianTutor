@@ -128,26 +128,6 @@ verb_data = {
     "to_write": {"present": ["կը գրեմ", "կը գրես", "կը գրէ", "կը գրենք", "կը գրէք", "կը գրեն"], "past": ["գրեցի", "գրեցիր", "գրեց", "գրեցինք", "գրեցիք", "գրեցին"], "future": ["պիտի գրեմ", "պիտի գրես", "պիտի գրէ", "պիտի գրենք", "պիտի գրէք", "պիտի գրեն"]}
 }
 
-verb_list = sorted([
-    "To Answer — Պատասխանել (Badaskhanel)", "To Ask — Հարցնել (Hartsnel)", "To Be — Ըլլալ (Eellal)", 
-    "To Bring — Բերել (Perel)", "To Buy — Գնել (Knel)", "To Call — Կանչել (Ganchel)", 
-    "To Clean — Մաքրել (Makrel)", "To Close — Գոցել (Kotsel)", "To Come — Գալ (Kal)", 
-    "To Cook — Եփել (Epel)", "To Do — Ընել (Enel)", "To Drink — Խմել (Khmel)", 
-    "To Eat — Ուտել (Oudel)", "To Finish — Վերջացնել (Verchatsnel)", "To Forget — Մոռնալ (Mornal)", 
-    "To Give — Տալ (Dal)", "To Go — Երթալ (Yertal)", "To Have — Ունենալ (Ounenal)", 
-    "To Hear — Լսել (Lsel)", "To Help — Օգնել (Okne)", "To Know — Գիտնալ (Kidenal)", 
-    "To Learn — Սորվիլ (Sorvil)", "To Live — Ապրիլ (Abril)", "To Look — Նայիլ (Nayil)", 
-    "To Love — Սիրել (Sirel)", "To Open — Բանալ (Panal)", "To Play — Խաղալ (Khaghal)", 
-    "To Put — Դնել (Tnel)", "To Read — Կարդալ (Gartal)", "To Remember — Յիշել (Hishel)", 
-    "To Run — Վազել (Vazel)", "To Say — Ըսել (Esel)", "To See — Տեսնել (Desnel)", 
-    "To Sell — Ծախել (Dzakhel)", "To Sit — Նստիլ (Nsdel)", "To Sleep — Քնանալ (Knanol)", 
-    "To Speak — Խօսիլ (Khosil)", "To Stand — Կայնիլ (Gaynil)", "To Start — Սկսիլ (Sgsil)", 
-    "To Take — Առնել (Arnel)", "To Think — Մտածել (Mdadzel)", "To Try — Փորձել (Portsel)", 
-    "To Understand — Հասկնալ (Hasknal)", "To Wait — Սպասել (Spasel)", "To Wake Up — Արթննալ (Artnnal)", 
-    "To Walk — Քալել (Kalel)", "To Wash — Լուալ (Lval)", "To Want — Ուզել (Ouzel)", "To Work — Աշխատիլ (Ashkhadil)", 
-    "To Write — Գրել (Krel)"
-])
-
 kitchen_data = [
     ("🥄 Spoon", "Դգալ", "Tkal"), 
     ("🍴 Fork", "Պատառաքաղ", "Badarakagh"), 
@@ -184,11 +164,11 @@ furniture_data = [
     ("Clock", "Ժամացոյց", "Jamatsuyts", "Furniture_Clock.png"),
     ("Telephone", "Հեռաձայն", "Heratzayn", "Furniture_telephone.png"),
     ("Table", "Սեղան", "Seghan", "Furniture_table.png"),
-    ("Carpet", "Գորգ", "Gorg", "Furniture_carpet.png"),
-    ("Mirror", "Հայելի", "Hayeli", "Furniture_Mirror.png"),   
-    ("Window", "Պատուհան", "Badoohan", "Furniture_window.png"),
-    ("Stairs", "Աստիճան", "Asdijan", "Furniture_stairs.png"),
-    ("Closet", "Պահարան", "Baharan", "Furniture_closet.png")
+    ("Carpet", "Գորգ", "Gorg", "Furniture_carpet.jpg"),
+    ("Mirror", "Հայելի", "Hayeli", "Furniture_Mirror.jpg"),   
+    ("Window", "Պատուհան", "Badoohan", "Furniture_window.jpg"),
+    ("Stairs", "Աստիճան", "Asdijan", "Furniture_stairs.jpg"),
+    ("Closet", "Պահարան", "Baharan", "Furniture_closet.jpg")
 ]
 
 animals_data = [
