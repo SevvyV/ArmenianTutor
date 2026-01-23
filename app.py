@@ -2,7 +2,7 @@ import streamlit as st
 import time
 
 # 👇 IMPORT DATA
-# Updated to include all the missing lists from your data.py
+# Updated to include all the restored lists from your data.py
 from data import (
     days_data, months_data, nums_1_10_data, nums_11_20_data, tens_data,
     family_data, kitchen_data, food_data, furniture_data, animals_data, objects_data,
@@ -122,7 +122,7 @@ def render_maximized_grid(data, category_prefix, default_emoji="❓"):
 # --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor Dev")
-    st.caption("v5.7 Restored Practice Tools")
+    st.caption("v5.9 PNG Build")
     st.divider()
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools"])
     
