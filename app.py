@@ -40,9 +40,10 @@ st.markdown("""
     .card-text-arm { font-size: 32px; color: #0056b3; font-weight: bold; }
     .card-text-phon { font-size: 18px; color: #888; font-style: italic; }
 
-    /* --- FIX: TARGETING LESSON BUTTONS VIA SIBLING SELECTOR --- */
-    /* This targets the button immediately following our hidden marker div */
-    div.lesson-btn-marker + div.stButton > button {
+    /* --- ROBUST FIX FOR LESSON BUTTONS --- */
+    /* This targets the Streamlit container holding the button that comes immediately 
+       after the container holding our 'lesson-btn-marker' */
+    div.element-container:has(div.lesson-btn-marker) + div.element-container button {
         width: 100% !important;      
         height: 90px !important;      
         background-color: #e3f2fd !important; 
@@ -54,7 +55,7 @@ st.markdown("""
         font-size: 24px !important;   
         margin-top: -2px !important;
     }
-    div.lesson-btn-marker + div.stButton > button:hover { 
+    div.element-container:has(div.lesson-btn-marker) + div.element-container button:hover { 
         background-color: #007bff !important; 
         color: white !important; 
     }
@@ -74,7 +75,7 @@ st.markdown("""
         margin-bottom: 20px !important;
     }
 
-    /* VERB SELECTOR STYLING */
+    /* VERB SELECTOR STYLING (Bigger Font) */
     div[data-baseweb="select"] > div {
         font-size: 1.5rem !important; 
         min-height: 60px !important;   
@@ -197,7 +198,7 @@ if module == "Verb Conjugation Center":
         for i in range(6):
             p_eng, p_arm, p_phon = pronouns_eng[i], pronouns_arm[i], pronoun_phonetics[pronouns_arm[i]]
             
-            # Adjusted column spacing [1.5, 1.5, 3, 5]
+            # Tighter columns
             c1, c2, c3, _ = st.columns([1.5, 1.5, 3, 5])
             
             c1.markdown(f"<span class='eng-pronoun'>{pronouns_eng[i]}</span>", unsafe_allow_html=True)
