@@ -1,3 +1,4 @@
+#  Stable version 5.18 January 23rd, 2026
 import streamlit as st
 import time
 
@@ -267,3 +268,4 @@ elif "Lesson" in module:
     raw_data, prefix = lesson_map[module]
     st.header(f"📖 {module}")
     render_maximized_grid(raw_data, prefix)
+
