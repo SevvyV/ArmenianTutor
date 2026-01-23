@@ -199,7 +199,7 @@ elif module == "Days of the Week":
     st.header("📅 Days of the Week")
     st.markdown('<div class="master-play-btn">', unsafe_allow_html=True)
     if st.button("🔊 Play All Days", key="play_days"):
-        play_audio("vocab_days_of_week") 
+        play_audio("drill_days_of_week") 
     st.markdown('</div>', unsafe_allow_html=True)
     render_practice_grid(days_data)
 
@@ -217,10 +217,10 @@ elif module == "Numbers 1-20":
     c1, c2 = st.columns(2)
     with c1:
         if st.button("🔊 Play 1-10", key="play_1_10"):
-            play_audio("vocab_numbers_1_10")
+            play_audio("drill_numbers_1_10")
     with c2:
         if st.button("🔊 Play 11-20", key="play_11_20"):
-            play_audio("vocab_numbers_11_20")
+            play_audio("drill_numbers_11_20")
     st.markdown('</div>', unsafe_allow_html=True)
     
     full_numbers = nums_1_10_data + nums_11_20_data
@@ -230,7 +230,7 @@ elif module == "Counting by 10s":
     st.header("🔟 Counting by 10s")
     st.markdown('<div class="master-play-btn">', unsafe_allow_html=True)
     if st.button("🔊 Play 10-100", key="play_tens"):
-        play_audio("vocab_numbers_10_100")
+        play_audio("drill_numbers_10_100")
     st.markdown('</div>', unsafe_allow_html=True)
     render_practice_grid(tens_data)
 
@@ -250,3 +250,4 @@ elif "Lesson" in module:
     raw_data, prefix = lesson_map[module]
     st.header(f"📖 {module}")
     render_maximized_grid(raw_data, prefix)
+
