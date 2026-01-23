@@ -240,6 +240,7 @@ elif module == "Lesson 1: Greetings":
 
 elif "Lesson" in module:
     lesson_map = {
+        "Lesson 1: Greetings": (greetings_data, "greetings"),  # This line was missing
         "Lesson 2: Family": (family_data, "family"),
         "Lesson 3: Kitchen": (kitchen_data, "kitchen"),
         "Lesson 4: Food": (food_data, "food"),
@@ -250,6 +251,7 @@ elif "Lesson" in module:
     raw_data, prefix = lesson_map[module]
     st.header(f"📖 {module}")
     render_maximized_grid(raw_data, prefix)
+
 
 
 
