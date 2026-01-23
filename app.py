@@ -13,7 +13,7 @@ st.set_page_config(page_title="HyeTutor Dev", page_icon="🇦🇲", layout="wide
 
 st.markdown("""
     <style>
-    /* 1. THE BIG IMAGE/EMOJI BOX */
+    /* THE BIG IMAGE/EMOJI BOX */
     .big-card-container {
         background-color: #ffffff;
         border: 2px solid #f0f2f6;
@@ -28,7 +28,6 @@ st.markdown("""
         overflow: hidden;
     }
 
-    /* 🖼️ REAL IMAGE STYLING */
     .card-image {
         width: 100%;
         height: 230px;
@@ -41,7 +40,7 @@ st.markdown("""
     .card-text-arm { font-size: 32px; color: #0056b3; font-weight: bold; }
     .card-text-phon { font-size: 18px; color: #888; font-style: italic; }
 
-    /* 2. THE STRETCHED LISTEN BUTTON (Grid Cards Only) */
+    /* FULL-WIDTH 90PX BUTTONS FOR LESSONS (Individual Cards) */
     .lesson-btn-container div.stButton > button {
         width: 100% !important;      
         height: 90px !important;      
@@ -56,12 +55,11 @@ st.markdown("""
     }
     .lesson-btn-container div.stButton > button:hover { background-color: #007bff !important; color: white !important; }
     
-    /* 3. GENERAL UI */
     div[data-testid="column"] { padding: 10px 15px !important; }
     .phonetic-label { font-size: 14px; color: #999; font-style: italic; margin-left: 8px; }
     .eng-pronoun { font-size: 16px; color: #444; font-weight: 600; }
     
-    /* 4. MASTER PLAY BUTTON (For Practice Tools) */
+    /* MASTER PLAY BUTTON (GREEN - For Practice Tools & Greetings) */
     .master-play-btn div.stButton > button {
         width: 100% !important;
         background-color: #28a745 !important;
@@ -82,8 +80,8 @@ def play_audio(filename):
     url = f"{base_url}/{filename}.mp3"
     st.markdown(f'<audio src="{url}" autoplay></audio>', unsafe_allow_html=True)
 
-def render_maximized_grid(data, category_prefix, default_emoji="❓"):
-    """ INTERACTIVE Grid: Each card has its own audio button (For Lessons) """
+def render_maximized_grid(data, category_prefix):
+    """ LESSON GRID: Visual Card + Individual Audio Button (For Lessons 2-7) """
     cols_per_row = 3
     base_img_url = "https://raw.githubusercontent.com/SevvyV/ArmenianTutor/main/image_library"
     
@@ -98,14 +96,12 @@ def render_maximized_grid(data, category_prefix, default_emoji="❓"):
                 image_file = item[3] if len(item) > 3 else None
 
                 parts = eng_label.split(' ', 1)
-                emoji, eng_text = (parts[0], parts[1]) if len(parts) > 1 else (default_emoji, eng_label)
-
+                emoji, eng_text = (parts[0], parts[1]) if len(parts) > 1 else ("❓", eng_label)
                 safe_eng = eng_text.lower().replace("/", "_").replace(" ", "_")
                 filename = f"{category_prefix}_{safe_eng}"
                 
                 visual_html = f'<img src="{base_img_url}/{image_file}" class="card-image">' if image_file else f'<div class="huge-emoji" style="text-align:center;">{emoji}</div>'
 
-                # Card Top (Visual)
                 st.markdown(f"""
                     <div class="big-card-container" style="border-radius: 25px 25px 0 0; margin-bottom: 0;">
                         {visual_html}
@@ -115,14 +111,13 @@ def render_maximized_grid(data, category_prefix, default_emoji="❓"):
                     </div>
                 """, unsafe_allow_html=True)
                 
-                # Card Bottom (Audio Button)
                 st.markdown('<div class="lesson-btn-container">', unsafe_allow_html=True)
                 if st.button(f"🔊 Press to Play", key=f"btn_{filename}_{i}_{j}"):
                     play_audio(filename)
                 st.markdown('</div>', unsafe_allow_html=True)
 
 def render_practice_grid(data):
-    """ STATIC Grid: No individual buttons, just visuals (For Practice Tools) """
+    """ PRACTICE GRID: Visual cards only (For Practice Tools & Greetings) """
     cols_per_row = 3
     
     for i in range(0, len(data), cols_per_row):
@@ -149,7 +144,6 @@ def render_practice_grid(data):
 # --- 3. NAVIGATION ---
 with st.sidebar:
     st.title("🇦🇲 HyeTutor Dev")
-    st.caption("v5.14 Final Fixes")
     st.divider()
     nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools"])
     
@@ -173,9 +167,9 @@ if module == "Verb Conjugation Center":
     
     st.subheader(f"{english_label} — {active_tense.capitalize()}")
     
-    # 🔊 SINGLE MASTER PLAY BUTTON FOR VERB TENSE
+    # Single Master Button for Verbs
     st.markdown('<div class="master-play-btn">', unsafe_allow_html=True)
-    audio_file = f"verb_{clean_name}_{active_tense}"
+    audio_file = f"verb_to_{clean_name}_{active_tense}"
     if st.button("🔊 Play Conjugation", key=f"play_verb_{clean_name}_{active_tense}"):
         play_audio(audio_file)
     st.markdown('</div>', unsafe_allow_html=True)
@@ -187,18 +181,16 @@ if module == "Verb Conjugation Center":
         pronoun_phonetics = {"Ես": "Yes", "Դուն": "Toun", "Ան": "An", "Մենք": "Menq", "Դուք": "Touq", "Անոնք": "Anonq"}
         
         for i in range(6):
-            p_eng, p_arm, p_phon = pronouns_eng[i], pronouns_arm[i], pronoun_phonetics[pronouns_arm[i]]
-            
             c1, c2, c3 = st.columns([1, 1, 2])
-            c1.markdown(f"<span class='eng-pronoun'>{p_eng}</span>", unsafe_allow_html=True)
-            c2.markdown(f"**{p_arm}** <span class='phonetic-label'>({p_phon})</span>", unsafe_allow_html=True)
+            c1.markdown(f"<span class='eng-pronoun'>{pronouns_eng[i]}</span>", unsafe_allow_html=True)
+            c2.markdown(f"**{pronouns_arm[i]}** <span class='phonetic-label'>({pronoun_phonetics[pronouns_arm[i]]})</span>", unsafe_allow_html=True)
             c3.markdown(f"**{display_list[i]}**")
             st.markdown("<hr style='margin:0; border-top:1px solid #eee;'>", unsafe_allow_html=True)
 
 elif module == "Days of the Week":
     st.header("📅 Days of the Week")
     st.markdown('<div class="master-play-btn">', unsafe_allow_html=True)
-    if st.button("🔊 Play All Days", key="play_days"):
+    if st.button("🔊 Play Sequence", key="play_days"):
         play_audio("drill_days_of_week") 
     st.markdown('</div>', unsafe_allow_html=True)
     render_practice_grid(days_data)
@@ -206,7 +198,7 @@ elif module == "Days of the Week":
 elif module == "Months of the Year":
     st.header("🗓️ Months of the Year")
     st.markdown('<div class="master-play-btn">', unsafe_allow_html=True)
-    if st.button("🔊 Play All Months", key="play_months"):
+    if st.button("🔊 Play Sequence", key="play_months"):
         play_audio("drill_months_of_year")
     st.markdown('</div>', unsafe_allow_html=True)
     render_practice_grid(months_data)
@@ -234,13 +226,19 @@ elif module == "Counting by 10s":
     st.markdown('</div>', unsafe_allow_html=True)
     render_practice_grid(tens_data)
 
+# FIX: Greetings now uses the SINGLE BUTTON layout (like practice tools)
 elif module == "Lesson 1: Greetings":
     st.header("👋 Lesson 1: Basic Greetings")
-    render_maximized_grid(greetings_data, "greetings")
+    
+    st.markdown('<div class="master-play-btn">', unsafe_allow_html=True)
+    if st.button("🔊 Play All Greetings", key="play_greetings_all"):
+        play_audio("lesson_01_greetings")
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    render_practice_grid(greetings_data)
 
 elif "Lesson" in module:
     lesson_map = {
-        "Lesson 1: Greetings": (greetings_data, "greetings"),  # This line was missing
         "Lesson 2: Family": (family_data, "family"),
         "Lesson 3: Kitchen": (kitchen_data, "kitchen"),
         "Lesson 4: Food": (food_data, "food"),
@@ -251,7 +249,3 @@ elif "Lesson" in module:
     raw_data, prefix = lesson_map[module]
     st.header(f"📖 {module}")
     render_maximized_grid(raw_data, prefix)
-
-
-
-
