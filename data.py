@@ -1,17 +1,49 @@
+# --- Stable version 5.18 
 # --- DATA REPOSITORY ---
 
-# --- 1. DRILL DATA ---
-days_data = [("Monday", "Երկուշաբթի", "Yergoushabti"), ("Tuesday", "Երեքշաբթի", "Yerekshabti"), ("Wednesday", "Չորեքշաբթի", "Chorkshabti"), ("Thursday", "Հինգշաբթի", "Hinkshabti"), ("Friday", "Ուրբաթ", "Ourpat"), ("Saturday", "Շաբաթ", "Shapat"), ("Sunday", "Կիրակի", "Giragi")]
+greetings_data = [
+    ("👋 Hello", "Բարեւ", "Parev"), 
+    ("❓ How are you?", "Ինչպէ՞ս ես", "Inchbes es?"),
+    ("😊 I am well", "Լաւ եմ", "Lav em"), 
+    ("🙏 Thank you", "Շնորհակալ եմ", "Shnorhagal em"),
+    ("👋 Goodbye", "Ցտեսութիւն", "Tsedesutyun")
+]
 
-months_data = [("January", "Յունուար", "Hounvar"), ("February", "Փետրուար", "Pedrvar"), ("March", "Մարտ", "Mard"), ("April", "Ապրիլ", "Abril"), ("May", "Մայիս", "Mayis"), ("June", "Յունիս", "Hounis"), ("July", "Յուլիս", "Houlis"), ("August", "Օգոստոս", "Okostos"), ("September", "Սեպտեմբեր", "Sebdemper"), ("October", "Հոկտեմբեր", "Hoktemper"), ("November", "Նոյեմբեր", "Noyemper"), ("December", "Դեկտեմբեր", "Tegtemper")]
+days_data = [
+    ("📅 Monday", "Երկուշաբթի", "Yergoushabti"), ("📅 Tuesday", "Երեքշաբթի", "Yerekshabti"), 
+    ("📅 Wednesday", "Չորեքշաբթի", "Chorkshabti"), ("📅 Thursday", "Հինգշաբթի", "Hinkshabti"), 
+    ("📅 Friday", "Ուրբաթ", "Ourpat"), ("📅 Saturday", "Շաբաթ", "Shapat"), ("📅 Sunday", "Կիրակի", "Giragi")
+]
 
-nums_1_10_data = [("One", "Մէկ", "Meg"), ("Two", "Երկու", "Yergoo"), ("Three", "Երեք", "Yerek"), ("Four", "Չորս", "Chors"), ("Five", "Հինգ", "Hink"), ("Six", "Վեց", "Vets"), ("Seven", "Եօթը", "Yot"), ("Eight", "Ութը", "Out"), ("Nine", "Ինը", "Ine"), ("Ten", "Տասը", "Dase")]
+months_data = [
+    ("❄️ January", "Յունուար", "Hounvar"), ("❄️ February", "Փետրուար", "Pedrvar"), 
+    ("🌱 March", "Մարտ", "Mard"), ("🌱 April", "Ապրիլ", "Abril"), ("🌱 May", "Մայիս", "Mayis"), 
+    ("☀️ June", "Յունիս", "Hounis"), ("☀️ July", "Յուլիս", "Houlis"), ("☀️ August", "Օգոստոս", "Okostos"), 
+    ("🍂 September", "Սեպտեմբեր", "Sebdemper"), ("🍂 October", "Հոկտեմբեր", "Hoktemper"), 
+    ("🍂 November", "Նոյեմբեր", "Noyemper"), ("❄️ December", "Դեկտեմբեր", "Tegtemper")
+]
 
-nums_11_20_data = [("Eleven", "Տասնըմէկ", "Tasnemeg"), ("Twelve", "Տասնըերկու", "Tasneyergoo"), ("Thirteen", "Տասնըերեք", "Tasneyerek"), ("Fourteen", "Տասնըչորս", "Tasnechors"), ("Fifteen", "Տասնըհինգ", "Tasnehink"), ("Sixteen", "Տասնըվեց", "Tasnevets"), ("Seventeen", "Տասնըեօթը", "Tasneyot"), ("Eighteen", "Տասնըութը", "Tasneout"), ("Nineteen", "Տասնըինը", "Tasneine"), ("Twenty", "Քսան", "Ksan")]
+nums_1_10_data = [
+    ("1 One", "Մէկ", "Meg"), ("2 Two", "Երկու", "Yergoo"), ("3 Three", "Երեք", "Yerek"), 
+    ("4 Four", "Չորս", "Chors"), ("5 Five", "Հինգ", "Hink"), ("6 Six", "Վեց", "Vets"), 
+    ("7 Seven", "Եօթը", "Yot"), ("8 Eight", "Ութը", "Out"), ("9 Nine", "Ինը", "Ine"), ("10 Ten", "Տասը", "Dase")
+]
 
-tens_data = [("Ten", "Տասը", "Dase"), ("Twenty", "Քսան", "Ksan"), ("Thirty", "Երեսուն", "Yeresoun"), ("Forty", "Քառասուն", "Karasoun"), ("Fifty", "Հիսուն", "Hisoun"), ("Sixty", "Վաթսուն", "Vatsoun"), ("Seventy", "Եօթանասուն", "Yotanasoun"), ("Eighty", "Ութսուն", "Outsoun"), ("Ninety", "Իննսուն", "Innesoun"), ("Hundred", "Հարիւր", "Haryur")]
+nums_11_20_data = [
+    ("11 Eleven", "Տասնըմէկ", "Tasnemeg"), ("12 Twelve", "Տասնըերկու", "Tasneyergoo"), 
+    ("13 Thirteen", "Տասնըերեք", "Tasneyerek"), ("14 Fourteen", "Տասնըչորս", "Tasnechors"), 
+    ("15 Fifteen", "Տասնըհինգ", "Tasnehink"), ("16 Sixteen", "Տասնըվեց", "Tasnevets"), 
+    ("17 Seventeen", "Տասնըեօթը", "Tasneyot"), ("18 Eighteen", "Տասնըութը", "Tasneout"), 
+    ("19 Nineteen", "Տասնըինը", "Tasneine"), ("20 Twenty", "Քսան", "Ksan")
+]
 
-# --- 2. LESSON DATA (Core) ---
+tens_data = [
+    ("10 Ten", "Տասը", "Dase"), ("20 Twenty", "Քսան", "Ksan"), ("30 Thirty", "Երեսուն", "Yeresoun"), 
+    ("40 Forty", "Քառասուն", "Karasoun"), ("50 Fifty", "Հիսուն", "Hisoun"), ("60 Sixty", "Վաթսուն", "Vatsoun"), 
+    ("70 Seventy", "Եօթանասուն", "Yotanasoun"), ("80 Eighty", "Ութսուն", "Outsoun"), 
+    ("90 Ninety", "Իննսուն", "Innesoun"), ("100 Hundred", "Հարիւր", "Haryur")
+]
+
 family_data = [
     ("👨 Father", "Հայրիկ", "Hayrig"), ("👩 Mother", "Մայրիկ", "Mayrig"), 
     ("👦 Brother", "Եղբայր", "Yeghpayr"), ("👧 Sister", "Քոյր", "Kouyr"), 
@@ -19,79 +51,6 @@ family_data = [
     ("👶 Son", "Տղայ", "Degha"), ("👱‍♀️ Daughter", "Աղջիկ", "Aghchig")
 ]
 
-# --- 3. VOCABULARY MODULES (Expanded) ---
-
-kitchen_data = [
-    ("🥄 Spoon", "Դգալ", "Tkal"), 
-    ("🍴 Fork", "Պատառաքաղ", "Badarakagh"), 
-    ("🔪 Knife", "Դանակ", "Danag"), 
-    ("🍽️ Plate", "Պնակ", "Pnag"), 
-    ("🥣 Bowl", "Աման", "Aman"), 
-    ("☕ Cup/Mug", "Գաւաթ", "Kavat"), 
-    ("🥃 Glass", "Բաժակ", "Pajag"), 
-    ("🧻 Napkin", "Անձեռոցիկ", "Antzerotsig"), 
-    ("🍲 Pot", "Պտուկ", "Btdoug"), 
-    ("🍳 Pan", "Տապակ", "Dabag"),
-    ("🍶 Pitcher", "Փարչ", "Parch"),
-    ("🍼 Bottle", "Շիշ", "Shish")
-]
-
-food_data = [
-    ("🍞 Bread", "Հաց", "Hats"), 
-    ("💧 Water", "Ջուր", "Joor"), 
-    ("🧀 Cheese", "Պանիր", "Banir"), 
-    ("🥛 Milk", "Կաթ", "Gat"), 
-    ("☕ Coffee", "Սուրճ", "Soorj"), 
-    ("🍵 Tea", "Թէյ", "Tey"), 
-    ("🥚 Egg", "Հաւկիթ", "Havgit"), 
-    ("🥩 Meat", "Միս", "Mis"), 
-    ("🍗 Chicken", "Հաւ", "Hav"), 
-    ("🐟 Fish", "Ձուկ", "Tzoog"),
-    ("🍎 Fruit", "Պտուղ", "Bdoogh"),
-    ("🥕 Vegetable", "Բանջարեղէն", "Panchareghen")
-]
-
-furniture_data = [
-    ("🪑 Table", "Սեղան", "Seghan"), 
-    ("💺 Chair", "Աթոռ", "Ator"), 
-    ("🛋️ Sofa", "Բազմոց", "Bazmots"), 
-    ("🛏️ Bed", "Անկողին", "Angoghin"), 
-    ("🚪 Door", "Դուռ", "Toor"), 
-    ("🪟 Window", "Պատուհան", "Badouhan"), 
-    ("💡 Lamp", "Լամբ", "Lamp"), 
-    ("🧶 Rug/Carpet", "Գորգ", "Kork"), 
-    ("🪞 Mirror", "Հայելի", "Hayeli"), 
-    ("🚪 Closet", "Պահարան", "Baharan"),
-    ("🪜 Stairs", "Սանդուխ", "Sandough")
-]
-
-animals_data = [
-    ("🐶 Dog", "Շուն", "Shoon"), 
-    ("🐱 Cat", "Կատու", "Gadoo"), 
-    ("🐦 Bird", "Թռչուն", "Trchoon"), 
-    ("🐴 Horse", "Ձի", "Tzi"), 
-    ("🐄 Cow", "Կով", "Gov"), 
-    ("🐑 Sheep", "Ոչխար", "Vochkhar"), 
-    ("🐔 Chicken", "Հաւ", "Hav"), 
-    ("🐭 Mouse", "Մուկ", "Mook"), 
-    ("🐻 Bear", "Արջ", "Arch"), 
-    ("🦁 Lion", "Առիւծ", "Ariudz")
-]
-
-objects_data = [
-    ("📖 Book", "Գիրք", "Kirk"), 
-    ("📰 Newspaper", "Թերթ", "Tert"), 
-    ("🖊️ Pen", "Գրիչ", "Krich"), 
-    ("📄 Paper", "Թուղթ", "Tought"), 
-    ("📱 Phone", "Հեռաձայն", "Heratsayn"), 
-    ("💻 Computer", "Համակարգիչ", "Hamakarkich"), 
-    ("⌚ Watch/Clock", "Ժամացոյց", "Jamatsouyt"), 
-    ("👓 Glasses", "Ակնոց", "Aknots"), 
-    ("🎒 Bag", "Պայուսակ", "Bayousag"), 
-    ("🔑 Key", "Բանալի", "Panali")
-]
-
-# --- 4. VERB DATA ---
 verb_data = {
     "to_answer": {"present": ["կը պատասխանեմ", "կը պատասխանես", "կը պատասխանէ", "կը պատասխանենք", "կը պատասխանէք", "կը պատասխանեն"], "past": ["պատասխանեցի", "պատասխանեցիր", "պատասխանեց", "պատասխանեցինք", "պատասխանեցիք", "պատասխանեցին"], "future": ["պիտի պատասխանեմ", "պիտի պատասխանես", "պիտի պատասխանէ", "պիտի պատասխանենք", "պիտի պատասխանէք", "պիտի պատասխանեն"]},
     "to_ask": {"present": ["կը հարցնեմ", "կը հարցնես", "կը հարցնէ", "կը հարցնենք", "կը հարցնէք", "կը հարցնեն"], "past": ["հարցուցի", "հարցուցիր", "հարցուց", "հարցուցինք", "հարցուցիք", "հարցուցին"], "future": ["պիտի հարցնեմ", "պիտի հարցնես", "պիտի հարցնէ", "պիտի հարցնենք", "պիտի հարցնէք", "պիտի հարցնեն"]},
@@ -132,7 +91,7 @@ verb_data = {
     "to_speak": {"present": ["կը խօսիմ", "կը խօսիս", "կը խօսի", "կը խօսինք", "կը խօսիք", "կը խօսին"], "past": ["խօսեցայ", "խօսեցար", "խօսեցաւ", "խօսեցանք", "խօսեցաք", "խօսեցան"], "future": ["պիտի խօսիմ", "պիտի խօսիս", "պիտի խօսի", "պիտի խօսինք", "պիտի խօսիք", "պիտի խօսին"]},
     "to_stand": {"present": ["կը կայնիմ", "կը կայնիս", "կը կայնի", "կը կայինք", "կը կայինք", "կը կային"], "past": ["կայնեցայ", "կայնեցար", "կայնեցաւ", "կայնեցանք", "կայնեցաք", "կայնեցան"], "future": ["պիտի կայնիմ", "պիտի կայնիս", "պիտի կայնի", "պիտի կայնինք", "պիտի կայնիք", "պիտի կայնին"]},
     "to_start": {"present": ["կը սկսիմ", "կը սկսիս", "կը սկսի", "կը սկսինք", "կը սկսիք", "կը սկսին"], "past": ["սկսայ", "սկսար", "սկսաւ", "սկսանք", "սկսաք", "սկսան"], "future": ["պիտի սկսիմ", "պիտի սկսիս", "պիտի սկսի", "պիտի սկսինք", "պիտի սկսիք", "պիտի սկսին"]},
-    "to_take": {"present": ["կ՚առնեմ", "կ՚առնես", "կ՚առնէ", "կ՚առնենք", "կ՚առնէք", "կ՚առնեն"], "past": ["առի", "առիր", "առաւ", "առինք", "առիք", "առին"], "future": ["պիտի առնեմ", "պիտի առնես", "պիտի առնէ", "պիտի առնենք", "պիտի առնէք", "պիտի առնեն"]},
+    "to_take": {"present": ["կ՚առնել", "կ՚առնես", "կ՚առնէ", "կ՚առնենք", "կ՚առնէք", "կ՚առնեն"], "past": ["առի", "առիր", "առաւ", "առինք", "առիք", "առին"], "future": ["պիտի առնեմ", "պիտի առնես", "պիտի առնէ", "պիտի առնենք", "պիտի առնէք", "պիտի առնեն"]},
     "to_think": {"present": ["կը մտածեմ", "կը մտածես", "կը մտածէ", "կը մտածենք", "կը մտածէք", "կը մտածեն"], "past": ["մտածեցի", "մտածեցիր", "մտածեց", "մտածեցինք", "մտածեցիք", "մտածեցին"], "future": ["պիտի մտածեմ", "պիտի մտածես", "պիտի մտածէ", "պիտի մտածենք", "պիտի մտածէք", "պիտի մտածեն"]},
     "to_try": {"present": ["կը փորձեմ", "կը փորձես", "կը փորձէ", "կը փորձենք", "կը փորձէք", "կը փորձեն"], "past": ["փորձեցի", "փորձեցիր", "փորձեց", "փորձեցինք", "փորձեցիք", "փորձեցին"], "future": ["պիտի փորձեմ", "պիտի փորձես", "պիտի փորձէ", "պիտի փորձենք", "պիտի փորձէք", "պիտի փորձեն"]},
     "to_understand": {"present": ["կը հասկնամ", "կը հասկնաս", "կը հասկնայ", "կը հասկնանք", "կը հասկնաք", "կը հասկնան"], "past": ["հասկցայ", "հասկցար", "հասկցաւ", "հասկցանք", "հասկցաք", "հասկցան"], "future": ["պիտի հասկնամ", "պիտի հասկնաս", "պիտի հասկնայ", "պիտի հասկնանք", "պիտի հասկնաք", "պիտի հասկնան"]},
@@ -164,3 +123,50 @@ verb_list = sorted([
     "To Walk — Քալել (Kalel)", "To Wash — Լուալ (Lval)", "To Want — Ուզել (Ouzel)", "To Work — Աշխատիլ (Ashkhadil)", 
     "To Write — Գրել (Krel)"
 ])
+
+kitchen_data = [
+    ("🥄 Spoon", "Դգալ", "Tkal"), ("🍴 Fork", "Պատառաքաղ", "Badarakagh"), 
+    ("🔪 Knife", "Դանակ", "Danag"), ("🍽️ Plate", "Պնակ", "Pnag"), 
+    ("🥣 Bowl", "Աման", "Aman"), ("☕ Cup/Mug", "Գաւաթ", "Kavat"), 
+    ("🥃 Glass", "Բաժակ", "Pajag"), ("🧻 Napkin", "Անձեռոցիկ", "Antzerotsig", "Napkin.jpg"), 
+    ("🍲 Pot", "Պտուկ", "Btdoug"), ("🍳 Pan", "Տապակ", "Dabag"),
+    ("🍶 Pitcher", "Փարչ", "Parch"), ("🍼 Bottle", "Շիշ", "Shish")
+]
+
+food_data = [
+    ("🍞 Bread", "Հաց", "Hats"), ("💧 Water", "Ջուր", "Joor"), 
+    ("🧀 Cheese", "Պանիր", "Banir"), ("🥛 Milk", "Կաթ", "Gat"), 
+    ("☕ Coffee", "Սուրճ", "Soorj"), ("🍵 Tea", "Թէյ", "Tey"), 
+    ("🥚 Egg", "Հաւկիթ", "Havgit"), ("🥩 Meat", "Միս", "Mis"), 
+    ("🍗 Chicken", "Հաւ", "Hav"), ("🐟 Fish", "Ձուկ", "Tzoog"),
+    ("🍎 Fruit", "Պտուղ", "Bdoogh"), ("🥕 Vegetable", "Բանջարեղէն", "Panchareghen")
+]
+
+furniture_data = [
+    ("Lamp", "Լամբար", "Lambar", "Furniture_Lamp.png"), 
+    ("Sofa", "Բազմոց", "Pazmots", "Furniture_couch.png"),
+    ("Clock", "Ժամացոյց", "Jamatsuyts", "Furniture_Clock.png"), 
+    ("Telephone", "Հեռաձայն", "Heratzayn", "Furniture_telephone.png"),
+    ("Table", "Սեղան", "Seghan", "Furniture_table.png"), 
+    ("Carpet", "Գորգ", "Gorg", "Furniture_carpet.png"),
+    ("Mirror", "Հայելի", "Hayeli", "Furniture_Mirror.png"), 
+    ("Window", "Պատուհան", "Badoohan", "Furniture_window.png"),
+    ("Stairs", "Սանդուխք", "Santookht", "Furniture_stairs.png"), 
+    ("Closet", "Պահարան", "Baharan", "Furniture_closet.png")
+]
+
+animals_data = [
+    ("🐶 Dog", "Շուն", "Shoon"), ("🐱 Cat", "Կատու", "Gadoo"), 
+    ("🐦 Bird", "Թռչուն", "Trchoon"), ("🐴 Horse", "Ձի", "Tzi"), 
+    ("🐄 Cow", "Կով", "Gov"), ("🐑 Sheep", "Ոչխար", "Vochkhar"), 
+    ("🐔 Chicken", "Հաւ", "Hav"), ("🐭 Mouse", "Մուկ", "Mook"), 
+    ("🐻 Bear", "Արջ", "Arch"), ("🦁 Lion", "Առիւծ", "Ariudz")
+]
+
+objects_data = [
+    ("📖 Book", "Գիրք", "Kirk"), ("📰 Newspaper", "Թերթ", "Tert"), 
+    ("🖊️ Pen", "Գրիչ", "Krich"), ("📄 Paper", "Թուղթ", "Tought"), 
+    ("📱 Phone", "Հեռաձայն", "Heratsayn"), ("💻 Computer", "Համակարգիչ", "Hamakarkich"), 
+    ("⌚ Watch/Clock", "Ժամացոյց", "Jamatsouyt"), ("👓 Glasses", "Ակնոց", "Aknots"), 
+    ("🎒 Bag", "Պայուսակ", "Bayousag"), ("🔑 Key", "Բանալի", "Panali")
+]
