@@ -1,4 +1,4 @@
-#  Stable version 5.18 January 23rd, 2026
+#  Stable version 5.19 (Sentence Builder Added)
 import streamlit as st
 import time
 
@@ -6,7 +6,7 @@ import time
 from data import (
     greetings_data, days_data, months_data, nums_1_10_data, nums_11_20_data, tens_data,
     family_data, kitchen_data, food_data, furniture_data, animals_data, objects_data,
-    verb_data, verb_list
+    verb_data, verb_list, morning_routine_present
 )
 
 # --- 1. CONFIGURATION & WIDE UI STYLING ---
@@ -86,6 +86,15 @@ st.markdown("""
     li[role="option"] {
         font-size: 1.2rem !important;
     }
+
+    /* SENTENCE BUILDER STYLES */
+    .sentence-row {
+        padding: 15px 0;
+        border-bottom: 1px solid #eee;
+    }
+    .sent-eng { font-size: 18px; color: #333; }
+    .sent-arm { font-size: 22px; color: #0056b3; font-weight: bold; }
+    .sent-phon { font-size: 16px; color: #777; font-style: italic; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -162,19 +171,63 @@ def render_practice_grid(data):
 with st.sidebar:
     st.title("🇦🇲 HyeTutor Dev")
     st.divider()
-    nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools"])
+    nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools", "🧠 Sentence Builder"])
     
     if nav_category == "📚 Curriculum":
         module = st.radio("Lessons:", [
             "Lesson 1: Greetings", "Lesson 2: Family", "Lesson 3: Kitchen", 
             "Lesson 4: Food", "Lesson 5: Furniture", "Lesson 6: Animals", "Lesson 7: Objects"
         ])
-    else:
+    elif nav_category == "🛠️ Practice Tools":
         module = st.radio("Tools:", ["Verb Conjugation Center", "Days of the Week", "Months of the Year", "Numbers 1-20", "Counting by 10s"])
+    else:
+        # Sentence Builder Logic
+        module = st.selectbox("Select Topic:", ["Morning Routine"])
 
 # --- 4. PAGE LOGIC ---
 
-if module == "Verb Conjugation Center":
+if nav_category == "🧠 Sentence Builder":
+    # --- SENTENCE BUILDER LOGIC ---
+    if module == "Morning Routine":
+        st.header("🌅 Morning Routine Sentences")
+        
+        # Verb Selector
+        verb_options = [item["verb"] for item in morning_routine_present]
+        selected_verb_name = st.selectbox("Choose a Verb to Practice:", verb_options)
+        
+        # Find the data for selected verb
+        verb_data = next(item for item in morning_routine_present if item["verb"] == selected_verb_name)
+        
+        st.subheader(f"{verb_data['verb']} — {verb_data['context']}")
+        
+        # Master Audio Button
+        st.markdown('<div class="master-play-btn">', unsafe_allow_html=True)
+        # Fix: Strip .mp3 from data because play_audio adds it
+        clean_filename = verb_data['audio_file'].replace('.mp3', '')
+        if st.button(f"🔊 Play Sequence", key=f"sent_{clean_filename}"):
+            play_audio(clean_filename)
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Display Sentence Table
+        st.markdown("### Present Tense")
+        
+        for row in verb_data['sentences']:
+            # row format: (Pronoun, English, Display_Arm, Audio_Hack, Phonetic)
+            pronoun, eng, arm_display, _, phon = row
+            
+            c1, c2, c3, c4 = st.columns([1, 3, 3, 3])
+            with c1:
+                st.markdown(f"**{pronoun}**")
+            with c2:
+                st.markdown(f"<div class='sent-eng'>{eng}</div>", unsafe_allow_html=True)
+            with c3:
+                st.markdown(f"<div class='sent-arm'>{arm_display}</div>", unsafe_allow_html=True)
+            with c4:
+                st.markdown(f"<div class='sent-phon'>{phon}</div>", unsafe_allow_html=True)
+            
+            st.markdown("<hr style='margin: 5px 0;'>", unsafe_allow_html=True)
+
+elif module == "Verb Conjugation Center":
     st.header("🏃 Verb Conjugation Center")
     verb_choice = st.selectbox("Select a Verb:", verb_list)
     active_tense = st.radio("Select Tense:", ["Present", "Past", "Future"], horizontal=True).lower()
@@ -268,4 +321,3 @@ elif "Lesson" in module:
     raw_data, prefix = lesson_map[module]
     st.header(f"📖 {module}")
     render_maximized_grid(raw_data, prefix)
-
