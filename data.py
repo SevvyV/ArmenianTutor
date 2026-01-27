@@ -128,7 +128,9 @@ kitchen_data = [
     ("🥄 Spoon", "Դգալ", "Tkal"), ("🍴 Fork", "Պատառաքաղ", "Badarakagh"), 
     ("🔪 Knife", "Դանակ", "Danag"), ("🍽️ Plate", "Պնակ", "Pnag"), 
     ("🥣 Bowl", "Աման", "Aman"), ("☕ Cup/Mug", "Գաւաթ", "Kavat"), 
-    ("🥃 Glass", "Բաժակ", "Pajag"), ("🧻 Napkin", "Անձեռոցիկ", "Antzerotsig", "Napkin.jpg"), 
+    ("🥃 Glass", "Բաժակ", "Pajag"), 
+    # Napkin image entry - Emoji removed for clean look next to photo
+    ("Napkin", "Անձեռոցիկ", "Antzerotsig", "Napkin.jpg"), 
     ("🍲 Pot", "Պտուկ", "Btdoug"), ("🍳 Pan", "Տապակ", "Dabag"),
     ("🍶 Pitcher", "Փարչ", "Parch"), ("🍼 Bottle", "Շիշ", "Shish")
 ]
@@ -169,4 +171,116 @@ objects_data = [
     ("📱 Phone", "Հեռաձայն", "Heratsayn"), ("💻 Computer", "Համակարգիչ", "Hamakarkich"), 
     ("⌚ Watch/Clock", "Ժամացոյց", "Jamatsouyt"), ("👓 Glasses", "Ակնոց", "Aknots"), 
     ("🎒 Bag", "Պայուսակ", "Bayousag"), ("🔑 Key", "Բանալի", "Panali")
+]
+
+# ==========================================
+# NEW SECTION: Contextual Sentence Builders
+# ==========================================
+# Format: (Pronoun, English_Full, Arm_Display, Arm_Audio_Hack, Phonetic)
+
+morning_routine_present = [
+    {
+        "verb": "To Wake Up",
+        "context": "Early",
+        "audio_file": "sent_wake_up_pres.mp3",
+        "sentences": [
+            ("I", "I wake up early", "Ես կանուխ կ'արթննամ", "Ես կանուխ կ'արթննամ", "Yes ganoukh g'artnnam"),
+            ("You", "You wake up early", "Դուն կանուխ կ'արթննաս", "Դուն կանուխ կ'արթննաս", "Toun ganoukh g'artnnas"),
+            ("He/She", "He wakes up early", "Ան կանուխ կ'արթննայ", "Ան կանուխ կ'արթննա", "An ganoukh g'artnna"), # Audio Hack: Drop silent 'y'
+            ("We", "We wake up early", "Մենք կանուխ կ'արթննանք", "Մենք կանուխ կ'արթննանք", "Menq ganoukh g'artnnanq"),
+            ("You (pl)", "You wake up early", "Դուք կանուխ կ'արթննաք", "Դուք կանուխ կ'արթննաք", "Touq ganoukh g'artnnaq"),
+            ("They", "They wake up early", "Անոնք կանուխ կ'արթննան", "Անոնք կանուխ կ'արթննան", "Anonq ganoukh g'artnnan")
+        ]
+    },
+    {
+        "verb": "To Wash",
+        "context": "Hands",
+        "audio_file": "sent_wash_hands_pres.mp3",
+        "sentences": [
+            ("I", "I wash my hands", "Ես կը լուամ իմ ձեռքերս", "Ես կը լվամ իմ ձեռքերս", "Yes ge lvam im tzerkers"), # Audio Hack: 'v' for 'ou'
+            ("You", "You wash your hands", "Դուն կը լուաս քու ձեռքերդ", "Դուն կը լվաս քու ձեռքերդ", "Toun ge lvas kou tzerkert"),
+            ("He/She", "He washes his hands", "Ան կը լուայ իր ձեռքերը", "Ան կը լվա իր ձեռքերը", "An ge lva ir tzerkere"), # Audio Hack: 'v' + drop silent 'y'
+            ("We", "We wash our hands", "Մենք կը լուանք մեր ձեռքերը", "Մենք կը լվանք մեր ձեռքերը", "Menq ge lvanq mer tzerkere"),
+            ("You (pl)", "You wash your hands", "Դուք կը լուաք ձեր ձեռքերը", "Դուք կը լվաք ձեր ձեռքերը", "Touq ge lvaq tzer tzerkere"),
+            ("They", "They wash their hands", "Անոնք կը լուան իրենց ձեռքերը", "Անոնք կը լվան իրենց ձեռքերը", "Anonq ge lvan irents tzerkere")
+        ]
+    },
+    {
+        "verb": "To Brush",
+        "context": "Teeth",
+        "audio_file": "sent_brush_teeth_pres.mp3",
+        "sentences": [
+            ("I", "I brush my teeth", "Ես կը խոզանակեմ ակռաներս", "Ես կը խոզանակեմ ակռաներս", "Yes ge khozanagem agraneres"),
+            ("You", "You brush your teeth", "Դուն կը խոզանակես ակռաներդ", "Դուն կը խոզանակես ակռաներդ", "Toun ge khozanages agranered"),
+            ("He/She", "He brushes his teeth", "Ան կը խոզանակէ ակռաները", "Ան կը խոզանակէ ակռաները", "An ge khozanage agranere"),
+            ("We", "We brush our teeth", "Մենք կը խոզանակենք մեր ակռաները", "Մենք կը խոզանակենք մեր ակռաները", "Menq ge khozanagenq mer agranere"),
+            ("You (pl)", "You brush your teeth", "Դուք կը խոզանակէք ձեր ակռաները", "Դուք կը խոզանակէք ձեր ակռաները", "Touq ge khozanageq tzer agranere"),
+            ("They", "They brush their teeth", "Անոնք կը խոզանակեն իրենց ակռաները", "Անոնք կը խոզանակեն իրենց ակռաները", "Anonq ge khozanagen irents agranere")
+        ]
+    },
+    {
+        "verb": "To Comb",
+        "context": "Hair",
+        "audio_file": "sent_comb_hair_pres.mp3",
+        "sentences": [
+            ("I", "I comb my hair", "Ես կը սանտրեմ մազերս", "Ես կը սանտրեմ մազերս", "Yes ge santrem mazers"),
+            ("You", "You comb your hair", "Դուն կը սանտրես մազերդ", "Դուն կը սանտրես մազերդ", "Toun ge santres mazerd"),
+            ("He/She", "He combs his hair", "Ան կը սանտրէ մազերը", "Ան կը սանտրէ մազերը", "An ge santre mazere"),
+            ("We", "We comb our hair", "Մենք կը սանտրենք մեր մազերը", "Մենք կը սանտրենք մեր մազերը", "Menq ge santrenq mer mazere"),
+            ("You (pl)", "You comb your hair", "Դուք կը սանտրէք ձեր մազերը", "Դուք կը սանտրէք ձեր մազերը", "Touq ge santreq tzer mazere"),
+            ("They", "They comb their hair", "Անոնք կը սանտրեն իրենց մազերը", "Անոնք կը սանտրեն իրենց մազերը", "Anonq ge santren irents mazere")
+        ]
+    },
+    {
+        "verb": "To Put On",
+        "context": "Shoes",
+        "audio_file": "sent_put_on_shoes_pres.mp3",
+        "sentences": [
+            ("I", "I put on my shoes", "Ես կը հագնիմ կօշիկներս", "Ես կը հաքնիմ կօշիկներս", "Yes ge haknim goshikners"), # Audio Hack: 'q' for western sound
+            ("You", "You put on your shoes", "Դուն կը հագնիս կօշիկներդ", "Դուն կը հաքնիս կօշիկներդ", "Toun ge haknis goshiknerd"),
+            ("He/She", "He puts on his shoes", "Ան կը հագնի կօշիկները", "Ան կը հաքնի կօշիկները", "An ge hakni goshiknere"), 
+            ("We", "We put on our shoes", "Մենք կը հագնինք մեր կօշիկները", "Մենք կը հաքնինք մեր կօշիկները", "Menq ge hakninq mer goshiknere"),
+            ("You (pl)", "You put on your shoes", "Դուք կը հագնիք ձեր կօշիկները", "Դուք կը հաքնիք ձեր կօշիկները", "Touq ge hakniq tzer goshiknere"),
+            ("They", "They put on their shoes", "Անոնք կը հագնին իրենց կօշիկները", "Անոնք կը հաքնին իրենց կօշիկները", "Anonq ge haknin irents goshiknere")
+        ]
+    },
+    {
+        "verb": "To Look",
+        "context": "Mirror",
+        "audio_file": "sent_look_mirror_pres.mp3",
+        "sentences": [
+            ("I", "I look at the mirror", "Ես հայելիին կը նայիմ", "Ես հայելիին կը նայիմ", "Yes hayeliin ge nayim"),
+            ("You", "You look at the mirror", "Դուն հայելիին կը նայիս", "Դուն հայելիին կը նայիս", "Toun hayeliin ge nayis"),
+            ("He/She", "He looks at the mirror", "Ան հայելիին կը նայի", "Ան հայելիին կը նայի", "An hayeliin ge nayi"),
+            ("We", "We look at the mirror", "Մենք հայելիին կը նայինք", "Մենք հայելիին կը նայինք", "Menq hayeliin ge nayinq"),
+            ("You (pl)", "You look at the mirror", "Դուք հայելիին կը նայիք", "Դուք հայելիին կը նայիք", "Touq hayeliin ge nayiq"),
+            ("They", "They look at the mirror", "Անոնք հայելիին կը նային", "Անոնք հայելիին կը նային", "Anonq hayeliin ge nayin")
+        ]
+    },
+    {
+        "verb": "To Drink",
+        "context": "Coffee",
+        "audio_file": "sent_drink_coffee_pres.mp3",
+        "sentences": [
+            ("I", "I drink coffee", "Ես սուրճ կը խմեմ", "Ես սուրճ կը խմեմ", "Yes sourj ge khmem"),
+            ("You", "You drink coffee", "Դուն սուրճ կը խմես", "Դուն սուրճ կը խմես", "Toun sourj ge khmes"),
+            ("He/She", "He drinks coffee", "Ան սուրճ կը խմէ", "Ան սուրճ կը խմէ", "An sourj ge khme"),
+            ("We", "We drink coffee", "Մենք սուրճ կը խմենք", "Մենք սուրճ կը խմենք", "Menq sourj ge khmenq"),
+            ("You (pl)", "You drink coffee", "Դուք սուրճ կը խմէք", "Դուք սուրճ կը խմէք", "Touq sourj ge khmeq"),
+            ("They", "They drink coffee", "Անոնք սուրճ կը խմեն", "Անոնք սուրճ կը խմեն", "Anonq sourj ge khmen")
+        ]
+    },
+    {
+        "verb": "To Eat",
+        "context": "Breakfast",
+        "audio_file": "sent_eat_breakfast_pres.mp3",
+        "sentences": [
+            ("I", "I eat breakfast", "Ես նախաճաշ կ'ուտեմ", "Ես նախաճաշ կ'ուտեմ", "Yes nakhajash g'oudem"),
+            ("You", "You eat breakfast", "Դուն նախաճաշ կ'ուտես", "Դուն նախաճաշ կ'ուտես", "Toun nakhajash g'oudes"),
+            ("He/She", "He eats breakfast", "Ան նախաճաշ կ'ուտէ", "Ան նախաճաշ կ'ուտէ", "An nakhajash g'oude"),
+            ("We", "We eat breakfast", "Մենք նախաճաշ կ'ուտենք", "Մենք նախաճաշ կ'ուտենք", "Menq nakhajash g'oudenq"),
+            ("You (pl)", "You eat breakfast", "Դուք նախաճաշ կ'ուտէք", "Դուք նախաճաշ կ'ուտէք", "Touq nakhajash g'oudeq"),
+            ("They", "They eat breakfast", "Անոնք նախաճաշ կ'ուտեն", "Անոնք նախաճաշ կ'ուտեն", "Anonq nakhajash g'ouden")
+        ]
+    }
 ]
