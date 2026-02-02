@@ -162,7 +162,7 @@ def render_practice_grid(data):
 with st.sidebar:
     st.title("🇦🇲 HyeTutor Dev")
     st.divider()
-    nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools"])
+    nav_category = st.radio("Select Area:", ["📚 Curriculum", "🛠️ Practice Tools", "🧠 Sentence Builder"])
     
     if nav_category == "📚 Curriculum":
         module = st.radio("Lessons:", [
@@ -269,3 +269,69 @@ elif "Lesson" in module:
     st.header(f"📖 {module}")
     render_maximized_grid(raw_data, prefix)
 
+# ==========================================
+# 🧠 SENTENCE BUILDER SECTION
+# ==========================================
+if nav_category == "🧠 Sentence Builder":
+    st.markdown("<h1 style='text-align: center;'>🧠 Sentence Builder</h1>", unsafe_allow_html=True)
+    
+    # We will expand this list later. For now, we have one module.
+    sb_module = st.selectbox("Choose Module:", ["Morning Routine"])
+    
+    if sb_module == "Morning Routine":
+        st.info("💡 Tip: Use these buttons to practice narrating your day!")
+        
+        # --- DATA SETUP ---
+        # (Pronoun, English, Western Armenian, Audio_File, Phonetic)
+        mr_present = [
+            ("I", "I wake up", "Ես կ'արթննամ", "sent_wake_up_pres", "Yes g-artn-nam"),
+            ("I", "I wash my hands", "Ես ձեռքերս կը լուամ", "sent_wash_hands_pres", "Yes dzer-kers ge lvam"),
+            ("I", "I wash my face", "Ես երեսս կը լուամ", "sent_wash_face_pres", "Yes ye-res-s ge lvam"),
+            ("I", "I brush my teeth", "Ես ակռաներս կը մաքրեմ", "sent_brush_teeth_pres", "Yes ag-ra-ner-s ge mak-rem"),
+            ("I", "I drink coffee", "Ես սուրճ կը խմեմ", "sent_drink_coffee_pres", "Yes soorj ge kh-mem"),
+            ("I", "I eat breakfast", "Ես նախաճաշ կ'ընեմ", "sent_eat_breakfast_pres", "Yes na-kha-jash g-nem"),
+            ("I", "I get dressed", "Ես հագուստս կը հագնիմ", "sent_get_dressed_pres", "Yes ha-koost-s ge hak-nim"),
+        ]
+
+        mr_past = [
+            ("I", "I woke up", "Ես արթնցայ", "sent_wake_up_past", "Yes art-n-tsa"),
+            ("I", "I washed my hands", "Ես ձեռքերս լուացի", "sent_wash_hands_past", "Yes dzer-kers lva-tsi"),
+            ("I", "I washed my face", "Ես երեսս լուացի", "sent_wash_face_past", "Yes ye-res-s lva-tsi"),
+            ("I", "I brushed my teeth", "Ես ակռաներս մաքրեցի", "sent_brush_teeth_past", "Yes ag-ra-ner-s mak-re-tsi"),
+            ("I", "I drank coffee", "Ես սուրճ խմեցի", "sent_drink_coffee_past", "Yes soorj kh-me-tsi"),
+            ("I", "I ate breakfast", "Ես նախաճաշ ըրի", "sent_eat_breakfast_past", "Yes na-kha-jash uh-ri"),
+            ("I", "I got dressed", "Ես հագուստս հագայ", "sent_get_dressed_past", "Yes ha-koost-s ha-ka"),
+        ]
+
+        mr_future = [
+            ("I", "I will wake up", "Ես պիտի արթննամ", "sent_wake_up_fut", "Yes bidi art-n-nam"),
+            ("I", "I will wash my hands", "Ես ձեռքերս պիտի լուամ", "sent_wash_hands_fut", "Yes dzer-kers bidi lvam"),
+            ("I", "I will wash my face", "Ես երեսս պիտի լուամ", "sent_wash_face_fut", "Yes ye-res-s bidi lvam"),
+            ("I", "I will brush my teeth", "Ես ակռաներս պիտի մաքրեմ", "sent_brush_teeth_fut", "Yes ag-ra-ner-s bidi mak-rem"),
+            ("I", "I will drink coffee", "Ես սուրճ պիտի խմեմ", "sent_drink_coffee_fut", "Yes soorj bidi kh-mem"),
+            ("I", "I will eat breakfast", "Ես նախաճաշ պիտի ընեմ", "sent_eat_breakfast_fut", "Yes na-kha-jash bidi uh-nem"),
+            ("I", "I will get dressed", "Ես հագուստս պիտի հագնիմ", "sent_get_dressed_fut", "Yes ha-koost-s bidi hak-nim"),
+        ]
+
+        # --- TENSE SELECTOR ---
+        tense = st.radio("Select Tense:", ["Present (Now)", "Past (Yesterday)", "Future (Tomorrow)"], horizontal=True)
+
+        if "Present" in tense:
+            active_data = mr_present
+        elif "Past" in tense:
+            active_data = mr_past
+        else:
+            active_data = mr_future
+
+        # --- DISPLAY TABLE ---
+        st.markdown("---")
+        for pronoun, eng, arm, audio, phon in active_data:
+            c1, c2, c3, c4, c5 = st.columns([1, 3, 3, 1, 3])
+            with c1: st.markdown(f"**{pronoun}**")
+            with c2: st.markdown(eng)
+            with c3: st.markdown(f"<span style='font-size:1.2em; color:#4a4a4a;'>{arm}</span>", unsafe_allow_html=True)
+            with c4:
+                if st.button("🔊", key=audio):
+                    play_audio(audio)
+            with c5: st.markdown(f"*{phon}*")
+            st.markdown("<hr style='margin:0; padding:0; opacity:0.2;'>", unsafe_allow_html=True)
