@@ -47,11 +47,11 @@ class VocabItem:
             clean_text = ''.join(c for c in clean_text if ord(c) < 128)
             clean_text = clean_text.strip()
             
-            # Remove leading digits (for numbered items like "1 One" -> "one")
-            clean_text = re.sub(r'^\d+\s+', '', clean_text)
+            # NOTE: Do NOT remove leading digits - audio files include them
+            # e.g. "1 One" -> "1_one" -> with prefix "numbers_1_one.mp3"
             
             # Remove invalid Windows filename characters and punctuation
-            invalid_chars = '<>:"/\\|?*.,!;'
+            invalid_chars = '<>:"/\\|?*.,!;\''
             for char in invalid_chars:
                 clean_text = clean_text.replace(char, '')
             
