@@ -161,13 +161,37 @@ def render_vocabulary_lesson(lesson):
                 with col:
                     # Card container
                     with st.container():
-                        # Display image if available, otherwise emoji
-                        if item.image:
-                            image_url = f"{BASE_IMAGE_URL}/{item.image}"
-                            st.image(image_url, use_container_width=True)
-                        elif item.emoji:
-                            st.markdown(f"<div style='text-align: center; font-size: 80px;'>{item.emoji}</div>", 
-                                      unsafe_allow_html=True)
+                        # Try to display image
+                        # Build expected image path: lesson_XX_prefix_cleanname.png
+                        # Clean the English text properly
+                        import re
+                        clean_english = item.english
+                        
+                        # Remove ALL non-ASCII characters (emojis, symbols, special chars)
+                        clean_english = ''.join(c for c in clean_english if ord(c) < 128)
+                        clean_english = clean_english.strip().lower()
+                        
+                        # Remove punctuation and special chars
+                        clean_english = re.sub(r'[^\w\s]', '', clean_english)
+                        
+                        # Remove leading digits (for numbered items like "1 One" -> "one")
+                        clean_english = re.sub(r'^\d+\s+', '', clean_english)
+                        
+                        # Remove slashes and combine words (e.g. "cup/mug" → "cupmug")
+                        clean_english = clean_english.replace('/', '').replace(' ', '_')
+                        
+                        # Build image filename
+                        image_filename = f"{lesson.id}_{lesson.prefix}_{clean_english}.png"
+                        image_url = f"{BASE_IMAGE_URL}/{image_filename}"
+                        
+                        # Try to display - use try/except to handle missing images gracefully
+                        try:
+                            st.image(image_url, width="stretch")
+                        except:
+                            # Fallback to emoji if image fails
+                            if item.emoji:
+                                st.markdown(f"<div style='text-align: center; font-size: 80px;'>{item.emoji}</div>", 
+                                          unsafe_allow_html=True)
                         
                         # English
                         # Remove emoji from display if present
