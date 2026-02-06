@@ -11,7 +11,8 @@ Main Streamlit application with:
 import streamlit as st
 from config import (
     APP_TITLE, APP_ICON, LAYOUT, INITIAL_SIDEBAR_STATE,
-    AVAILABLE_VOICES, DEFAULT_VOICE, ENABLE_VERB_TOOL, ENABLE_LIVE_TRANSLATOR
+    AVAILABLE_VOICES, DEFAULT_VOICE, ENABLE_VERB_TOOL, ENABLE_LIVE_TRANSLATOR,
+    BASE_IMAGE_URL
 )
 from lessons import LESSONS
 from audio_manager import AudioManager
@@ -160,13 +161,13 @@ def render_vocabulary_lesson(lesson):
                 with col:
                     # Card container
                     with st.container():
-                        # Display emoji or image if available
-                        if item.emoji:
+                        # Display image if available, otherwise emoji
+                        if item.image:
+                            image_url = f"{BASE_IMAGE_URL}/{item.image}"
+                            st.image(image_url, use_container_width=True)
+                        elif item.emoji:
                             st.markdown(f"<div style='text-align: center; font-size: 80px;'>{item.emoji}</div>", 
                                       unsafe_allow_html=True)
-                        elif item.image:
-                            # If image exists, would display here
-                            pass
                         
                         # English
                         # Remove emoji from display if present
