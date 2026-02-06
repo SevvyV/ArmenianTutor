@@ -39,16 +39,24 @@ class VocabItem:
         # Auto-generate audio key from English text if not provided
         if not self.audio_key:
             # Remove emoji and clean text for filename
+            import re
             clean_text = self.english
             
-            # Strip leading emoji (emojis are typically unicode > 0x1F000)
-            while clean_text and ord(clean_text[0]) > 0x1F000:
-                clean_text = clean_text[1:].strip()
+            # Remove ALL non-ASCII characters (emojis, symbols, combining marks)
+            # This catches all emojis including number emojis, flags, symbols, etc.
+            clean_text = ''.join(c for c in clean_text if ord(c) < 128)
+            clean_text = clean_text.strip()
             
-            # Remove invalid Windows filename characters: < > : " / \ | ? *
-            invalid_chars = '<>:"/\\|?*'
+            # Remove leading digits (for numbered items like "1 One" -> "one")
+            clean_text = re.sub(r'^\d+\s+', '', clean_text)
+            
+            # Remove invalid Windows filename characters and punctuation
+            invalid_chars = '<>:"/\\|?*.,!;'
             for char in invalid_chars:
                 clean_text = clean_text.replace(char, '')
+            
+            # Remove slashes (for items like "cup/mug" -> "cupmug")
+            clean_text = clean_text.replace('/', '')
             
             # Convert to lowercase, replace spaces with underscores
             self.audio_key = clean_text.lower().replace(" ", "_")
