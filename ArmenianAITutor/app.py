@@ -186,7 +186,7 @@ def render_vocabulary_lesson(lesson):
                         
                         # Try to display - use try/except to handle missing images gracefully
                         try:
-                            st.image(image_url, width="stretch")
+                            st.image(image_url, use_container_width=True)
                         except:
                             # Fallback to emoji if image fails
                             if item.emoji:
