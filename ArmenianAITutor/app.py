@@ -120,38 +120,44 @@ with st.sidebar:
             if title == selected_prayer_display:
                 st.session_state.current_prayer = prayer_id
                 break
-        
-        if st.button("\U0001f64f Open Prayer", use_container_width=True):
-            st.session_state.current_view = "prayer"
     
     st.markdown("---")
     
     # Tools Section - Use radio for navigation
     st.markdown("### \U0001f527 Tools & Practice")
     
-    tool_options = ["📚 Lessons"]
+    tool_options = ["\U0001f4da Lessons", "\U0001f64f Prayers"]
     if ENABLE_VERB_TOOL:
-        tool_options.append("🔤 Verb Conjugation")
+        tool_options.append("\U0001f524 Verb Conjugation")
     if ENABLE_LIVE_TRANSLATOR:
-        tool_options.append("🗣️ Live Translator")
+        tool_options.append("\U0001f5e3\ufe0f Live Translator")
+    
+    # Set default index based on current view
+    default_index = 0
+    if st.session_state.current_view == "prayer":
+        default_index = 1
+    elif st.session_state.current_view == "verb_tool":
+        default_index = 2
+    elif st.session_state.current_view == "translator":
+        default_index = 3
     
     selected_tool = st.radio(
         "Select activity:",
         options=tool_options,
+        index=default_index,
         key="tool_selector",
         label_visibility="collapsed"
     )
     
     # Update view based on selection
-    if selected_tool == "📚 Lessons":
-        if st.session_state.current_view != "lesson":
-            st.session_state.current_view = "lesson"
-    elif selected_tool == "🔤 Verb Conjugation":
-        if st.session_state.current_view != "verb_tool":
-            st.session_state.current_view = "verb_tool"
-    elif selected_tool == "🗣️ Live Translator":
-        if st.session_state.current_view != "translator":
-            st.session_state.current_view = "translator"
+    if selected_tool == "\U0001f4da Lessons":
+        st.session_state.current_view = "lesson"
+    elif selected_tool == "\U0001f64f Prayers":
+        st.session_state.current_view = "prayer"
+    elif selected_tool == "\U0001f524 Verb Conjugation":
+        st.session_state.current_view = "verb_tool"
+    elif selected_tool == "\U0001f5e3\ufe0f Live Translator":
+        st.session_state.current_view = "translator"
     
     st.markdown("---")
     
