@@ -15,6 +15,7 @@ from config import (
     BASE_IMAGE_URL
 )
 from lessons import LESSONS
+from prayers import PRAYERS, list_prayers
 from audio_manager import AudioManager
 from renderers import render_verb_conjugation_tool, render_live_translator
 
@@ -43,6 +44,9 @@ if "current_view" not in st.session_state:
 
 if "current_lesson" not in st.session_state:
     st.session_state.current_lesson = "lesson_01"
+
+if "current_prayer" not in st.session_state:
+    st.session_state.current_prayer = "lords_prayer"
 
 
 # ============================================================================
@@ -99,8 +103,31 @@ with st.sidebar:
     
     st.markdown("---")
     
+    # Prayers Section
+    st.markdown("### \U0001f64f Prayers")
+    
+    prayer_options = list_prayers()
+    if prayer_options:
+        selected_prayer_display = st.selectbox(
+            "Select a prayer:",
+            options=[title for _, title in prayer_options],
+            index=0,
+            key="prayer_dropdown"
+        )
+        
+        # Find the prayer_id from display text
+        for prayer_id, title in prayer_options:
+            if title == selected_prayer_display:
+                st.session_state.current_prayer = prayer_id
+                break
+        
+        if st.button("\U0001f64f Open Prayer", use_container_width=True):
+            st.session_state.current_view = "prayer"
+    
+    st.markdown("---")
+    
     # Tools Section - Use radio for navigation
-    st.markdown("### 🔧 Tools & Practice")
+    st.markdown("### \U0001f527 Tools & Practice")
     
     tool_options = ["📚 Lessons"]
     if ENABLE_VERB_TOOL:
@@ -275,6 +302,101 @@ def render_lesson():
 
 
 # ============================================================================
+# PRAYER RENDERER
+# ============================================================================
+
+def render_prayer():
+    """Render the currently selected prayer with line-by-line breakdown."""
+    prayer_id = st.session_state.current_prayer
+    
+    if prayer_id not in PRAYERS:
+        st.error(f"Prayer '{prayer_id}' not found!")
+        return
+    
+    prayer = PRAYERS[prayer_id]
+    voice = st.session_state.voice
+    
+    # Header
+    st.header(f"\U0001f64f {prayer.title}")
+    st.markdown(f"### {prayer.armenian_title}")
+    st.markdown(f"*{prayer.description}*")
+    st.markdown("---")
+    
+    # Full prayer text
+    with st.expander("\U0001f4dc View Full Prayer Text", expanded=False):
+        for line in prayer.lines:
+            st.markdown(f"**{line.armenian}**")
+        st.markdown("---")
+        # Full prayer audio
+        if prayer.full_audio_key:
+            st.markdown("**\U0001f50a Listen to full prayer:**")
+            full_audio_url = AudioManager.get_url(
+                prayer.full_audio_key, "prayers", prayer.id, voice
+            )
+            st.audio(full_audio_url, format="audio/mp3")
+    
+    st.markdown("---")
+    
+    # Line-by-line breakdown
+    st.markdown("### \U0001f4d6 Line-by-Line Study")
+    st.markdown("*Click each line to study the pronunciation and meaning.*")
+    st.markdown("")
+    
+    for line in prayer.lines:
+        with st.expander(
+            f"**Line {line.line_number}:** {line.armenian}",
+            expanded=False
+        ):
+            col1, col2 = st.columns([3, 1])
+            
+            with col1:
+                # Armenian text (large)
+                st.markdown(f"## {line.armenian}")
+                
+                # Phonetic pronunciation
+                st.markdown(f"**Pronunciation:** *{line.phonetic}*")
+                
+                # English translation
+                st.markdown(f"**English:** {line.english}")
+            
+            with col2:
+                # Audio for this line
+                audio_url = AudioManager.get_url(
+                    line.audio_key, "prayers", prayer.id, voice
+                )
+                st.markdown("**\U0001f50a Listen:**")
+                st.audio(audio_url, format="audio/mp3")
+    
+    st.markdown("---")
+    
+    # Build-up practice section
+    st.markdown("### \U0001f3af Build-Up Practice")
+    st.markdown("*Practice reciting the prayer progressively, adding one line at a time.*")
+    st.markdown("")
+    
+    num_lines = st.slider(
+        "How many lines to practice:",
+        min_value=1,
+        max_value=len(prayer.lines),
+        value=3,
+        key="prayer_buildup_slider"
+    )
+    
+    st.markdown("---")
+    
+    for line in prayer.lines[:num_lines]:
+        col1, col2 = st.columns([4, 1])
+        with col1:
+            st.markdown(f"**{line.armenian}**")
+            st.caption(f"{line.phonetic}  \u2014  {line.english}")
+        with col2:
+            audio_url = AudioManager.get_url(
+                line.audio_key, "prayers", prayer.id, voice
+            )
+            st.audio(audio_url, format="audio/mp3")
+
+
+# ============================================================================
 # MAIN ROUTING
 # ============================================================================
 
@@ -284,6 +406,9 @@ def main():
     # Route to appropriate view
     if st.session_state.current_view == "lesson":
         render_lesson()
+    
+    elif st.session_state.current_view == "prayer":
+        render_prayer()
     
     elif st.session_state.current_view == "verb_tool":
         render_verb_conjugation_tool(st.session_state.voice)
