@@ -140,16 +140,54 @@ LORDS_PRAYER = Prayer(
 )
 
 
+
+
+# ============================================================================
+# COMMON MEAL PRAYER (Jashagestsook)
+# ============================================================================
+
+JASHAGESTSOOK = Prayer(
+    id="jashagestsook",
+    title="Meal Prayer (Jashagestsook)",
+    armenian_title="Ճաշակեսցուք",
+    description="The most common Armenian prayer said before meals. Short, rhythmic, and easy to memorize. "
+                "Recited at family gatherings and church events.",
+    full_audio_key="jashagestsook_full",
+    lines=[
+        PrayerLine(
+            line_number=1,
+            armenian="Ճաշակեսցուք խաղաղութեամբ զկերակուրս, որ պատրաստեալ է մեզ ի Տեառնէ:",
+            phonetic="Jashagestsook khaghaghootyamp zgeragoores, vor badrasdyal eh mez ee Dyarneh",
+            english="Let us eat in peace this food, which the Lord has provided for us.",
+            audio_key="jashagestsook_line_01"
+        ),
+        PrayerLine(
+            line_number=2,
+            armenian="Օրհնեալ է Տէր ի պարգեւս իւր:",
+            phonetic="Orhnyal eh Der ee barkevs yoor",
+            english="Blessed is the Lord in His gifts.",
+            audio_key="jashagestsook_line_02"
+        ),
+        PrayerLine(
+            line_number=3,
+            armenian="Ամէն:",
+            phonetic="Amen",
+            english="Amen.",
+            audio_key="jashagestsook_line_03"
+        ),
+    ]
+)
+
 # ============================================================================
 # PRAYER REGISTRY
 # ============================================================================
 
 PRAYERS = {
     "lords_prayer": LORDS_PRAYER,
+    "jashagestsook": JASHAGESTSOOK,
     # Future prayers:
     # "hail_mary": HAIL_MARY,
     # "nicene_creed": NICENE_CREED,
-    # "meal_blessing": MEAL_BLESSING,
 }
 
 
