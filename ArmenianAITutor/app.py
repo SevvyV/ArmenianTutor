@@ -412,7 +412,7 @@ def render_prayer():
 # ============================================================================
 
 def render_alphabet():
-    """Render the Armenian alphabet with Western/Eastern toggle."""
+    """Render the Armenian alphabet with Western/Eastern toggle and audio."""
     import re
     
     st.header("\U0001f524 Armenian Alphabet")
@@ -430,6 +430,10 @@ def render_alphabet():
     is_western = dialect == "Western Armenian"
     alphabet = WESTERN_ALPHABET if is_western else EASTERN_ALPHABET
     suffix = "w" if is_western else "e"
+    voice = st.session_state.voice
+    
+    # Base audio URL
+    base_audio_url = f"https://raw.githubusercontent.com/SevvyV/ArmenianTutor/main/ArmenianAITutor/audio_library/alphabet/{voice}"
     
     st.markdown("---")
     
@@ -452,9 +456,13 @@ def render_alphabet():
                         try:
                             st.image(image_url, use_container_width=True)
                         except:
-                            # Fallback: show letter info as text
                             st.markdown(f"### {letter.capital}  {letter.lowercase}")
                             st.markdown(f"**{letter.armenian_name}**")
+                        
+                        # Audio
+                        audio_filename = f"alphabet_{letter.position:02d}{suffix}.mp3"
+                        audio_url = f"{base_audio_url}/{audio_filename}"
+                        st.audio(audio_url, format="audio/mp3")
                         
                         st.markdown("---")
 
