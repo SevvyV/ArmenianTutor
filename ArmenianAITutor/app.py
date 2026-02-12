@@ -16,6 +16,7 @@ from config import (
 )
 from lessons import LESSONS
 from prayers import PRAYERS, list_prayers
+from alphabet import WESTERN_ALPHABET, EASTERN_ALPHABET
 from audio_manager import AudioManager
 from renderers import render_verb_conjugation_tool, render_live_translator
 
@@ -126,7 +127,7 @@ with st.sidebar:
     # Tools Section - Use radio for navigation
     st.markdown("### \U0001f527 Tools & Practice")
     
-    tool_options = ["\U0001f4da Lessons", "\U0001f64f Prayers"]
+    tool_options = ["\U0001f4da Lessons", "\U0001f64f Prayers", "\U0001f524 Alphabet"]
     if ENABLE_VERB_TOOL:
         tool_options.append("\U0001f524 Verb Conjugation")
     if ENABLE_LIVE_TRANSLATOR:
@@ -136,10 +137,12 @@ with st.sidebar:
     default_index = 0
     if st.session_state.current_view == "prayer":
         default_index = 1
-    elif st.session_state.current_view == "verb_tool":
+    elif st.session_state.current_view == "alphabet":
         default_index = 2
-    elif st.session_state.current_view == "translator":
+    elif st.session_state.current_view == "verb_tool":
         default_index = 3
+    elif st.session_state.current_view == "translator":
+        default_index = 4
     
     selected_tool = st.radio(
         "Select activity:",
@@ -154,6 +157,8 @@ with st.sidebar:
         st.session_state.current_view = "lesson"
     elif selected_tool == "\U0001f64f Prayers":
         st.session_state.current_view = "prayer"
+    elif selected_tool == "\U0001f524 Alphabet":
+        st.session_state.current_view = "alphabet"
     elif selected_tool == "\U0001f524 Verb Conjugation":
         st.session_state.current_view = "verb_tool"
     elif selected_tool == "\U0001f5e3\ufe0f Live Translator":
@@ -403,6 +408,58 @@ def render_prayer():
 
 
 # ============================================================================
+# ALPHABET RENDERER
+# ============================================================================
+
+def render_alphabet():
+    """Render the Armenian alphabet with Western/Eastern toggle."""
+    import re
+    
+    st.header("\U0001f524 Armenian Alphabet")
+    st.markdown("**38 Letters of the Armenian Alphabet**")
+    st.markdown("---")
+    
+    # Toggle between Western and Eastern
+    dialect = st.radio(
+        "Select pronunciation style:",
+        options=["Western Armenian", "Eastern Armenian"],
+        horizontal=True,
+        key="alphabet_dialect"
+    )
+    
+    is_western = dialect == "Western Armenian"
+    alphabet = WESTERN_ALPHABET if is_western else EASTERN_ALPHABET
+    suffix = "w" if is_western else "e"
+    
+    st.markdown("---")
+    
+    # Display in grid (4 columns)
+    cols_per_row = 4
+    
+    for i in range(0, len(alphabet), cols_per_row):
+        cols = st.columns(cols_per_row)
+        
+        for j, col in enumerate(cols):
+            idx = i + j
+            if idx < len(alphabet):
+                letter = alphabet[idx]
+                
+                with col:
+                    with st.container():
+                        # Image
+                        image_filename = f"lesson_01_alphabet_{letter.position:02d}{suffix}.png"
+                        image_url = f"{BASE_IMAGE_URL}/{image_filename}"
+                        try:
+                            st.image(image_url, use_container_width=True)
+                        except:
+                            # Fallback: show letter info as text
+                            st.markdown(f"### {letter.capital}  {letter.lowercase}")
+                            st.markdown(f"**{letter.armenian_name}**")
+                        
+                        st.markdown("---")
+
+
+# ============================================================================
 # MAIN ROUTING
 # ============================================================================
 
@@ -415,6 +472,9 @@ def main():
     
     elif st.session_state.current_view == "prayer":
         render_prayer()
+    
+    elif st.session_state.current_view == "alphabet":
+        render_alphabet()
     
     elif st.session_state.current_view == "verb_tool":
         render_verb_conjugation_tool(st.session_state.voice)
