@@ -412,11 +412,11 @@ def render_prayer():
 # ============================================================================
 
 def render_alphabet():
-    """Render the Armenian alphabet with Western/Eastern toggle."""
+    """Render the Armenian alphabet with Western/Eastern toggle and click-to-play audio."""
     import re
     
     st.header("\U0001f524 Armenian Alphabet")
-    st.markdown("**38 Letters of the Armenian Alphabet**")
+    st.markdown("**38 Letters of the Armenian Alphabet** — *Tap any card to hear the pronunciation*")
     st.markdown("---")
     
     # Toggle between Western and Eastern
@@ -430,6 +430,10 @@ def render_alphabet():
     is_western = dialect == "Western Armenian"
     alphabet = WESTERN_ALPHABET if is_western else EASTERN_ALPHABET
     suffix = "w" if is_western else "e"
+    voice = st.session_state.voice
+    
+    # Base URLs
+    base_audio_url = f"https://raw.githubusercontent.com/SevvyV/ArmenianTutor/main/ArmenianAITutor/audio_library/alphabet/{voice}"
     
     st.markdown("---")
     
@@ -445,18 +449,45 @@ def render_alphabet():
                 letter = alphabet[idx]
                 
                 with col:
-                    with st.container():
-                        # Image
-                        image_filename = f"lesson_01_alphabet_{letter.position:02d}{suffix}.png"
-                        image_url = f"{BASE_IMAGE_URL}/{image_filename}"
-                        try:
-                            st.image(image_url, use_container_width=True)
-                        except:
-                            # Fallback: show letter info as text
-                            st.markdown(f"### {letter.capital}  {letter.lowercase}")
-                            st.markdown(f"**{letter.armenian_name}**")
-                        
-                        st.markdown("---")
+                    # Image URL
+                    image_filename = f"lesson_01_alphabet_{letter.position:02d}{suffix}.png"
+                    image_url = f"{BASE_IMAGE_URL}/{image_filename}"
+                    
+                    # Audio URL
+                    audio_filename = f"alphabet_{letter.position:02d}{suffix}.mp3"
+                    audio_url = f"{base_audio_url}/{audio_filename}"
+                    
+                    # Unique ID for this card
+                    card_id = f"card_{letter.position}_{suffix}"
+                    
+                    # Custom HTML: clickable card that plays audio
+                    card_html = f"""
+                    <div id="{card_id}" onclick="
+                        var audio = document.getElementById('audio_{card_id}');
+                        audio.play();
+                        this.style.boxShadow = '0 0 15px rgba(59, 130, 246, 0.5)';
+                        setTimeout(function() {{
+                            document.getElementById('{card_id}').style.boxShadow = 'none';
+                        }}, 1000);
+                    " style="
+                        cursor: pointer;
+                        border: 1px solid #e0e0e0;
+                        border-radius: 10px;
+                        padding: 10px;
+                        text-align: center;
+                        transition: box-shadow 0.3s;
+                        margin-bottom: 10px;
+                        background: white;
+                    ">
+                        <img src="{image_url}" style="width: 100%; border-radius: 8px;" />
+                        <div style="margin-top: 5px; font-size: 12px; color: #666;">
+                            \U0001f50a Tap to play
+                        </div>
+                        <audio id="audio_{card_id}" src="{audio_url}" preload="none"></audio>
+                    </div>
+                    """
+                    
+                    st.markdown(card_html, unsafe_allow_html=True)
 
 
 # ============================================================================
