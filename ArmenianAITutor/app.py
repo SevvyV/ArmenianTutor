@@ -2,7 +2,7 @@
 HyeTutor v20 - Western Armenian Language Learning App
 
 Main Streamlit application with:
-- 28-lesson progressive curriculum (15 implemented)
+- 43-lesson progressive curriculum (A1-B1)
 - Dual voice support (male/female)
 - Verb conjugation tool (50 verbs)
 - Live English → Armenian translator
