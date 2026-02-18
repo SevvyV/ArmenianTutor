@@ -40,19 +40,76 @@ def get_speech_key_from_vault() -> str:
         credential = DefaultAzureCredential()
         client = SecretClient(vault_url=KEY_VAULT_URL, credential=credential)
         secret = client.get_secret(SPEECH_KEY_SECRET_NAME)
-        print(f"✅ Retrieved speech key from Key Vault")
+        print("Retrieved speech key from Key Vault")
         return secret.value
     except Exception as e:
-        print(f"❌ Failed to retrieve key from Key Vault: {e}")
-        print("   Make sure you've run 'az login' and have access to the vault.")
+        print(f"Failed to retrieve key from Key Vault: {e}")
+        print("   Make sure you have run 'az login' and have access to the vault.")
         sys.exit(1)
 
 
 # ============================================================================
 # WESTERN ARMENIAN PRONUNCIATION HACKS
 # ============================================================================
+# GUIDE FOR IDENTIFYING WORDS THAT NEED HACKS:
+# Azure TTS uses Eastern Armenian pronunciation. Western Armenian spelling
+# patterns get mispronounced. Scan new lessons against these patterns.
+#
+# PATTERN A: Word-final այ sounds "ay" but should be "ah"
+#   Fix: drop the final յ so Azure says "ah" not "ay"
+#   Examples: Վրայ->"Վրա" (Vra), Ակռայ->Ակռա (Agra)
+#   EXCEPTIONS: Հայ (Hay=Armenian) - "ay" IS correct, do NOT fix.
+#   Also don't fix այի endings (the յ is pronounced before ի).
+#   HOW TO SPOT: phonetic ends in "a" but Armenian text ends in այ
+#
+# PATTERN B: աւ sounds "aw" but should be "av"
+#   Fix: replace աւ with ավ so Azure says "av"
+#   Examples: Հաւ (Hav), Լաւ (Lav), Առաւօտ (Aravod)
+#   HOW TO SPOT: phonetic shows "av" but Azure says "aw"
+#
+# PATTERN C: Word-final է in verb conjugations
+#   Fix: replace է with ե for better pronunciation
+#
+# PATTERN D: Past tense աւ endings (same as B in verb context)
+#
+# WHEN ADDING NEW LESSONS:
+#   1. Scan for words ending in այ (Pattern A)
+#   2. Scan for words containing աւ (Pattern B)
+#   3. Test-generate 2-3 flagged words and listen before bulk run
+#   4. Add new problem words to WESTERN_TO_EASTERN_FIXES below
+# ============================================================================
 
 WESTERN_TO_EASTERN_FIXES = {
+    # ========================================================================
+    # PATTERN A FIXES: Word-final այ -> ա (sounds "ah" not "ay")
+    # Exception: Հայ (Hay=Armenian) is correct as-is
+    # ========================================================================
+    "Վրայ": "Վրա",              # on/on top of (Vra, not Vray)
+    "վրայ": "վրա",              # on/on top of (lowercase)
+    "Ակռայ": "Ակռա",          # tooth (Agra, not Agray)
+    "չկայ": "չկա",              # doesn't exist (chga)
+    "Տղայ": "Տղա",              # boy/son (Degha, not Deghay)
+
+    # ========================================================================
+    # PATTERN B FIXES: աւ -> ավ (sounds "av" not "aw") in vocabulary
+    # ========================================================================
+    "Հաւ": "Հավ",                    # chicken (Hav)
+    "Հաւկիթ": "Հավկիթ",          # egg (Havgit)
+    "Առաւօտ": "Առավօտ",          # morning (Aravod)
+    "առաւօտ": "առավօտ",          # morning (lowercase)
+    "Գաւաթ": "Գավաթ",          # cup (Kavat)
+    "Տակաւին": "Տակավին",      # still/yet (Dagavin)
+    "շաբաթաւերջ": "շաբաթավերջ",  # weekend
+    "հրաւիրեմ": "հրավիրեմ",      # I invite
+    "Շնորհաւոր": "Շնորհավոր",  # congratulations
+    "Ձաւ": "Ձավ",                    # pain (Tsav)
+    "Գլխացաւ": "Գլխացավ",      # headache
+    "Լաւաշ": "Լավաշ",          # lavash
+    "Լաւ": "Լավ",                    # good (Lav)
+    "զաւակ": "զավակ",          # child (zavag)
+    "մարեցաւ": "մարեցավ",      # died/went out (phone dead)
+    "չեկաւ": "չեկավ",          # didn't come
+    "չեղաւ": "չեղավ",          # didn't happen
     # ========================================================================
     # PATTERN 1: "աւ" → "ավ" in past tense verbs (very common!)
     # ========================================================================
