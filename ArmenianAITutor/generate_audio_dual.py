@@ -84,8 +84,8 @@ WESTERN_TO_EASTERN_FIXES = {
     # PATTERN A FIXES: Word-final այ -> ա (sounds "ah" not "ay")
     # Exception: Հայ (Hay=Armenian) is correct as-is
     # ========================================================================
-    "Վրայ": "Վրա",              # on/on top of (Vra, not Vray)
-    "վրայ": "վրա",              # on/on top of (lowercase)
+    "Վրայ": "Վռա",              # on/on top of (Vra, not Vray)
+    "վրայ": "վռա",              # on/on top of (lowercase)
     "Ակռայ": "Ակռա",          # tooth (Agra, not Agray)
     "չկայ": "չկա",              # doesn't exist (chga)
     "Տղայ": "Տղա",              # boy/son (Degha, not Deghay)
