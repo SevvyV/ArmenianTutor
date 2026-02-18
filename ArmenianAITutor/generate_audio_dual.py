@@ -513,10 +513,10 @@ def generate_verb_audio(tts: DualVoiceTTS, voices: list, output_dir: str = "audi
                 # Filename: verb_to_{verb_key}_{tense}.mp3
                 output_path = f"{voice_dir}/verb_to_{verb.verb_key}_{tense}.mp3"
                 
-                # Skip if exists (set to False to force regeneration)
+                # Skip if exists
                 if os.path.exists(output_path):
-                    # DELETE OLD FILE to regenerate
-                    os.remove(output_path)
+                    stats["skipped"] += 1
+                    continue
                 
                 # Get conjugations for this tense
                 conjugations = verb.conjugations[tense]
