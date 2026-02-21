@@ -8,6 +8,7 @@ Main Streamlit application with:
 - Live English → Armenian translator
 """
 
+import re
 import streamlit as st
 from config import (
     APP_TITLE, APP_ICON, LAYOUT, INITIAL_SIDEBAR_STATE,
@@ -19,6 +20,17 @@ from prayers import PRAYERS, list_prayers
 from alphabet import WESTERN_ALPHABET, EASTERN_ALPHABET
 from audio_manager import AudioManager
 from renderers import render_verb_conjugation_tool, render_live_translator
+
+
+def get_image_url(english_text, lesson_id, prefix):
+    """Build the GitHub-hosted image URL for a vocabulary or sentence item."""
+    clean = ''.join(c for c in english_text if ord(c) < 128)
+    clean = clean.strip().lower()
+    clean = re.sub(r'[^\w\s]', '', clean)
+    clean = re.sub(r'^\d+\s+', '', clean)
+    clean = clean.replace('/', '').replace(' ', '_')
+    filename = f"{lesson_id}_{prefix}_{clean}.png"
+    return f"{BASE_IMAGE_URL}/{filename}"
 
 
 # ============================================================================
@@ -200,35 +212,13 @@ def render_vocabulary_lesson(lesson):
                     # Card container
                     with st.container():
                         # Try to display image
-                        # Build expected image path: lesson_XX_prefix_cleanname.png
-                        # Clean the English text properly
-                        import re
-                        clean_english = item.english
-                        
-                        # Remove ALL non-ASCII characters (emojis, symbols, special chars)
-                        clean_english = ''.join(c for c in clean_english if ord(c) < 128)
-                        clean_english = clean_english.strip().lower()
-                        
-                        # Remove punctuation and special chars
-                        clean_english = re.sub(r'[^\w\s]', '', clean_english)
-                        
-                        # Remove leading digits (for numbered items like "1 One" -> "one")
-                        clean_english = re.sub(r'^\d+\s+', '', clean_english)
-                        
-                        # Remove slashes and combine words (e.g. "cup/mug" → "cupmug")
-                        clean_english = clean_english.replace('/', '').replace(' ', '_')
-                        
-                        # Build image filename
-                        image_filename = f"{lesson.id}_{lesson.prefix}_{clean_english}.png"
-                        image_url = f"{BASE_IMAGE_URL}/{image_filename}"
-                        
-                        # Try to display - use try/except to handle missing images gracefully
+                        image_url = get_image_url(item.english, lesson.id, lesson.prefix)
                         try:
                             st.image(image_url, use_container_width=True)
                         except:
                             # Fallback to emoji if image fails
                             if item.emoji:
-                                st.markdown(f"<div style='text-align: center; font-size: 80px;'>{item.emoji}</div>", 
+                                st.markdown(f"<div style='text-align: center; font-size: 80px;'>{item.emoji}</div>",
                                           unsafe_allow_html=True)
                         
                         # English
@@ -265,22 +255,29 @@ def render_sentence_lesson(lesson):
     # Display sentences in a list
     for item in lesson.items:
         with st.container():
+            # Try to display image
+            image_url = get_image_url(item.english, lesson.id, lesson.prefix)
+            try:
+                st.image(image_url, width=300)
+            except:
+                pass
+
             col1, col2 = st.columns([3, 1])
-            
+
             with col1:
                 # Context label if present
                 if hasattr(item, 'context') and item.context:
                     st.caption(f"📌 {item.context}")
-                
+
                 # English
                 st.markdown(f"**English:** {item.english}")
-                
+
                 # Armenian
                 st.markdown(f"**Armenian:** {item.armenian_display}")
-                
+
                 # Phonetic
                 st.caption(f"*Pronunciation: {item.phonetic}*")
-            
+
             with col2:
                 # Audio
                 audio_url = AudioManager.get_sentence_url(
@@ -289,7 +286,7 @@ def render_sentence_lesson(lesson):
                     voice
                 )
                 st.audio(audio_url, format="audio/mp3")
-            
+
             st.markdown("---")
 
 
@@ -413,8 +410,7 @@ def render_prayer():
 
 def render_alphabet():
     """Render the Armenian alphabet with Western/Eastern toggle and audio."""
-    import re
-    
+
     st.header("\U0001f524 Armenian Alphabet")
     st.markdown("**38 Letters of the Armenian Alphabet**")
     st.markdown("---")
