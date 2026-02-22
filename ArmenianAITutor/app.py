@@ -236,12 +236,12 @@ def render_prayer():
     st.markdown("---")
 
     # Full prayer text
-    with st.expander("\U0001f4dc View Full Prayer Text", expanded=False):
+    with st.expander("View Full Prayer Text", expanded=False):
         for line in prayer.lines:
             st.markdown(f"**{line.armenian}**")
         st.markdown("---")
         if prayer.full_audio_key:
-            st.markdown("**\U0001f50a Listen to full prayer:**")
+            st.markdown("**Listen to full prayer:**")
             full_audio_url = AudioManager.get_url(
                 prayer.full_audio_key, "prayers", prayer.id, voice
             )
@@ -250,13 +250,13 @@ def render_prayer():
     st.markdown("---")
 
     # Line-by-line breakdown
-    st.markdown("### \U0001f4d6 Line-by-Line Study")
+    st.subheader("Line-by-Line Study")
     st.markdown("*Click each line to study the pronunciation and meaning.*")
     st.markdown("")
 
     for line in prayer.lines:
         with st.expander(
-            f"**Line {line.line_number}:** {line.armenian}",
+            f"Line {line.line_number}: {line.armenian}",
             expanded=False
         ):
             col1, col2 = st.columns([3, 1])
@@ -270,13 +270,13 @@ def render_prayer():
                 audio_url = AudioManager.get_url(
                     line.audio_key, "prayers", prayer.id, voice
                 )
-                st.markdown("**\U0001f50a Listen:**")
+                st.markdown("**Listen:**")
                 st.audio(audio_url, format="audio/mp3")
 
     st.markdown("---")
 
     # Build-up practice
-    st.markdown("### \U0001f3af Build-Up Practice")
+    st.subheader("Build-Up Practice")
     st.markdown("*Practice reciting the prayer progressively, adding one line at a time.*")
     st.markdown("")
 
