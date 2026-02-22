@@ -35,7 +35,7 @@ LESSONS = {
         prefix="",
         items=[
             VocabItem("👋 Hello", "Բարեւ", "Parev"),
-            VocabItem("❓ How are you?", "Ինչպէ՞ս ես", "Inchbes es?"),
+            VocabItem("❓ How are you?", "Ինչպէ՞ս ես", "Eenchbes es?"),
             VocabItem("😊 I am well", "Լաւ եմ", "Lav em"),
             VocabItem("🙏 Thank you", "Շնորհակալ եմ", "Shnorhagal em"),
             VocabItem("👋 Goodbye", "Ցտեսութիւն", "Tsedesutyun"),
@@ -149,8 +149,8 @@ LESSONS = {
             Sentence("I want", "Ես կ'ուզեմ", "Yes g'ouzem", "essential_want_i_present"),
             Sentence("You want", "Դուն կ'ուզես", "Toun g'ouzes", "essential_want_you_present"),
             # To Do
-            Sentence("I do", "Ես կ'ընեմ", "Yes g'enem", "essential_do_i_present"),
-            Sentence("You do", "Դուն կ'ընես", "Toun g'enes", "essential_do_you_present"),
+            Sentence("I do", "Ես կ'ընեմ", "Yes g'uhnem", "essential_do_i_present"),
+            Sentence("You do", "Դուն կ'ընես", "Toun g'uhnes", "essential_do_you_present"),
         ]
     ),
     
@@ -630,12 +630,12 @@ LESSONS = {
         lesson_type="vocabulary",
         prefix="questions",
         items=[
-            VocabItem("❓ What?", "Ինչ՞", "Inch?"),
+            VocabItem("❓ What?", "Ինչ՞", "Eench?"),
             VocabItem("❓ Who?", "Ով՞", "Ov?"),
             VocabItem("❓ Where?", "Ուռ՞", "Oor?"),
             VocabItem("❓ When?", "Երբ՞", "Yerp?"),
-            VocabItem("❓ Why?", "Ինչու՞", "Inchoo?"),
-            VocabItem("❓ How?", "Ինչպէ՞ս", "Inchbes?"),
+            VocabItem("❓ Why?", "Ինչու՞", "Eenchoo?"),
+            VocabItem("❓ How?", "Ինչպէ՞ս", "Eenchbes?"),
             VocabItem("❓ How much? / How many?", "Քանի՞", "Kani?"),
             VocabItem("❓ Which?", "Որ՞", "Vor?"),
             VocabItem("❓ Whose?", "Որուն՞", "Voroun?"),
@@ -678,7 +678,7 @@ LESSONS = {
             Sentence("I have never been", "Երբեք գացած չեմ", "Yerpek gatsadz chem", "negation_never_been"),
             Sentence("Not yet", "Տակաւին ոչ", "Dagavin voch", "negation_not_yet"),
             Sentence("Nobody came", "Մէկը չեկաւ", "Mege chegav", "negation_nobody"),
-            Sentence("Nothing happened", "Ոչինչ չեղաւ", "Vochinch cheghav", "negation_nothing"),
+            Sentence("Nothing happened", "Ոչինչ չեղաւ", "Vocheench cheghav", "negation_nothing"),
             Sentence("Don't worry", "Մի’ մտահոգիր", "Mi mdahokvir", "negation_dont_worry"),
         ]
     ),
@@ -934,10 +934,10 @@ LESSONS = {
         items=[
             Sentence("Let's go!", "Երթանք՝", "Yertank!", "plans_lets_go"),
             Sentence("Do you want to come?", "Կ’ուզես գալ՞", "G'ouzes kal?", "plans_want_to_come"),
-            Sentence("What are you doing tomorrow?", "Վաղը ինչ պիտի ընես՞", "Vaghe inch bidi enes?", "plans_tomorrow"),
+            Sentence("What are you doing tomorrow?", "Վաղը ինչ պիտի ընես՞", "Vaghe eench bidi uhnes?", "plans_tomorrow"),
             Sentence("Are you free this weekend?", "Աս շաբաթաւերջ ազատ ես՞", "As shapataverjy azad es?", "plans_weekend"),
             Sentence("I invite you", "Ռեզ կը հրաւիրեմ", "Kez ge hravirem", "plans_invite"),
-            Sentence("At what time?", "Ինչ ժամին՞", "Inch jamin?", "plans_what_time"),
+            Sentence("At what time?", "Ինչ ժամին՞", "Eench jamin?", "plans_what_time"),
             Sentence("Where shall we meet?", "Ուռ հանդիպինք՞", "Oor hantibink?", "plans_where_meet"),
             Sentence("I will be there", "Հոն պիտի ըլլամ", "Hon bidi ullam", "plans_will_be_there"),
             Sentence("Sorry, I can't", "Ներեցէք, չեմ կրնար", "Neretseek, chem grnar", "plans_sorry_cant"),
@@ -977,7 +977,7 @@ LESSONS = {
             Sentence("Send me a message", "Լուր մը ղրկէ", "Loor me ghrgeh", "phone_send_message"),
             Sentence("I will text you", "Պիտի գրեմ քեզի", "Bidi krem kezi", "phone_text_you"),
             Sentence("My phone is dead", "Հեռախօսս մարեցաւ", "Herrakhoss maretsav", "phone_dead"),
-            Sentence("What is your number?", "Ինչ է հեռախօսիդ թիւը՞", "Inch e herrakhosit tive?", "phone_your_number"),
+            Sentence("What is your number?", "Ինչ է հեռախօսիդ թիւը՞", "Eench e herrakhosit tive?", "phone_your_number"),
             Sentence("I don't have signal", "Կապ չունիմ", "Kab chounim", "phone_no_signal"),
             Sentence("Talk to you soon", "Շուտով կը խօսինք", "Shoudov ge khosinkt", "phone_talk_soon"),
         ]
@@ -1011,8 +1011,8 @@ LESSONS = {
             Sentence("Can you help me?", "Կրնաս ինծի օգնե՞լ", "Grnas indzi oknel?", "help_can_you_help"),
             Sentence("I don't understand", "Չեմ հասկնար", "Chem hasknar", "help_dont_understand"),
             Sentence("Can you repeat that?", "Կրնաս կրկնե՞լ", "Grnas grgnel?", "help_repeat"),
-            Sentence("What does this mean?", "Ասիկա ինչ կը նշանակէ՞", "Asiga inch ge nshanage?", "help_what_means"),
-            Sentence("How do you say ... in Armenian?", "Հայերէնով ինչպէ՞ս կ’ըսեն", "Hayerenov inchbes g'esen...?", "help_how_say"),
+            Sentence("What does this mean?", "Ասիկա ինչ կը նշանակէ՞", "Asiga eench ge nshanage?", "help_what_means"),
+            Sentence("How do you say ... in Armenian?", "Հայերէնով ինչպէ՞ս կ’ըսեն", "Hayerenov eenchbes g'uhsen...?", "help_how_say"),
             Sentence("Please write it down", "Խնդրեմ գրեցէք", "Khntrem gretsek", "help_write_down"),
             Sentence("I need help", "Օգնութեան պէտք ունիմ", "Oknoutyan bedk ounim", "help_need_help"),
             Sentence("Where can I find...?", "Ուռ կրնամ գտնել՞...", "Oor grnam kdnel...?", "help_where_find"),
