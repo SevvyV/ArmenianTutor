@@ -39,12 +39,42 @@ class ComparisonResult:
 # TEXT NORMALIZATION
 # ============================================================================
 
+# Western ↔ Eastern Armenian consonant shift pairs.
+# Whisper transcribes in Eastern Armenian spelling, but the app uses Western.
+# These pairs sound the same but are written with different letters.
+# We normalize both sides to a canonical form so the comparison is fair.
+CONSONANT_SHIFT_MAP = {
+    # Պ/պ (B in Western) → Բ/բ (B in Eastern) — B/P pair
+    'Պ': 'Բ', 'պ': 'բ',
+    # Կ/կ (G in Western) → Գ/գ (G in Eastern) — G/K pair
+    'Կ': 'Գ', 'կ': 'գ',
+    # Տ/տ (D in Western) → Դ/դ (D in Eastern) — D/T pair
+    'Տ': 'Դ', 'տ': 'դ',
+    # Ձ/ձ (TS in Western) → Ծ/ծ (TS in Eastern) — TS/DZ pair
+    'Ձ': 'Ծ', 'ձ': 'ծ',
+    # Չ/չ (CH in Western) → Ճ/ճ (CH in Eastern) — CH/J pair
+    'Չ': 'Ճ', 'չ': 'ճ',
+}
+
+
+def _normalize_consonants(text: str) -> str:
+    """
+    Normalize Western/Eastern Armenian consonant shifts.
+
+    Maps paired consonants to a canonical form so that the same spoken
+    sound matches regardless of which orthography was used.
+    """
+    for eastern, western in CONSONANT_SHIFT_MAP.items():
+        text = text.replace(eastern, western)
+    return text
+
+
 def _normalize_armenian(text: str) -> str:
     """
     Normalize Armenian text for fair comparison.
 
     Handles Unicode normalization, punctuation removal, apostrophe variants,
-    and Armenian-specific modifier marks that Whisper will not produce.
+    Armenian-specific modifier marks, and Western/Eastern consonant shifts.
     """
     # Unicode NFC normalization
     text = unicodedata.normalize('NFC', text)
@@ -60,6 +90,9 @@ def _normalize_armenian(text: str) -> str:
     # Remove ASCII punctuation
     text = re.sub(r'[.,!?;:\-\"\(\)]', '', text)
 
+    # Normalize consonant shifts (Western ↔ Eastern)
+    text = _normalize_consonants(text)
+
     # Lowercase (Armenian has case: upper Ա-Ֆ, lower ա-ֆ)
     text = text.lower()
 
@@ -67,6 +100,11 @@ def _normalize_armenian(text: str) -> str:
     text = ' '.join(text.split()).strip()
 
     return text
+
+
+def _word_similarity(word1: str, word2: str) -> float:
+    """Character-level similarity between two words (0.0 to 1.0)."""
+    return SequenceMatcher(None, word1, word2).ratio()
 
 
 def _contains_armenian(text: str) -> bool:
@@ -120,8 +158,9 @@ def compare_armenian_text(transcribed: str, expected: str) -> ComparisonResult:
     """
     Compare transcribed text against expected Armenian text.
 
-    Uses word-level comparison via SequenceMatcher for meaningful
-    language learning feedback.
+    Uses word-level comparison with:
+    1. Consonant shift normalization (Western ↔ Eastern)
+    2. Fuzzy matching (>75% character similarity counts as match)
     """
     t_norm = _normalize_armenian(transcribed)
     e_norm = _normalize_armenian(expected)
@@ -139,15 +178,32 @@ def compare_armenian_text(transcribed: str, expected: str) -> ComparisonResult:
             word_matches=[]
         )
 
-    # Find matching words using SequenceMatcher
-    matcher = SequenceMatcher(None, e_words, t_words)
-    matched_indices = set()
-    for block in matcher.get_matching_blocks():
-        for i in range(block.size):
-            matched_indices.add(block.a + i)
+    # Fuzzy word matching: for each expected word, find best match
+    # in transcribed words. If character similarity > 75%, count as match.
+    FUZZY_THRESHOLD = 0.75
+    used_t_indices = set()
+    word_matches = []
 
-    word_matches = [(e_words[i], i in matched_indices) for i in range(len(e_words))]
-    accuracy = (len(matched_indices) / len(e_words)) * 100.0
+    for e_word in e_words:
+        best_sim = 0.0
+        best_idx = -1
+
+        for t_idx, t_word in enumerate(t_words):
+            if t_idx in used_t_indices:
+                continue
+            sim = _word_similarity(e_word, t_word)
+            if sim > best_sim:
+                best_sim = sim
+                best_idx = t_idx
+
+        matched = best_sim >= FUZZY_THRESHOLD
+        if matched and best_idx >= 0:
+            used_t_indices.add(best_idx)
+
+        word_matches.append((e_word, matched))
+
+    matched_count = sum(1 for _, m in word_matches if m)
+    accuracy = (matched_count / len(e_words)) * 100.0
 
     return ComparisonResult(
         transcribed=transcribed,
