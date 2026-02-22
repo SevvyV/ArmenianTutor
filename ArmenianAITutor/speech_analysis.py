@@ -87,8 +87,10 @@ def _normalize_armenian(text: str) -> str:
     armenian_punctuation = '\u055E\u055C\u055B\u0589\u058A\u055D'
     text = re.sub(f'[{armenian_punctuation}]', '', text)
 
-    # Remove ASCII punctuation
-    text = re.sub(r'[.,!?;:\-\"\(\)]', '', text)
+    # Remove ASCII punctuation and apostrophes
+    # Apostrophes appear in Western Armenian contractions (e.g., Inding'delays)
+    # but Whisper never produces them
+    text = re.sub(r"[.,!?;:\-\"\(\)']", '', text)
 
     # Normalize consonant shifts (Western ↔ Eastern)
     text = _normalize_consonants(text)
@@ -179,8 +181,11 @@ def compare_armenian_text(transcribed: str, expected: str) -> ComparisonResult:
         )
 
     # Fuzzy word matching: for each expected word, find best match
-    # in transcribed words. If character similarity > 75%, count as match.
-    FUZZY_THRESHOLD = 0.75
+    # in transcribed words. Use length-aware threshold since short words
+    # (3-4 chars) drop drastically with a single char difference.
+    #   1-3 chars: 50% threshold (1 of 2 or 2 of 3 chars match)
+    #   4-5 chars: 60% threshold
+    #   6+  chars: 70% threshold
     used_t_indices = set()
     word_matches = []
 
@@ -196,7 +201,16 @@ def compare_armenian_text(transcribed: str, expected: str) -> ComparisonResult:
                 best_sim = sim
                 best_idx = t_idx
 
-        matched = best_sim >= FUZZY_THRESHOLD
+        # Length-aware threshold
+        word_len = len(e_word)
+        if word_len <= 3:
+            threshold = 0.50
+        elif word_len <= 5:
+            threshold = 0.60
+        else:
+            threshold = 0.70
+
+        matched = best_sim >= threshold
         if matched and best_idx >= 0:
             used_t_indices.add(best_idx)
 
