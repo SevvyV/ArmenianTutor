@@ -96,8 +96,8 @@ MIN_RECORDING_SECONDS = 0.3  # Reject accidental taps shorter than this
 # ============================================================================
 
 # Total lessons in curriculum
-TOTAL_LESSONS = 44
-IMPLEMENTED_LESSONS = 44
+TOTAL_LESSONS = 43
+IMPLEMENTED_LESSONS = 43
 
 # Lesson display format
 LESSON_TITLE_FORMAT = "Lesson {num}: {title}"
@@ -108,5 +108,5 @@ LESSON_TITLE_FORMAT = "Lesson {num}: {title}"
 LESSON_LEVELS = {
     "A1 Beginner": ("lesson_01", "lesson_15"),
     "A2 Elementary": ("lesson_16", "lesson_30"),
-    "B1 Intermediate": ("lesson_31", "lesson_44"),
+    "B1 Intermediate": ("lesson_31", "lesson_43"),
 }

@@ -1020,29 +1020,6 @@ LESSONS = {
             Sentence("Thank you for your help", "Շնորհակալ եմ օգնութեանդ", "Shnorhagal em oknoutyant", "help_thank_you"),
         ]
     ),
-    "lesson_44": Lesson(
-        id="lesson_44",
-        title="Lesson 44: Speech Diagnostic Sentences",
-        lesson_type="sentences",
-        prefix="sent",
-        items=[
-            Sentence("My grandfather reads a book every day", "Պապիկս ամէն օր գիրք մը կը կարդայ", "Babigis amen or kirk muh ge gartay", "diag_grandfather_reads"),
-            Sentence("The boy went to school yesterday", "Տղան երէկ դպրոց գնաց", "Dughan yereg tbrotz knats", "diag_boy_school"),
-            Sentence("Tomorrow I will buy beautiful clothes", "Վաղը գեղեցիկ հագուստներ պիտի գնեմ", "Vagheh keghetsig hakousdner bidi knem", "diag_buy_clothes"),
-            Sentence("She doesn't quite understand the question", "Ան ճիշդ չի հասկնար հարցումը", "An jisht chi hasgnar hartsoumuh", "diag_doesnt_understand"),
-            Sentence("What are you doing? I'm well, thank you", "Ի՞նչ կ’ընես։ Աղէկ եմ, մերսի", "Inch g'enes? Agheg em, mersi", "diag_what_doing"),
-            Sentence("The children are playing in the garden", "Պզտիկները պարտէզին մէջ կը խաղան", "Bzdignereh bardezin mech ge khaghan", "diag_children_playing"),
-            Sentence("I want to drink cold water", "Պաղ ջուր խմել կ’ուզեմ", "Bagh chour khumel g'ouzem", "diag_cold_water"),
-            Sentence("The door of our house is open", "Տաննիս դուռը բաց է", "Dannis tourruh pats e", "diag_door_open"),
-            Sentence("My friend and I went to the church", "Ես ու ընկերս եկեղեցի գացինք", "Yes ou ungers yegeghetsee katsink", "diag_friend_church"),
-            Sentence("He doesn't know where the school is", "Ան չի գիտեր դպրոցը ուր է", "An chi kider tbrotzuh our e", "diag_doesnt_know"),
-            Sentence("Seventy-three students came to class", "Եօթանասուներեք աշակերտներ դասի եկան", "Yotanasouneyerek ashagerdner tasi yegan", "diag_seventy_three"),
-            Sentence("I spoke Armenian and English today", "Այսօր առտու հայերէն ու անգլերէն խօսեցայ", "Aysor arrtou hayeren ou ankleren khosetsay", "diag_spoke_languages"),
-            Sentence("The teacher told us to read and write", "Ուսուցիչը մեզի ըսաւ կարդալ եւ գրել", "Ousoutsichuh mezi usav gartal yev krel", "diag_teacher_read_write"),
-            Sentence("The food was very delicious, thank you", "Ճաշը շատ համով էր, մերսի", "Jashuh shad hamov er, mersi", "diag_food_delicious"),
-            Sentence("I was going to call you but I forgot", "Քեզի պիտի հեռաձայնէի, բայց մոռցայ", "Kezi bidi herratsaynehi, payts morrtsay", "diag_forgot_call"),
-        ]
-    ),
 }
 
 
