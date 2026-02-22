@@ -190,7 +190,7 @@ LESSONS = {
         prefix="food",
         items=[
             # Food items
-            VocabItem("🍞 Bread", "Հաց", "Hats"),
+            VocabItem("🍞 Bread", "Հաց", "Hahtz"),
             VocabItem("💧 Water", "Ջուր", "Joor"),
             VocabItem("🧀 Cheese", "Պանիր", "Banir"),
             VocabItem("🥛 Milk", "Կաթ", "Gat"),
