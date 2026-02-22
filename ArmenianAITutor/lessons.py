@@ -97,7 +97,7 @@ LESSONS = {
             VocabItem("👨 Father", "Հայրիկ", "Hayrig"),
             VocabItem("👩 Mother", "Մայրիկ", "Mayrig"),
             VocabItem("👦 Brother", "Եղբայր", "Yeghpayr"),
-            VocabItem("👧 Sister", "Քոյր", "Kouyr"),
+            VocabItem("👧 Sister", "Քոյր", "Kooyr"),
             VocabItem("👴 Grandfather", "Մեծ հայր", "Medz hayr"),
             VocabItem("👵 Grandmother", "Մեծ մայր", "Medz mayr"),
             VocabItem("👶 Son", "Տղայ", "Degha"),
