@@ -86,6 +86,10 @@ WHISPER_MODEL = "whisper-1"
 WHISPER_LANGUAGE = "hy"
 SPEECH_ACCURACY_THRESHOLD = 70
 
+# Recording duration safeguards (seconds)
+MAX_RECORDING_SECONDS = 15   # Reject recordings longer than this
+MIN_RECORDING_SECONDS = 0.3  # Reject accidental taps shorter than this
+
 
 # ============================================================================
 # LESSON CONFIGURATION

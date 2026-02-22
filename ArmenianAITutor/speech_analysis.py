@@ -10,6 +10,7 @@ Handles:
 
 import io
 import re
+import wave
 import unicodedata
 from dataclasses import dataclass
 from difflib import SequenceMatcher
@@ -17,7 +18,10 @@ from difflib import SequenceMatcher
 import streamlit as st
 from openai import OpenAI
 
-from config import WHISPER_MODEL, WHISPER_LANGUAGE, SPEECH_ACCURACY_THRESHOLD
+from config import (
+    WHISPER_MODEL, WHISPER_LANGUAGE, SPEECH_ACCURACY_THRESHOLD,
+    MAX_RECORDING_SECONDS, MIN_RECORDING_SECONDS
+)
 
 
 class SpeechAnalysisError(Exception):
@@ -338,6 +342,19 @@ def render_speech_feedback(result: ComparisonResult):
         )
 
 
+def _get_wav_duration(audio_bytes: bytes) -> float:
+    """Get duration of WAV audio in seconds."""
+    try:
+        with wave.open(io.BytesIO(audio_bytes), 'rb') as wf:
+            frames = wf.getnframes()
+            rate = wf.getframerate()
+            if rate == 0:
+                return 0.0
+            return frames / rate
+    except Exception:
+        return 0.0
+
+
 def render_mic_button(expected_armenian: str, widget_key: str):
     """
     Render the microphone input widget and pronunciation feedback.
@@ -354,8 +371,22 @@ def render_mic_button(expected_armenian: str, widget_key: str):
         audio_data = st.audio_input("Record yourself:", key=widget_key)
 
         if audio_data is not None:
+            audio_bytes = audio_data.getvalue()
+            duration = _get_wav_duration(audio_bytes)
+
+            # Safeguard: reject recordings that are too short or too long
+            if duration < MIN_RECORDING_SECONDS:
+                st.warning("Recording too short. Please try again.")
+                return
+            if duration > MAX_RECORDING_SECONDS:
+                st.warning(
+                    f"Recording too long ({duration:.0f}s). "
+                    f"Please keep recordings under {MAX_RECORDING_SECONDS}s."
+                )
+                return
+
             result_key = f"result_{widget_key}"
-            audio_hash = hash(audio_data.getvalue())
+            audio_hash = hash(audio_bytes)
             hash_key = f"hash_{widget_key}"
 
             # Only call Whisper if this is a new recording
@@ -364,7 +395,7 @@ def render_mic_button(expected_armenian: str, widget_key: str):
                 try:
                     api_key = st.secrets["OPENAI_API_KEY"]
                     result = analyze_pronunciation(
-                        audio_data.getvalue(),
+                        audio_bytes,
                         expected_armenian,
                         api_key
                     )
