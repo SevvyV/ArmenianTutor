@@ -58,6 +58,14 @@ st.markdown("""
         justify-content: flex-end;
         padding-bottom: 2rem;
     }
+    /* Larger, more prominent tab labels */
+    button[data-baseweb="tab"] p {
+        font-size: 1.25rem !important;
+        font-weight: 600 !important;
+    }
+    button[data-baseweb="tab"] {
+        padding: 0.75rem 1.5rem !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
