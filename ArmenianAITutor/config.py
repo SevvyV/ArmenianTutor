@@ -92,8 +92,8 @@ SPEECH_ACCURACY_THRESHOLD = 70
 # ============================================================================
 
 # Total lessons in curriculum
-TOTAL_LESSONS = 28
-IMPLEMENTED_LESSONS = 15
+TOTAL_LESSONS = 44
+IMPLEMENTED_LESSONS = 44
 
 # Lesson display format
 LESSON_TITLE_FORMAT = "Lesson {num}: {title}"
