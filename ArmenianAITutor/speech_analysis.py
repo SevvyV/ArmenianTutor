@@ -114,6 +114,38 @@ def _contains_armenian(text: str) -> bool:
     return any('\u0530' <= c <= '\u058F' for c in text)
 
 
+def _merge_short_prefixes(words: list) -> list:
+    """
+    Merge short Armenian prefix particles with the following word.
+
+    The Western Armenian present tense prefix (կe/գe) is often written
+    as a separate word, but Whisper consistently merges it with the verb.
+    By merging prefixes on both sides before comparison, we ensure fair
+    matching regardless of word boundary differences.
+
+    Examples:
+        ["ես", "գe", "տesnem"]  → ["ես", "գeտesnem"]
+        ["ես", "գeտesnem"]      → ["ես", "գeտesnem"]  (no change)
+    """
+    if len(words) <= 1:
+        return words
+
+    merged = []
+    i = 0
+    while i < len(words):
+        # If this word is 1-2 Armenian chars and there's a next word, merge them.
+        # This handles prefixes like գe (ge/ke) that Whisper joins to the verb.
+        if (i + 1 < len(words)
+                and len(words[i]) <= 2
+                and all('\u0530' <= c <= '\u058F' for c in words[i])):
+            merged.append(words[i] + words[i + 1])
+            i += 2
+        else:
+            merged.append(words[i])
+            i += 1
+    return merged
+
+
 # ============================================================================
 # TRANSCRIPTION
 # ============================================================================
@@ -162,7 +194,9 @@ def compare_armenian_text(transcribed: str, expected: str) -> ComparisonResult:
 
     Uses word-level comparison with:
     1. Consonant shift normalization (Western ↔ Eastern)
-    2. Fuzzy matching (>75% character similarity counts as match)
+    2. Prefix merging (handles կe/գe present tense prefix)
+    3. Fuzzy matching with length-aware thresholds
+    4. Sentence-level character similarity as fallback
     """
     t_norm = _normalize_armenian(transcribed)
     e_norm = _normalize_armenian(expected)
@@ -179,6 +213,12 @@ def compare_armenian_text(transcribed: str, expected: str) -> ComparisonResult:
             is_match=accuracy >= SPEECH_ACCURACY_THRESHOLD,
             word_matches=[]
         )
+
+    # Merge short prefixes (e.g., կe/գe) with following word.
+    # Whisper consistently merges the present tense prefix with the verb,
+    # so we normalize both sides to match.
+    t_words = _merge_short_prefixes(t_words)
+    e_words = _merge_short_prefixes(e_words)
 
     # Fuzzy word matching: for each expected word, find best match
     # in transcribed words. Use length-aware threshold since short words
@@ -217,7 +257,17 @@ def compare_armenian_text(transcribed: str, expected: str) -> ComparisonResult:
         word_matches.append((e_word, matched))
 
     matched_count = sum(1 for _, m in word_matches if m)
-    accuracy = (matched_count / len(e_words)) * 100.0
+    word_accuracy = (matched_count / len(e_words)) * 100.0
+
+    # Sentence-level fallback: compare joined strings character-by-character.
+    # This handles cases where word boundaries differ but the overall
+    # pronunciation is correct (e.g., Whisper merging prefix with verb).
+    t_joined = ''.join(t_words)
+    e_joined = ''.join(e_words)
+    sentence_accuracy = SequenceMatcher(None, t_joined, e_joined).ratio() * 100.0
+
+    # Use the better of word-level or sentence-level accuracy
+    accuracy = max(word_accuracy, sentence_accuracy)
 
     return ComparisonResult(
         transcribed=transcribed,
@@ -270,12 +320,24 @@ def render_speech_feedback(result: ComparisonResult):
     st.markdown(f"**Expected:** {result.expected}")
     st.markdown(f"**You said:** {result.transcribed}")
 
-    # Debug: show normalized versions
+    # Debug: show normalized versions and scoring breakdown
     with st.expander("🔍 Debug Info", expanded=False):
         e_norm = _normalize_armenian(result.expected)
         t_norm = _normalize_armenian(result.transcribed)
         st.code(f"Expected (normalized): [{e_norm}]\nYou said (normalized):  [{t_norm}]")
-        st.code(f"Expected words: {e_norm.split()}\nYou said words:  {t_norm.split()}")
+
+        e_merged = _merge_short_prefixes(e_norm.split())
+        t_merged = _merge_short_prefixes(t_norm.split())
+        st.code(f"Expected (merged): {e_merged}\nYou said (merged):  {t_merged}")
+
+        # Show both scoring methods
+        e_joined = ''.join(e_merged)
+        t_joined = ''.join(t_merged)
+        sentence_sim = SequenceMatcher(None, t_joined, e_joined).ratio() * 100.0
+        matched = sum(1 for _, m in result.word_matches if m)
+        total = len(result.word_matches) if result.word_matches else 1
+        word_acc = (matched / total) * 100.0
+        st.code(f"Word-level accuracy:     {word_acc:.0f}%\nSentence-level accuracy: {sentence_sim:.0f}%\nFinal (max):             {result.accuracy:.0f}%")
 
     # Word-by-word color-coded breakdown
     if result.word_matches:
