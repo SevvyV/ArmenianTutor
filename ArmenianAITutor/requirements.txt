@@ -2,3 +2,4 @@ streamlit
 google-genai
 deep-translator
 azure-cognitiveservices-speech
+openai

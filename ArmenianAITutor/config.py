@@ -75,6 +75,16 @@ AZURE_VOICES = {
 ENABLE_VERB_TOOL = True
 ENABLE_LIVE_TRANSLATOR = True
 ENABLE_VOICE_SELECTOR = True
+ENABLE_SPEECH_PRACTICE = True
+
+
+# ============================================================================
+# SPEECH PRACTICE CONFIGURATION (OpenAI Whisper)
+# ============================================================================
+
+WHISPER_MODEL = "whisper-1"
+WHISPER_LANGUAGE = "hy"
+SPEECH_ACCURACY_THRESHOLD = 70
 
 
 # ============================================================================
@@ -82,8 +92,8 @@ ENABLE_VOICE_SELECTOR = True
 # ============================================================================
 
 # Total lessons in curriculum
-TOTAL_LESSONS = 28
-IMPLEMENTED_LESSONS = 15
+TOTAL_LESSONS = 44
+IMPLEMENTED_LESSONS = 44
 
 # Lesson display format
 LESSON_TITLE_FORMAT = "Lesson {num}: {title}"

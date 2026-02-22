@@ -10,6 +10,10 @@ import streamlit as st
 from verb_conjugation import VERBS, list_verbs_alphabetically, PRONOUNS
 from audio_manager import AudioManager
 from translation import translate_and_speak
+from config import ENABLE_SPEECH_PRACTICE
+
+if ENABLE_SPEECH_PRACTICE:
+    from speech_analysis import render_mic_button
 
 
 # ============================================================================
@@ -157,26 +161,36 @@ def render_live_translator(voice: str):
                     voice
                 )
                 
-                # Display results
+                # Store in session state so it persists across reruns
+                st.session_state.last_translation = armenian_text
+                st.session_state.last_translation_audio = audio_data
+
                 st.success("✅ Translation complete!")
-                
-                # Show Armenian text
-                st.markdown("#### Armenian:")
-                st.markdown(f"**{armenian_text}**")
-                
-                # Play audio
-                if audio_data:
-                    st.audio(audio_data, format="audio/mp3")
-                    st.caption(f"🎙️ {voice.capitalize()} voice")
-                
+
             except Exception as e:
                 st.error(f"Translation failed: {str(e)}")
                 st.info(
                     "💡 Make sure your Azure Speech API key is valid and has quota remaining."
                 )
-    
+
     elif translate_button:
         st.warning("Please enter some text to translate.")
+
+    # Display last translation (persists across reruns)
+    if st.session_state.get("last_translation"):
+        st.markdown("#### Armenian:")
+        st.markdown(f"**{st.session_state.last_translation}**")
+
+        if st.session_state.get("last_translation_audio"):
+            st.audio(st.session_state.last_translation_audio, format="audio/mp3")
+            st.caption(f"🎙️ {voice.capitalize()} voice")
+
+        # Speech practice
+        if ENABLE_SPEECH_PRACTICE:
+            render_mic_button(
+                st.session_state.last_translation,
+                "mic_translator"
+            )
     
     # Info boxes
     st.markdown("---")
