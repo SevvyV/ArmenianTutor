@@ -13,13 +13,16 @@ import streamlit as st
 from config import (
     APP_TITLE, APP_ICON, LAYOUT, INITIAL_SIDEBAR_STATE,
     AVAILABLE_VOICES, DEFAULT_VOICE, ENABLE_VERB_TOOL, ENABLE_LIVE_TRANSLATOR,
-    BASE_IMAGE_URL
+    BASE_IMAGE_URL, ENABLE_SPEECH_PRACTICE
 )
 from lessons import LESSONS
 from prayers import PRAYERS, list_prayers
 from alphabet import WESTERN_ALPHABET, EASTERN_ALPHABET
 from audio_manager import AudioManager
 from renderers import render_verb_conjugation_tool, render_live_translator
+
+if ENABLE_SPEECH_PRACTICE:
+    from speech_analysis import render_mic_button
 
 
 def get_image_url(english_text, lesson_id, prefix):
@@ -239,7 +242,14 @@ def render_vocabulary_lesson(lesson):
                             voice
                         )
                         st.audio(audio_url, format="audio/mp3")
-                        
+
+                        # Speech practice
+                        if ENABLE_SPEECH_PRACTICE:
+                            render_mic_button(
+                                item.armenian_display,
+                                f"mic_{lesson.id}_vocab_{idx}"
+                            )
+
                         st.markdown("---")
 
 
@@ -253,7 +263,7 @@ def render_sentence_lesson(lesson):
     voice = st.session_state.voice
     
     # Display sentences in a list
-    for item in lesson.items:
+    for sent_idx, item in enumerate(lesson.items):
         with st.container():
             # Try to display image
             image_url = get_image_url(item.english, lesson.id, lesson.prefix)
@@ -286,6 +296,13 @@ def render_sentence_lesson(lesson):
                     voice
                 )
                 st.audio(audio_url, format="audio/mp3")
+
+            # Speech practice
+            if ENABLE_SPEECH_PRACTICE:
+                render_mic_button(
+                    item.armenian_display,
+                    f"mic_{lesson.id}_sent_{sent_idx}"
+                )
 
             st.markdown("---")
 

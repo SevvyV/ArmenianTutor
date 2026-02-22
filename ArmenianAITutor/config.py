@@ -75,6 +75,16 @@ AZURE_VOICES = {
 ENABLE_VERB_TOOL = True
 ENABLE_LIVE_TRANSLATOR = True
 ENABLE_VOICE_SELECTOR = True
+ENABLE_SPEECH_PRACTICE = True
+
+
+# ============================================================================
+# SPEECH PRACTICE CONFIGURATION (OpenAI Whisper)
+# ============================================================================
+
+WHISPER_MODEL = "whisper-1"
+WHISPER_LANGUAGE = "hy"
+SPEECH_ACCURACY_THRESHOLD = 70
 
 
 # ============================================================================
