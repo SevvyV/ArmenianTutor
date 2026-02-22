@@ -510,7 +510,7 @@ LESSONS = {
         items=[
             VocabItem("🚗 Car", "Ինքնաշարժ", "Inknacharj"),
             VocabItem("🚌 Bus", "Հանրակառք", "Hanragark"),
-            VocabItem("🚂 Train", "Կաթսա", "Gatsa"),
+            VocabItem("🚂 Train", "Շոգեկառք", "Shokegark"),
             VocabItem("✈️ Airplane", "Օդանավ", "Odanav"),
             VocabItem("🚢 Ship / Boat", "Նավ", "Nav"),
             VocabItem("🚲 Bicycle", "Հեծանիվ", "Hetsaniv"),
