@@ -191,7 +191,7 @@ LESSONS = {
         items=[
             # Food items
             VocabItem("🍞 Bread", "Հաց", "Hahtz"),
-            VocabItem("💧 Water", "Ջուր", "Joor"),
+            VocabItem("💧 Water", "Ջուր", "Choor"),
             VocabItem("🧀 Cheese", "Պանիր", "Banir"),
             VocabItem("🥛 Milk", "Կաթ", "Gat"),
             VocabItem("☕ Coffee", "Սուրճ", "Soorj"),
@@ -530,7 +530,7 @@ LESSONS = {
             Sentence("A table for two, please", "Սեղան մը երկուի համար, խնդրեմ", "Seghan me yergoui hamar, khntrem", "restaurant_table"),
             Sentence("The menu, please", "Ճաշացանկը, խնդրեմ", "Jashatsanke, khntrem", "restaurant_menu"),
             Sentence("I would like...", "Կ’ուզէի...", "G'ouzei...", "restaurant_would_like"),
-            Sentence("Water, please", "Ջուր, խնդրեմ", "Joor, khntrem", "restaurant_water"),
+            Sentence("Water, please", "Ջուր, խնդրեմ", "Choor, khntrem", "restaurant_water"),
             Sentence("The bill, please", "Հաշիւը, խնդրեմ", "Hashive, khntrem", "restaurant_bill"),
             Sentence("It was delicious", "Շատ համով էր", "Shad hamov er", "restaurant_delicious"),
             Sentence("I am hungry", "Անօթի եմ", "Anoti em", "restaurant_hungry"),
