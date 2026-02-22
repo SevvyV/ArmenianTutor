@@ -366,7 +366,7 @@ VERBS = {
         verb_key="put",
         infinitive_english="To Put",
         infinitive_armenian="Դնել",
-        infinitive_phonetic="Dnel",
+        infinitive_phonetic="Tnel",
         conjugations={
             "present": ["կը դնեմ", "կը դնես", "կը դնէ", "կը դնենք", "կը դնէք", "կը դնեն"],
             "past": ["դրի", "դրիր", "դրաւ", "դրինք", "դրիք", "դրին"],
@@ -378,7 +378,7 @@ VERBS = {
         verb_key="read",
         infinitive_english="To Read",
         infinitive_armenian="Կարդալ",
-        infinitive_phonetic="Gardal",
+        infinitive_phonetic="Gartal",
         conjugations={
             "present": ["կը կարդամ", "կը կարդաս", "կը կարդայ", "կը կարդանք", "կը կարդաք", "կը կարդան"],
             "past": ["կարդացի", "կարդացիր", "կարդաց", "կարդացինք", "կարդացիք", "կարդացին"],
