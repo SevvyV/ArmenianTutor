@@ -101,3 +101,12 @@ IMPLEMENTED_LESSONS = 44
 
 # Lesson display format
 LESSON_TITLE_FORMAT = "Lesson {num}: {title}"
+
+# Level groupings for lesson navigation.
+# Maps level label → (first_lesson_id, last_lesson_id) inclusive.
+# Update these ranges as new lessons are added.
+LESSON_LEVELS = {
+    "A1 Beginner": ("lesson_01", "lesson_15"),
+    "A2 Elementary": ("lesson_16", "lesson_30"),
+    "B1 Intermediate": ("lesson_31", "lesson_44"),
+}

@@ -14,7 +14,7 @@ import streamlit as st
 from config import (
     APP_TITLE, APP_ICON, LAYOUT, INITIAL_SIDEBAR_STATE,
     AVAILABLE_VOICES, DEFAULT_VOICE, ENABLE_VERB_TOOL, ENABLE_LIVE_TRANSLATOR,
-    BASE_IMAGE_URL, ENABLE_SPEECH_PRACTICE
+    BASE_IMAGE_URL, ENABLE_SPEECH_PRACTICE, LESSON_LEVELS
 )
 from lessons import LESSONS
 from prayers import PRAYERS, list_prayers
@@ -391,23 +391,56 @@ def main():
 
     # --- LESSONS TAB ---
     with tab_map["lessons"]:
-        lesson_options = []
+        # Build full lesson list with numeric keys for filtering
+        all_lessons = []
         for lesson_id, lesson in sorted(LESSONS.items()):
-            lesson_num = lesson_id.split("_")[1].lstrip("0") or "0"
+            lesson_num = int(lesson_id.split("_")[1])
             if ":" in lesson.title:
                 title = lesson.title.split(":", 1)[1].strip()
             else:
                 title = lesson.title
-            lesson_options.append((lesson_id, f"Lesson {lesson_num}: {title}"))
+            all_lessons.append((lesson_id, lesson_num, f"Lesson {lesson_num}: {title}"))
 
-        selected_lesson_display = st.selectbox(
-            "Select a lesson:",
-            options=[display for _, display in lesson_options],
-            index=0,
-            key="lesson_dropdown"
-        )
+        # Auto-detect which level the current lesson belongs to
+        current_num = int(st.session_state.current_lesson.split("_")[1])
+        default_level_idx = 0
+        for idx, (level_name, (start_id, end_id)) in enumerate(LESSON_LEVELS.items()):
+            s = int(start_id.split("_")[1])
+            e = int(end_id.split("_")[1])
+            if s <= current_num <= e:
+                default_level_idx = idx
+                break
 
-        for lesson_id, display in lesson_options:
+        # Level selector
+        level_names = list(LESSON_LEVELS.keys())
+        col_level, col_lesson = st.columns([1, 2])
+
+        with col_level:
+            selected_level = st.selectbox(
+                "Level:",
+                options=level_names,
+                index=default_level_idx,
+                key="level_dropdown"
+            )
+
+        # Filter lessons by selected level
+        start_id, end_id = LESSON_LEVELS[selected_level]
+        start_num = int(start_id.split("_")[1])
+        end_num = int(end_id.split("_")[1])
+        filtered = [
+            (lid, num, display) for lid, num, display in all_lessons
+            if start_num <= num <= end_num
+        ]
+
+        with col_lesson:
+            selected_lesson_display = st.selectbox(
+                "Lesson:",
+                options=[display for _, _, display in filtered],
+                index=0,
+                key="lesson_dropdown"
+            )
+
+        for lesson_id, _, display in filtered:
             if display == selected_lesson_display:
                 st.session_state.current_lesson = lesson_id
                 break
