@@ -391,11 +391,11 @@ LESSONS = {
                     "wake_up_fut", context="Future"),
             
             # Wash Hands
-            Sentence("I wash my hands", "Ես կը լուամ իմ ձեռքերս", "Yes ge lvam im tzerkers",
+            Sentence("I wash my hands", "Ես կը լուամ իմ ձեռքերս", "Yes ge lvam eem tzerkers",
                     "wash_hands_pres", armenian_audio="Ես կը լվամ իմ ձեռքերս", context="Present"),
-            Sentence("I washed my hands", "Ես լուացի իմ ձեռքերս", "Yes lvatsi im tzerkers",
+            Sentence("I washed my hands", "Ես լուացի իմ ձեռքերս", "Yes lvatsi eem tzerkers",
                     "wash_hands_past", armenian_audio="Ես լվացի իմ ձեռքերս", context="Past"),
-            Sentence("I will wash my hands", "Ես պիտի լուամ իմ ձեռքերս", "Yes pidi lvam im tzerkers",
+            Sentence("I will wash my hands", "Ես պիտի լուամ իմ ձեռքերս", "Yes pidi lvam eem tzerkers",
                     "wash_hands_fut", armenian_audio="Ես պիտի լվամ իմ ձեռքերս", context="Future"),
             
             # More routine activities
@@ -851,7 +851,7 @@ LESSONS = {
             VocabItem("We", "Մենք", "Menk"),
             VocabItem("You (plural)", "Տուք", "Touk"),
             VocabItem("They", "Անոնք", "Anonk"),
-            VocabItem("My", "Իմ", "Im"),
+            VocabItem("My", "Իմ", "Eem"),
             VocabItem("Your (singular)", "Ռու", "Ku"),
             VocabItem("His / Her", "Իր", "Ir"),
             VocabItem("Our", "Մեր", "Mer"),
