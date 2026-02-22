@@ -320,25 +320,6 @@ def render_speech_feedback(result: ComparisonResult):
     st.markdown(f"**Expected:** {result.expected}")
     st.markdown(f"**You said:** {result.transcribed}")
 
-    # Debug: show normalized versions and scoring breakdown
-    with st.expander("🔍 Debug Info", expanded=False):
-        e_norm = _normalize_armenian(result.expected)
-        t_norm = _normalize_armenian(result.transcribed)
-        st.code(f"Expected (normalized): [{e_norm}]\nYou said (normalized):  [{t_norm}]")
-
-        e_merged = _merge_short_prefixes(e_norm.split())
-        t_merged = _merge_short_prefixes(t_norm.split())
-        st.code(f"Expected (merged): {e_merged}\nYou said (merged):  {t_merged}")
-
-        # Show both scoring methods
-        e_joined = ''.join(e_merged)
-        t_joined = ''.join(t_merged)
-        sentence_sim = SequenceMatcher(None, t_joined, e_joined).ratio() * 100.0
-        matched = sum(1 for _, m in result.word_matches if m)
-        total = len(result.word_matches) if result.word_matches else 1
-        word_acc = (matched / total) * 100.0
-        st.code(f"Word-level accuracy:     {word_acc:.0f}%\nSentence-level accuracy: {sentence_sim:.0f}%\nFinal (max):             {result.accuracy:.0f}%")
-
     # Word-by-word color-coded breakdown
     if result.word_matches:
         colored_words = []
