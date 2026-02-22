@@ -197,7 +197,7 @@ LESSONS = {
             VocabItem("☕ Coffee", "Սուրճ", "Soorj"),
             VocabItem("🍵 Tea", "Թէյ", "Tey"),
             VocabItem("🥚 Egg", "Հաւկիթ", "Havgit"),
-            VocabItem("🥩 Meat", "Միս", "Mis"),
+            VocabItem("🥩 Meat", "Միս", "Mees"),
             VocabItem("🍗 Chicken", "Հաւ", "Hav"),
             VocabItem("🐟 Fish", "Ձուկ", "Tzoog"),
             VocabItem("🍎 Fruit", "Պտուղ", "Bdoogh"),
@@ -536,7 +536,7 @@ LESSONS = {
             Sentence("I am hungry", "Անօթի եմ", "Anoti em", "restaurant_hungry"),
             Sentence("I am thirsty", "Ծարավ եմ", "Tsarav em", "restaurant_thirsty"),
             Sentence("Do you have...?", "Դուք ունի՞ք...", "Touk ounik...?", "restaurant_do_you_have"),
-            Sentence("No meat, please", "Առանց միս, խնդրեմ", "Arants mis, khntrem", "restaurant_no_meat"),
+            Sentence("No meat, please", "Առանց միս, խնդրեմ", "Arants mees, khntrem", "restaurant_no_meat"),
         ]
     ),
     
