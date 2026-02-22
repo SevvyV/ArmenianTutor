@@ -200,6 +200,13 @@ def render_speech_feedback(result: ComparisonResult):
     st.markdown(f"**Expected:** {result.expected}")
     st.markdown(f"**You said:** {result.transcribed}")
 
+    # Debug: show normalized versions
+    with st.expander("🔍 Debug Info", expanded=False):
+        e_norm = _normalize_armenian(result.expected)
+        t_norm = _normalize_armenian(result.transcribed)
+        st.code(f"Expected (normalized): [{e_norm}]\nYou said (normalized):  [{t_norm}]")
+        st.code(f"Expected words: {e_norm.split()}\nYou said words:  {t_norm.split()}")
+
     # Word-by-word color-coded breakdown
     if result.word_matches:
         colored_words = []
