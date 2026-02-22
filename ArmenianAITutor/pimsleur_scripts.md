@@ -32,7 +32,7 @@ Items marked with ⚠️ need native speaker validation.
 | 10 | Inknacharzh, Hanragark, Gayaran | 39 |
 | 11 | Gouzem, Chgouzem, Ounim | 42 |
 | 12 | Hats, Joor, Soorj | 45 |
-| 13 | Anousch ella, Hamov er, Yev | 48 |
+| 13 | Anousch ulla, Hamov er, Yev | 48 |
 | 14 | Kani?, Tavkantees, Gouzem knem | 51 |
 | 15 | Misd, Panchar, Bdegh | 54 |
 | 16 | Hayrig, Mayrig, Untanick | 57 |
@@ -2436,7 +2436,7 @@ That's Lesson 12. Hats, joor, soorj — bread, water, coffee. The essentials of 
 ## LESSON 13: At the Table
 
 **Duration:** ~10 minutes
-**New Items:** Anousch ella (Bon appetit), Hamov er (It was delicious), Yev (And)
+**New Items:** Anousch ulla (Bon appetit), Hamov er (It was delicious), Yev (And)
 **Review Items:** Hats, Joor, Soorj, Gouzem, Shnorhagal em
 
 ### Script
@@ -2466,20 +2466,20 @@ Hats.
 Good. In Armenian homes, before eating, someone always says this. Listen.
 
 [FEMALE]
-Anousch ella.
+Anousch ulla.
 
 [INSTRUCTOR]
-This means "bon appetit" — literally "may it be sweet." Every Armenian says this before a meal. Let's break it down. Say: ella
+This means "bon appetit" — literally "may it be sweet." Every Armenian says this before a meal. Let's break it down. Say: ulla
 
 [PAUSE 2]
 
 [INSTRUCTOR]
-Say: Anousch ella
+Say: Anousch ulla
 
 [PAUSE 3]
 
 [MALE]
-Anousch ella.
+Anousch ulla.
 
 [INSTRUCTOR]
 Now after the meal, the most important thing to say. Listen.
@@ -2555,7 +2555,7 @@ The food arrives. Say "bon appetit."
 [PAUSE 3]
 
 [MALE]
-Anousch ella.
+Anousch ulla.
 
 [INSTRUCTOR]
 You're done eating. Say "it was delicious, thank you."
@@ -2569,10 +2569,10 @@ Hamov er, shnorhagal em.
 Let's hear a full mealtime exchange.
 
 [FEMALE]
-Anousch ella!
+Anousch ulla!
 
 [MALE]
-Anousch ella!
+Anousch ulla!
 
 [pause - eating sounds]
 
@@ -2588,7 +2588,7 @@ How do you say "bon appetit"?
 [PAUSE 3]
 
 [MALE]
-Anousch ella.
+Anousch ulla.
 
 [INSTRUCTOR]
 How do you say "it was delicious"?
@@ -2795,7 +2795,7 @@ That's Lesson 14. You can now shop in Armenian. In Lesson 15, you'll learn more 
 
 **Duration:** ~10 minutes
 **New Items:** Misd (Meat), Panchar (Vegetables), Bdegh (Fruit)
-**Review Items:** Hats, Joor, Soorj, Gouzem, Kani?, Yev, Anousch ella, Hamov er
+**Review Items:** Hats, Joor, Soorj, Gouzem, Kani?, Yev, Anousch ulla, Hamov er
 
 ### Script
 
@@ -2834,7 +2834,7 @@ Say "bon appetit."
 [PAUSE 3]
 
 [FEMALE]
-Anousch ella.
+Anousch ulla.
 
 [INSTRUCTOR]
 Good. Let's expand your food vocabulary. Listen.
@@ -2913,7 +2913,7 @@ Someone brings you a wonderful meal. Say "bon appetit."
 [PAUSE 3]
 
 [FEMALE]
-Anousch ella.
+Anousch ulla.
 
 [INSTRUCTOR]
 You've finished eating. Say "it was delicious, thank you."

@@ -332,8 +332,8 @@ LESSONS = {
         prefix="sent",
         items=[
             # To Be
-            Sentence("I will be", "Ես պիտի ըլլամ", "Yes pidi ellam", "essential_be_i_future"),
-            Sentence("You will be", "Դուն պիտի ըլլաս", "Toun pidi ellas", "essential_be_you_future"),
+            Sentence("I will be", "Ես պիտի ըլլամ", "Yes pidi ullam", "essential_be_i_future"),
+            Sentence("You will be", "Դուն պիտի ըլլաս", "Toun pidi ullas", "essential_be_you_future"),
             # To Have
             Sentence("I will have", "Ես պիտի ունենամ", "Yes pidi ounenam", "essential_have_i_future"),
             Sentence("You will have", "Դուն պիտի ունենաս", "Toun pidi ounenas", "essential_have_you_future"),
@@ -939,7 +939,7 @@ LESSONS = {
             Sentence("I invite you", "Ռեզ կը հրաւիրեմ", "Kez ge hravirem", "plans_invite"),
             Sentence("At what time?", "Ինչ ժամին՞", "Inch jamin?", "plans_what_time"),
             Sentence("Where shall we meet?", "Ուռ հանդիպինք՞", "Oor hantibink?", "plans_where_meet"),
-            Sentence("I will be there", "Հոն պիտի ըլլամ", "Hon bidi ellam", "plans_will_be_there"),
+            Sentence("I will be there", "Հոն պիտի ըլլամ", "Hon bidi ullam", "plans_will_be_there"),
             Sentence("Sorry, I can't", "Ներեցէք, չեմ կրնար", "Neretseek, chem grnar", "plans_sorry_cant"),
             Sentence("See you tomorrow", "Վաղը կը տեսնուինք", "Vaghe ge desnouvink", "plans_see_you_tomorrow"),
         ]
