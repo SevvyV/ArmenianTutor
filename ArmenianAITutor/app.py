@@ -105,6 +105,11 @@ with st.sidebar:
     )
     st.session_state.voice = voice_choice
 
+    # Pimsleur lesson player sidebar controls
+    if ENABLE_CONVERSATIONS:
+        from pimsleur_renderer import render_pimsleur_sidebar
+        render_pimsleur_sidebar()
+
 
 # ============================================================================
 # LESSON RENDERERS

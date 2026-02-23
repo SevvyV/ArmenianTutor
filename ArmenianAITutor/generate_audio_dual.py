@@ -393,6 +393,67 @@ class DualVoiceTTS:
         else:
             return False
 
+    def synthesize_to_file_with_voice(
+        self,
+        text: str,
+        output_path: str,
+        voice_name: str,
+        delay: float = 1.0
+    ) -> bool:
+        """
+        Generate audio file using a specific Azure voice name.
+
+        Unlike synthesize_to_file(), this accepts a full Azure voice name
+        (e.g., "en-US-JennyNeural") instead of "male"/"female" key.
+        No pronunciation hacks are applied (intended for English text).
+
+        Args:
+            text: Text to synthesize (any language)
+            output_path: Full path where MP3 should be saved
+            voice_name: Full Azure voice name (e.g., "en-US-JennyNeural")
+            delay: Delay in seconds after each API call
+
+        Returns:
+            True if successful, False otherwise
+        """
+        output_path = os.path.abspath(output_path)
+        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+
+        if not os.path.exists(os.path.dirname(output_path)):
+            print(f"   Failed to create directory: {os.path.dirname(output_path)}")
+            return False
+
+        speech_config = speechsdk.SpeechConfig(
+            subscription=self.subscription_key,
+            region=self.region
+        )
+        speech_config.speech_synthesis_voice_name = voice_name
+
+        audio_config = speechsdk.audio.AudioOutputConfig(filename=output_path)
+
+        try:
+            synthesizer = speechsdk.SpeechSynthesizer(
+                speech_config=speech_config,
+                audio_config=audio_config
+            )
+        except Exception as e:
+            print(f"   Synthesizer creation failed: {str(e)}")
+            return False
+
+        result = synthesizer.speak_text_async(text).get()
+        time.sleep(delay)
+
+        if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
+            return True
+        elif result.reason == speechsdk.ResultReason.Canceled:
+            cancellation = result.cancellation_details
+            print(f"   Failed: {cancellation.reason}")
+            if cancellation.error_details:
+                print(f"      Error: {cancellation.error_details}")
+            return False
+        else:
+            return False
+
 
 # ============================================================================
 # AUDIO GENERATION FUNCTIONS

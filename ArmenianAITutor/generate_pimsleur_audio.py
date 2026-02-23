@@ -1,16 +1,21 @@
 """
 Azure TTS Audio Generation for Pimsleur Conversations
 
-Generates per-line MP3 files for male/female speaker lines only.
+Generates per-line MP3 files for:
+- male/female Armenian speaker lines (conversation audio)
+- instructor English narration lines (instructor audio)
+
 Reuses DualVoiceTTS and WESTERN_TO_EASTERN_FIXES from generate_audio_dual.py.
 
 Output structure:
   audio_library/conversations/{lesson_id}/{voice}/{audio_key}.mp3
+  audio_library/conversations/{lesson_id}/instructor/{audio_key}.mp3
 
 Usage:
-    python generate_pimsleur_audio.py --voice both
-    python generate_pimsleur_audio.py --voice male --lesson pimsleur_01
-    python generate_pimsleur_audio.py --lesson pimsleur_05 --voice female
+    python generate_pimsleur_audio.py --type all --voice both
+    python generate_pimsleur_audio.py --type conversation --voice male
+    python generate_pimsleur_audio.py --type instructor
+    python generate_pimsleur_audio.py --type instructor --lesson pimsleur_01
 """
 
 import os
@@ -22,6 +27,7 @@ from generate_audio_dual import (
     print_statistics,
 )
 from pimsleur_data import PIMSLEUR_LESSONS
+from config import INSTRUCTOR_VOICE
 
 
 def generate_conversation_audio(
@@ -101,15 +107,99 @@ def generate_conversation_audio(
     return stats
 
 
+def generate_instructor_audio(
+    tts: DualVoiceTTS,
+    lesson_filter: str = None,
+    output_dir: str = "audio_library",
+):
+    """
+    Generate English narration audio for instructor lines.
+
+    Uses en-US-JennyNeural voice for a warm, conversational female instructor.
+    No Western->Eastern pronunciation hacks needed (English text).
+
+    Output: audio_library/conversations/{lesson_id}/instructor/{audio_key}.mp3
+
+    Args:
+        tts: Initialized DualVoiceTTS instance
+        lesson_filter: If set, only generate for this lesson ID
+        output_dir: Base output directory
+    """
+    print("\n" + "=" * 70)
+    print("GENERATING INSTRUCTOR NARRATION AUDIO")
+    print(f"Voice: {INSTRUCTOR_VOICE}")
+    print("=" * 70)
+
+    stats = {"total": 0, "success": 0, "failed": 0, "skipped": 0}
+
+    lessons = PIMSLEUR_LESSONS
+    if lesson_filter:
+        if lesson_filter not in lessons:
+            print(f"Lesson '{lesson_filter}' not found!")
+            print(f"Available: {', '.join(sorted(lessons.keys()))}")
+            return stats
+        lessons = {lesson_filter: lessons[lesson_filter]}
+
+    for lesson_id in sorted(lessons.keys()):
+        lesson = lessons[lesson_id]
+        instructor_lines = [
+            line for line in lesson.lines
+            if line.speaker == "instructor" and line.audio_key
+        ]
+
+        print(f"\n  Lesson {int(lesson_id.split('_')[1])}: {lesson.title}")
+        print(f"  Instructor lines: {len(instructor_lines)}")
+
+        inst_dir = os.path.join(
+            output_dir, "conversations", lesson_id, "instructor"
+        )
+
+        for line in instructor_lines:
+            stats["total"] += 1
+            output_path = os.path.join(inst_dir, f"{line.audio_key}.mp3")
+
+            # Skip if exists
+            if os.path.exists(output_path):
+                stats["skipped"] += 1
+                continue
+
+            text = line.text
+            if not text or not text.strip():
+                print(f"    -- {line.audio_key} (empty text, skipped)")
+                stats["skipped"] += 1
+                continue
+
+            # Clean text for TTS: remove trailing " ---" markers
+            clean_text = text.rstrip().rstrip("-").rstrip()
+
+            # Generate audio using instructor voice (English, no fixes)
+            if tts.synthesize_to_file_with_voice(
+                clean_text, output_path, INSTRUCTOR_VOICE
+            ):
+                print(f"    OK {line.audio_key}.mp3")
+                stats["success"] += 1
+            else:
+                print(f"    FAIL {line.audio_key}.mp3")
+                stats["failed"] += 1
+
+    return stats
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Generate Pimsleur conversation audio files"
     )
     parser.add_argument(
+        "--type",
+        choices=["conversation", "instructor", "all"],
+        default="all",
+        help="What to generate: conversation (Armenian), instructor (English), or all (default: all)",
+    )
+    parser.add_argument(
         "--voice",
         choices=["male", "female", "both"],
         default="both",
-        help="Which voice(s) to generate (default: both)",
+        help="Which voice(s) for conversation audio (default: both)",
     )
     parser.add_argument(
         "--lesson",
@@ -136,9 +226,14 @@ def main():
     # Initialize TTS
     tts = DualVoiceTTS(api_key, region)
 
-    # Generate audio
-    stats = generate_conversation_audio(tts, voices, args.lesson, args.output)
-    print_statistics(stats)
+    # Generate based on type
+    if args.type in ("conversation", "all"):
+        stats = generate_conversation_audio(tts, voices, args.lesson, args.output)
+        print_statistics(stats)
+
+    if args.type in ("instructor", "all"):
+        stats = generate_instructor_audio(tts, args.lesson, args.output)
+        print_statistics(stats)
 
 
 if __name__ == "__main__":

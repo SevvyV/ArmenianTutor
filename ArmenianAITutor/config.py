@@ -67,6 +67,9 @@ AZURE_VOICES = {
     "female": "hy-AM-AnahitNeural"
 }
 
+# English instructor voice for Pimsleur narration
+INSTRUCTOR_VOICE = "en-US-JennyNeural"
+
 
 # ============================================================================
 # FEATURE FLAGS
@@ -77,6 +80,10 @@ ENABLE_LIVE_TRANSLATOR = True
 ENABLE_VOICE_SELECTOR = True
 ENABLE_SPEECH_PRACTICE = True
 ENABLE_CONVERSATIONS = True
+
+# Pimsleur player settings
+AUTO_CONTINUE_SECONDS = 5    # Auto-resume after practice (0 = disabled)
+AUDIO_GAP_MS = 400           # Silence between audio clips (ms)
 
 
 # ============================================================================

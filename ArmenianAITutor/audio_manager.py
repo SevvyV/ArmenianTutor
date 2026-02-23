@@ -131,6 +131,22 @@ class AudioManager:
         return f"{BASE_AUDIO_URL}/conversations/{lesson_id}/{voice}/{audio_key}.mp3"
 
     @classmethod
+    def get_instructor_url(cls, audio_key: str, lesson_id: str) -> str:
+        """
+        Convenience method for instructor narration audio (English).
+
+        Path: audio_library/conversations/{lesson_id}/instructor/{audio_key}.mp3
+
+        Args:
+            audio_key: Filename without extension (e.g., "inst_001")
+            lesson_id: Lesson identifier (e.g., "pimsleur_01")
+
+        Returns:
+            Full URL to instructor MP3
+        """
+        return f"{BASE_AUDIO_URL}/conversations/{lesson_id}/instructor/{audio_key}.mp3"
+
+    @classmethod
     def validate_voice(cls, voice: str) -> str:
         """
         Validate voice parameter and return valid voice.
