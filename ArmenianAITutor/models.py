@@ -5,7 +5,7 @@ Unified structures for vocabulary, sentences, and lessons with type safety.
 """
 
 from dataclasses import dataclass, field
-from typing import Optional, List, Literal
+from typing import Optional, List, Literal, Tuple
 
 
 @dataclass
@@ -113,3 +113,28 @@ class Lesson:
                 # Only add prefix if not already present
                 if not item.audio_key.startswith(self.prefix):
                     item.audio_key = f"{self.prefix}_{item.audio_key}"
+
+
+# ============================================================================
+# PIMSLEUR CONVERSATION MODELS
+# ============================================================================
+
+@dataclass
+class ConversationLine:
+    """A single line in a Pimsleur conversation script."""
+    speaker: str              # "instructor", "male", "female", "pause", "sfx"
+    text: str                 # The spoken text (English for instructor, Armenian for male/female)
+    phonetic: str = ""        # Pronunciation guide (for Armenian lines)
+    english: str = ""         # English translation (for Armenian lines)
+    duration: float = 0.0     # Pause duration in seconds (for pause lines)
+    audio_key: str = ""       # e.g., "line_003" — used for audio file lookup
+
+
+@dataclass
+class ConversationLesson:
+    """A complete Pimsleur-style conversation lesson."""
+    id: str                   # e.g., "pimsleur_01"
+    title: str                # e.g., "Hello & Goodbye"
+    unit: int                 # 1-4 (for grouping)
+    lines: List[ConversationLine] = field(default_factory=list)
+    new_vocabulary: List[str] = field(default_factory=list)

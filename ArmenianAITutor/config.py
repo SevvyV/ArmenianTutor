@@ -76,6 +76,7 @@ ENABLE_VERB_TOOL = True
 ENABLE_LIVE_TRANSLATOR = True
 ENABLE_VOICE_SELECTOR = True
 ENABLE_SPEECH_PRACTICE = True
+ENABLE_CONVERSATIONS = True
 
 
 # ============================================================================
@@ -86,14 +87,27 @@ WHISPER_MODEL = "whisper-1"
 WHISPER_LANGUAGE = "hy"
 SPEECH_ACCURACY_THRESHOLD = 70
 
+# Recording duration safeguards (seconds)
+MAX_RECORDING_SECONDS = 15   # Reject recordings longer than this
+MIN_RECORDING_SECONDS = 0.3  # Reject accidental taps shorter than this
+
 
 # ============================================================================
 # LESSON CONFIGURATION
 # ============================================================================
 
 # Total lessons in curriculum
-TOTAL_LESSONS = 44
-IMPLEMENTED_LESSONS = 44
+TOTAL_LESSONS = 43
+IMPLEMENTED_LESSONS = 43
 
 # Lesson display format
 LESSON_TITLE_FORMAT = "Lesson {num}: {title}"
+
+# Level groupings for lesson navigation.
+# Maps level label → (first_lesson_id, last_lesson_id) inclusive.
+# Update these ranges as new lessons are added.
+LESSON_LEVELS = {
+    "A1 Beginner": ("lesson_01", "lesson_15"),
+    "A2 Elementary": ("lesson_16", "lesson_30"),
+    "B1 Intermediate": ("lesson_31", "lesson_43"),
+}

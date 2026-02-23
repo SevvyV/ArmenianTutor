@@ -112,6 +112,25 @@ class AudioManager:
         return cls.get_url(audio_key, "verbs", "", voice)
     
     @classmethod
+    def get_conversation_url(cls, audio_key: str, lesson_id: str, voice: str = None) -> str:
+        """
+        Convenience method for Pimsleur conversation audio.
+
+        Path: audio_library/conversations/{lesson_id}/{voice}/{audio_key}.mp3
+
+        Args:
+            audio_key: Filename without extension (e.g., "line_004")
+            lesson_id: Lesson identifier (e.g., "pimsleur_01")
+            voice: "male" or "female"
+
+        Returns:
+            Full URL to conversation MP3
+        """
+        if voice is None:
+            voice = DEFAULT_VOICE
+        return f"{BASE_AUDIO_URL}/conversations/{lesson_id}/{voice}/{audio_key}.mp3"
+
+    @classmethod
     def validate_voice(cls, voice: str) -> str:
         """
         Validate voice parameter and return valid voice.
