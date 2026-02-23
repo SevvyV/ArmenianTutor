@@ -13,7 +13,11 @@ from translation import translate_and_speak
 from config import ENABLE_SPEECH_PRACTICE
 
 if ENABLE_SPEECH_PRACTICE:
-    from speech_analysis import render_mic_button
+    try:
+        from speech_analysis import render_mic_button
+    except ImportError:
+        ENABLE_SPEECH_PRACTICE = False
+        render_mic_button = None
 
 
 # ============================================================================
