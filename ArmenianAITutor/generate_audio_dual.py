@@ -15,6 +15,7 @@ Usage:
 """
 
 import os
+import re
 import sys
 import time
 import argparse
@@ -227,6 +228,14 @@ def apply_western_fixes(armenian_text: str) -> str:
     # Replace with թ+idelays+odelay+ν (theta-i-vo-nun) so TTS reads "tion"
     # as one syllable. Affects 12+ words (Tsedesutyoon, Shnorhagalutyoon, etc.)
     text = text.replace('\u0569\u056B\u0582\u0576', '\u0569\u056B\u0578\u0576')
+
+    # ── Pattern fix: word-initial Յ/յ → Հ/հ ──
+    # In Western Armenian, word-initial Յ is pronounced "h" (not "y").
+    # Eastern TTS reads Յ as "y", so replace with Հ ("h") at word boundaries.
+    # Examples: Յունուար→Հounvar, յիշել→հishel, յաdelays→հdelays
+    # Mid-word յ (e.g., in այ endings) is unaffected by \b word boundary.
+    text = re.sub(r'\bՅ', '\u0540', text)
+    text = re.sub(r'\bյ', '\u0570', text)
 
     # Apply consonant pair swap so Eastern TTS produces Western sounds.
     # In Western Armenian, these consonant pairs are pronounced with the

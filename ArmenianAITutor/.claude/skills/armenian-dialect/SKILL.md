@@ -75,6 +75,10 @@ Softens verb endings: k'uze, ke sire
 **Pattern 5 — "-tyoon" suffix split (theta-i-yiwn-nun → theta-i-vo-nun):**
 The Western -tyoon suffix (U+0569 U+056B U+0582 U+0576) gets split by Azure TTS into "tye" + "oon" (two syllables). Fix: replace yiwn (U+0582) with vo (U+0578) in the suffix so TTS reads it as one fluid syllable. This is a general pattern replacement in `apply_western_fixes()`, affecting 12+ words (Tsedesutyoon, Shnorhagalutyoon, etc.). Audio files must be regenerated after this fix.
 
+**Pattern 6 — Word-initial Yi = "h" not "y" (U+0545/U+0575 → U+0540/U+0570):**
+In Western Armenian, word-initial Yi (U+0545 uppercase, U+0575 lowercase) is pronounced "h", not "y" as in Eastern. The fix uses `re.sub(r'\bYi', 'Ho', text)` to replace at word boundaries only — mid-word Yi (e.g., in -ayi endings) is unaffected. Affects months (Hounvar, Hounis, Houlis), verbs (Hishel = "to remember"), adjectives (Hognadzadz = "tired"), and phrases (Hajoghoutyon = "success/luck").
+- See `generate_audio_dual.py` in `apply_western_fixes()`, after the -tyoon fix
+
 **When adding new lessons:** Scan for words with these patterns. Test-generate 2-3 flagged words and listen before bulk run. Add problem words to `WESTERN_TO_EASTERN_FIXES`.
 
 Always refer to the source code for exact Unicode mappings — this skill describes patterns conceptually.
