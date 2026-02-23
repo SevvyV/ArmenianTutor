@@ -38,7 +38,7 @@ LESSONS = {
             VocabItem("❓ How are you?", "Ինչպէ՞ս ես", "Eenchbes es?"),
             VocabItem("😊 I am well", "Լաւ եմ", "Lav em"),
             VocabItem("🙏 Thank you", "Շնորհակալ եմ", "Shnorhagal em"),
-            VocabItem("👋 Goodbye", "Ցտեսութիւն", "Tsedesutyun"),
+            VocabItem("👋 Goodbye", "Ցտեսութիւն", "Tsedesutyoon"),
         ]
     ),
     

@@ -6,7 +6,7 @@ greetings_data = [
     ("❓ How are you?", "Ինչպէ՞ս ես", "Inchbes es?"),
     ("😊 I am well", "Լաւ եմ", "Lav em"), 
     ("🙏 Thank you", "Շնորհակալ եմ", "Shnorhagal em"),
-    ("👋 Goodbye", "Ցտեսութիւն", "Tsedesutyun")
+    ("👋 Goodbye", "Ցտեսութիւն", "Tsedesutyoon")
 ]
 
 days_data = [

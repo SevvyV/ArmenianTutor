@@ -1,0 +1,15 @@
+# Streamlit secrets (API keys - never commit)
+.streamlit/secrets.toml
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment
+.env
+*.env
+
+# IDE
+.vscode/
+.idea/

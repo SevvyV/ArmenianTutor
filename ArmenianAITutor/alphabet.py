@@ -123,7 +123,7 @@ EASTERN_ALPHABET: List[AlphabetLetter] = [
     AlphabetLetter(28, "Ռ", "ռ", "Ռա", "Ra", "r", "rolled r"),
     AlphabetLetter(29, "Ս", "ս", "Սեհ", "Seh", "s", "as in sit"),
     AlphabetLetter(30, "Վ", "վ", "Վեւ", "Vev", "v", "as in voice"),
-    AlphabetLetter(31, "Տ", "տ", "Տիւն", "Tyun", "t", "as in top"),
+    AlphabetLetter(31, "Տ", "տ", "Տիւն", "Tyoon", "t", "as in top"),
     AlphabetLetter(32, "Ր", "ր", "Րե", "Re", "r", "soft r"),
     AlphabetLetter(33, "Ց", "ց", "Ցո", "Tso", "ts", "as in cats"),
     AlphabetLetter(34, "Ւ", "ւ", "Ւիւն", "Vyun", "v/u", "as in cool"),
