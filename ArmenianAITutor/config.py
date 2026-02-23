@@ -76,6 +76,7 @@ ENABLE_VERB_TOOL = True
 ENABLE_LIVE_TRANSLATOR = True
 ENABLE_VOICE_SELECTOR = True
 ENABLE_SPEECH_PRACTICE = True
+ENABLE_CONVERSATIONS = True
 
 
 # ============================================================================

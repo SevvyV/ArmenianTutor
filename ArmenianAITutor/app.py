@@ -14,7 +14,7 @@ import streamlit as st
 from config import (
     APP_TITLE, APP_ICON, LAYOUT, INITIAL_SIDEBAR_STATE,
     AVAILABLE_VOICES, DEFAULT_VOICE, ENABLE_VERB_TOOL, ENABLE_LIVE_TRANSLATOR,
-    BASE_IMAGE_URL, ENABLE_SPEECH_PRACTICE, LESSON_LEVELS
+    BASE_IMAGE_URL, ENABLE_SPEECH_PRACTICE, LESSON_LEVELS, ENABLE_CONVERSATIONS
 )
 from lessons import LESSONS
 from prayers import PRAYERS, list_prayers
@@ -82,6 +82,9 @@ if "current_lesson" not in st.session_state:
 
 if "current_prayer" not in st.session_state:
     st.session_state.current_prayer = "lords_prayer"
+
+if "current_conversation" not in st.session_state:
+    st.session_state.current_conversation = "pimsleur_01"
 
 
 # ============================================================================
@@ -382,8 +385,11 @@ def main():
     if ENABLE_VERB_TOOL:
         tab_names.append("📝 Verbs")
         tab_keys.append("verbs")
+    if ENABLE_CONVERSATIONS:
+        tab_names.append("🗣️ Conversations")
+        tab_keys.append("conversations")
     if ENABLE_LIVE_TRANSLATOR:
-        tab_names.append("🗣️ Translator")
+        tab_names.append("💬 Translator")
         tab_keys.append("translator")
 
     tabs = st.tabs(tab_names)
@@ -470,6 +476,12 @@ def main():
     # --- ALPHABET TAB ---
     with tab_map["alphabet"]:
         render_alphabet()
+
+    # --- CONVERSATIONS TAB ---
+    if "conversations" in tab_map:
+        with tab_map["conversations"]:
+            from pimsleur_renderer import render_conversations
+            render_conversations(st.session_state.voice)
 
     # --- VERBS TAB ---
     if "verbs" in tab_map:
