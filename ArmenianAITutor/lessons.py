@@ -719,7 +719,7 @@ LESSONS = {
             VocabItem("😠 Angry", "Պարկացած", "Pargatsadz"),
             VocabItem("😨 Afraid / Scared", "Վախցած", "Vakhtsadz"),
             VocabItem("😮‍💨 Surprised", "Զարմացած", "Zarmatsadz"),
-            VocabItem("😴 Tired", "Յոգնած", "Yoknadzadz"),
+            VocabItem("😴 Tired", "Յոգնած", "Hognadzadz"),
             VocabItem("😍 Thrilled / Excited", "Հիացած եմ", "Hiatsadz em"),
             VocabItem("😔 Worried", "Մտահոգ", "Mdahok"),
             VocabItem("😐 Bored", "Ձանձրացած", "Tsantratsadz"),
@@ -813,7 +813,7 @@ LESSONS = {
             VocabItem("You're welcome", "Խնդրեմ", "Khntrem"),
             VocabItem("Cheers!", "Կենացը", "Genatse"),
             VocabItem("Bless you", "Առողջութիւն", "Aroghchoutiun"),
-            VocabItem("Good luck", "Պարի յաջողութիւն", "Pari yajoghoutun"),
+            VocabItem("Good luck", "Պարի յաջողութիւն", "Pari hajoghoutun"),
         ]
     ),
     
