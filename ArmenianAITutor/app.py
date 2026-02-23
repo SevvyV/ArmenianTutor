@@ -23,7 +23,11 @@ from audio_manager import AudioManager
 from renderers import render_verb_conjugation_tool, render_live_translator
 
 if ENABLE_SPEECH_PRACTICE:
-    from speech_analysis import render_mic_button
+    try:
+        from speech_analysis import render_mic_button
+    except ImportError:
+        ENABLE_SPEECH_PRACTICE = False
+        render_mic_button = None
 
 
 def get_image_url(english_text, lesson_id, prefix):
@@ -107,8 +111,11 @@ with st.sidebar:
 
     # Pimsleur lesson player sidebar controls
     if ENABLE_CONVERSATIONS:
-        from pimsleur_renderer import render_pimsleur_sidebar
-        render_pimsleur_sidebar()
+        try:
+            from pimsleur_renderer import render_pimsleur_sidebar
+            render_pimsleur_sidebar()
+        except ImportError:
+            pass
 
 
 # ============================================================================
@@ -485,8 +492,11 @@ def main():
     # --- CONVERSATIONS TAB ---
     if "conversations" in tab_map:
         with tab_map["conversations"]:
-            from pimsleur_renderer import render_conversations
-            render_conversations(st.session_state.voice)
+            try:
+                from pimsleur_renderer import render_conversations
+                render_conversations(st.session_state.voice)
+            except ImportError:
+                st.warning("Conversations module unavailable.")
 
     # --- VERBS TAB ---
     if "verbs" in tab_map:

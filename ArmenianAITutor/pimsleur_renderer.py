@@ -29,7 +29,12 @@ from config import (
 )
 
 if ENABLE_SPEECH_PRACTICE:
-    from speech_analysis import render_mic_button, render_mic_inline
+    try:
+        from speech_analysis import render_mic_button, render_mic_inline
+    except ImportError:
+        ENABLE_SPEECH_PRACTICE = False
+        render_mic_button = None
+        render_mic_inline = None
 
 
 # ============================================================================
