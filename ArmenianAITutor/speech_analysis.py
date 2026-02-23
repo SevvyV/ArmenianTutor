@@ -20,7 +20,7 @@ from openai import OpenAI
 
 from config import (
     WHISPER_MODEL, WHISPER_LANGUAGE, SPEECH_ACCURACY_THRESHOLD,
-    MAX_RECORDING_SECONDS, MIN_RECORDING_SECONDS
+    MAX_RECORDING_SECONDS, MIN_RECORDING_SECONDS, DEBUG_SPEECH
 )
 
 
@@ -43,33 +43,39 @@ class ComparisonResult:
 # TEXT NORMALIZATION
 # ============================================================================
 
-# Western ↔ Eastern Armenian consonant shift pairs.
-# Whisper transcribes in Eastern Armenian spelling, but the app uses Western.
-# These pairs sound the same but are written with different letters.
-# We normalize both sides to a canonical form so the comparison is fair.
-CONSONANT_SHIFT_MAP = {
-    # Պ/պ (B in Western) → Բ/բ (B in Eastern) — B/P pair
-    'Պ': 'Բ', 'պ': 'բ',
-    # Կ/կ (G in Western) → Գ/գ (G in Eastern) — G/K pair
-    'Կ': 'Գ', 'կ': 'գ',
-    # Տ/տ (D in Western) → Դ/դ (D in Eastern) — D/T pair
-    'Տ': 'Դ', 'տ': 'դ',
-    # Ձ/ձ (TS in Western) → Ծ/ծ (TS in Eastern) — TS/DZ pair
-    'Ձ': 'Ծ', 'ձ': 'ծ',
-    # Չ/չ (CH in Western) → Ճ/ճ (CH in Eastern) — CH/J pair
+# ── Consonant swap: convert Western Armenian spelling → Eastern Armenian ──
+# Same swap used by TTS (generate_audio_dual.py). Applied to the EXPECTED
+# text before comparing with Whisper output, so both sides are in Eastern form.
+# Bidirectional: Բ↔Պ, Գ↔Կ, Դ↔Տ, Ծ↔Ձ, Ճ↔Ջ (plus lowercase).
+WESTERN_TO_EASTERN_SWAP = str.maketrans(
+    "ԲբՊպԳգԿկԴդՏտԾծՁձՃճՋջ",
+    "ՊպԲբԿկԳգՏտԴդՁձԾծՋջՃճ",
+)
+
+# ── Sounds-alike normalization ──
+# After converting expected to Eastern, Whisper may still use variant letters
+# for similar sounds. These map all variants to a single canonical form.
+SOUNDS_ALIKE_MAP = {
+    # Ց(U+0551, Co/Tso) → Ծ(U+053E, Tsa) — both make TS sound
+    'Ց': 'Ծ', 'ց': 'ծ',
+    # Չ(U+0549, Cha) → Ճ(U+0543, Cha) — both make CH sound
     'Չ': 'Ճ', 'չ': 'ճ',
+    # Փ(U+0553, Piwr) → Պ(U+054A, Peh) — both make P sound
+    'Փ': 'Պ', 'փ': 'պ',
+    # Ք(U+0554, Keh) → Կ(U+053F, Ken) — both make K sound
+    'Ք': 'Կ', 'ք': 'կ',
+    # Թ(U+0539, To) → Տ(U+054F, Tiwn) — both make T sound
+    'Թ': 'Տ', 'թ': 'տ',
+    # Ւ(U+0552, Yiwn) → Վ(U+054E, Vew) — both make V sound
+    # Western uses Yiwn, Eastern uses Vew for "v" (e.g., Barev)
+    'Ւ': 'Վ', 'ւ': 'վ',
 }
 
 
-def _normalize_consonants(text: str) -> str:
-    """
-    Normalize Western/Eastern Armenian consonant shifts.
-
-    Maps paired consonants to a canonical form so that the same spoken
-    sound matches regardless of which orthography was used.
-    """
-    for eastern, western in CONSONANT_SHIFT_MAP.items():
-        text = text.replace(eastern, western)
+def _normalize_sounds_alike(text: str) -> str:
+    """Map variant letters that sound alike to a canonical form."""
+    for variant, canonical in SOUNDS_ALIKE_MAP.items():
+        text = text.replace(variant, canonical)
     return text
 
 
@@ -78,7 +84,9 @@ def _normalize_armenian(text: str) -> str:
     Normalize Armenian text for fair comparison.
 
     Handles Unicode normalization, punctuation removal, apostrophe variants,
-    Armenian-specific modifier marks, and Western/Eastern consonant shifts.
+    Armenian-specific modifier marks, and sounds-alike consolidation.
+    NOTE: Does NOT do consonant shifts — the expected text is converted to
+    Eastern form before this function is called.
     """
     # Unicode NFC normalization
     text = unicodedata.normalize('NFC', text)
@@ -92,12 +100,12 @@ def _normalize_armenian(text: str) -> str:
     text = re.sub(f'[{armenian_punctuation}]', '', text)
 
     # Remove ASCII punctuation and apostrophes
-    # Apostrophes appear in Western Armenian contractions (e.g., Inding'delays)
+    # Apostrophes appear in Western Armenian contractions
     # but Whisper never produces them
     text = re.sub(r"[.,!?;:\-\"\(\)']", '', text)
 
-    # Normalize consonant shifts (Western ↔ Eastern)
-    text = _normalize_consonants(text)
+    # Normalize sounds-alike variants (e.g., Whisper uses Փ where we expect Պ)
+    text = _normalize_sounds_alike(text)
 
     # Lowercase (Armenian has case: upper Ա-Ֆ, lower ա-ֆ)
     text = text.lower()
@@ -192,6 +200,25 @@ def transcribe_audio(audio_bytes: bytes, api_key: str) -> str:
 # COMPARISON
 # ============================================================================
 
+def _debug_print(msg: str):
+    """Print debug message, handling Windows cp1252 encoding."""
+    try:
+        print(msg)
+    except UnicodeEncodeError:
+        print(msg.encode('ascii', errors='replace').decode('ascii'))
+
+
+def _debug_codepoints(label: str, text: str):
+    """Print Unicode codepoints for each character (debug helper)."""
+    chars = ' '.join(f'U+{ord(c):04X}' for c in text)
+    # Use Unicode escapes for the text repr to avoid Windows encoding issues
+    safe_repr = ''.join(
+        c if ord(c) < 128 else f'\\u{ord(c):04X}' for c in text
+    )
+    _debug_print(f"  {label}: \"{safe_repr}\"")
+    _debug_print(f"    codepoints: {chars}")
+
+
 def compare_armenian_text(transcribed: str, expected: str) -> ComparisonResult:
     """
     Compare transcribed text against expected Armenian text.
@@ -202,11 +229,29 @@ def compare_armenian_text(transcribed: str, expected: str) -> ComparisonResult:
     3. Fuzzy matching with length-aware thresholds
     4. Sentence-level character similarity as fallback
     """
+    # Convert expected text from Western → Eastern consonants so both sides
+    # are in the same orthography that Whisper uses. The UI still shows the
+    # original Western text — this transform is only for comparison.
+    expected_eastern = expected.translate(WESTERN_TO_EASTERN_SWAP)
+
     t_norm = _normalize_armenian(transcribed)
-    e_norm = _normalize_armenian(expected)
+    e_norm = _normalize_armenian(expected_eastern)
+
+    if DEBUG_SPEECH:
+        _debug_print("\n=== SPEECH COMPARISON DEBUG ===")
+        _debug_codepoints("Expected (raw Western)", expected)
+        _debug_codepoints("Expected (Eastern swap)", expected_eastern)
+        _debug_codepoints("Transcribed (raw)", transcribed)
+        _debug_codepoints("Expected (normalized)", e_norm)
+        _debug_codepoints("Transcribed (normalized)", t_norm)
+        _debug_print(f"  Normalized match: {t_norm == e_norm}")
 
     t_words = t_norm.split()
     e_words = e_norm.split()
+
+    # Keep original Western expected words for display in word_matches UI.
+    # Strip punctuation so word count aligns with normalized version.
+    orig_expected_words = re.sub(r"[.,!?;:\-\"\(\)']", '', expected).split()
 
     if not e_words:
         accuracy = 100.0 if not t_words else 0.0
@@ -223,6 +268,7 @@ def compare_armenian_text(transcribed: str, expected: str) -> ComparisonResult:
     # so we normalize both sides to match.
     t_words = _merge_short_prefixes(t_words)
     e_words = _merge_short_prefixes(e_words)
+    orig_expected_words = _merge_short_prefixes(orig_expected_words)
 
     # Fuzzy word matching: for each expected word, find best match
     # in transcribed words. Use length-aware threshold since short words
@@ -258,7 +304,9 @@ def compare_armenian_text(transcribed: str, expected: str) -> ComparisonResult:
         if matched and best_idx >= 0:
             used_t_indices.add(best_idx)
 
-        word_matches.append((e_word, matched))
+        # Use original Western word for display (if available), normalized for matching
+        display_word = orig_expected_words[len(word_matches)] if len(word_matches) < len(orig_expected_words) else e_word
+        word_matches.append((display_word, matched))
 
     matched_count = sum(1 for _, m in word_matches if m)
     word_accuracy = (matched_count / len(e_words)) * 100.0
@@ -272,6 +320,18 @@ def compare_armenian_text(transcribed: str, expected: str) -> ComparisonResult:
 
     # Use the better of word-level or sentence-level accuracy
     accuracy = max(word_accuracy, sentence_accuracy)
+
+    if DEBUG_SPEECH:
+        # Word matches may contain Armenian chars — make safe
+        safe_matches = [
+            (''.join(f'\\u{ord(c):04X}' if ord(c) > 127 else c for c in w), m)
+            for w, m in word_matches
+        ]
+        _debug_print(f"  Word matches: {safe_matches}")
+        _debug_print(f"  Word accuracy: {word_accuracy:.1f}%")
+        _debug_print(f"  Sentence accuracy: {sentence_accuracy:.1f}%")
+        _debug_print(f"  Final accuracy: {accuracy:.1f}%")
+        _debug_print("=== END DEBUG ===\n")
 
     return ComparisonResult(
         transcribed=transcribed,

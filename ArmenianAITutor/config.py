@@ -98,6 +98,9 @@ SPEECH_ACCURACY_THRESHOLD = 70
 MAX_RECORDING_SECONDS = 15   # Reject recordings longer than this
 MIN_RECORDING_SECONDS = 0.3  # Reject accidental taps shorter than this
 
+# Debug: log normalization details to terminal (set True to diagnose)
+DEBUG_SPEECH = False
+
 
 # ============================================================================
 # LESSON CONFIGURATION

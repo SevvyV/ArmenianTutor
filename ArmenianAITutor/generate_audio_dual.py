@@ -221,6 +221,13 @@ def apply_western_fixes(armenian_text: str) -> str:
     for western, eastern in WESTERN_TO_EASTERN_FIXES.items():
         text = text.replace(western, eastern)
 
+    # ── Pattern fix: -tyoon suffix (թիւն → թիոն) ──
+    # Western -tyoon uses թ+ delays+delays+ن (theta-i-yiwn-nun).
+    # Eastern TTS splits this into "tye" + "oon" (two syllables).
+    # Replace with թ+idelays+odelay+ν (theta-i-vo-nun) so TTS reads "tion"
+    # as one syllable. Affects 12+ words (Tsedesutyoon, Shnorhagalutyoon, etc.)
+    text = text.replace('\u0569\u056B\u0582\u0576', '\u0569\u056B\u0578\u0576')
+
     # Apply consonant pair swap so Eastern TTS produces Western sounds.
     # In Western Armenian, these consonant pairs are pronounced with the
     # opposite voicing compared to Eastern Armenian:
