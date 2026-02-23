@@ -208,20 +208,39 @@ WESTERN_TO_EASTERN_FIXES = {
 def apply_western_fixes(armenian_text: str) -> str:
     """
     Apply Western → Eastern pronunciation hacks for better TTS.
-    
+
     Args:
         armenian_text: Original Western Armenian text
-    
+
     Returns:
         Modified text optimized for Azure TTS
     """
     text = armenian_text
-    
-    # Apply known fixes
+
+    # Apply known word-level fixes (vowel/semivowel patterns)
     for western, eastern in WESTERN_TO_EASTERN_FIXES.items():
         text = text.replace(western, eastern)
-    
+
+    # Apply consonant pair swap so Eastern TTS produces Western sounds.
+    # In Western Armenian, these consonant pairs are pronounced with the
+    # opposite voicing compared to Eastern Armenian:
+    #   Western Բ = "P" but Eastern TTS reads Բ as "B"
+    #   Western Պ = "B" but Eastern TTS reads Պ as "P"
+    # By swapping each pair, the Eastern voice says what Western ears expect.
+    #
+    # str.maketrans does simultaneous character replacement (no collision).
+    text = text.translate(WESTERN_CONSONANT_SWAP)
+
     return text
+
+
+# Bidirectional consonant swap table for Western → Eastern TTS.
+# Each pair is swapped simultaneously:
+#   Բ↔Պ (B/P), Գ↔Կ (G/K), Դ↔Տ (D/T), Ձ↔Ծ (DZ/TS), Ջ↔Ճ (J/CH)
+WESTERN_CONSONANT_SWAP = str.maketrans(
+    "ԲբՊպԳգԿկԴդՏտԾծՁձՃճՋջ",
+    "ՊպԲբԿկԳգՏտԴդՁձԾծՋջՃճ",
+)
 
 
 # ============================================================================
