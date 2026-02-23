@@ -358,6 +358,7 @@ def _get_wav_duration(audio_bytes: bytes) -> float:
 def render_mic_button(expected_armenian: str, widget_key: str):
     """
     Render the microphone input widget and pronunciation feedback.
+    Wrapped in an expander (collapsed by default) — for vocab/sentence tabs.
 
     Args:
         expected_armenian: The target armenian_display text
@@ -368,45 +369,70 @@ def render_mic_button(expected_armenian: str, widget_key: str):
         return
 
     with st.expander("🎤 Practice Speaking", expanded=False):
-        audio_data = st.audio_input("Record yourself:", key=widget_key)
+        _render_mic_core(expected_armenian, widget_key)
 
-        if audio_data is not None:
-            audio_bytes = audio_data.getvalue()
-            duration = _get_wav_duration(audio_bytes)
 
-            # Safeguard: reject recordings that are too short or too long
-            if duration < MIN_RECORDING_SECONDS:
-                st.warning("Recording too short. Please try again.")
-                return
-            if duration > MAX_RECORDING_SECONDS:
-                st.warning(
-                    f"Recording too long ({duration:.0f}s). "
-                    f"Please keep recordings under {MAX_RECORDING_SECONDS}s."
+def render_mic_inline(expected_armenian: str, widget_key: str):
+    """
+    Render the microphone input widget INLINE (no expander).
+    Used by the Pimsleur lesson player where the mic should be prominent.
+
+    Args:
+        expected_armenian: The target armenian_display text
+        widget_key: Unique Streamlit key for this widget instance
+    """
+    if "OPENAI_API_KEY" not in st.secrets:
+        st.info("Speech practice requires an OpenAI API key in Streamlit secrets.")
+        return
+
+    st.markdown("#### Record yourself:")
+    _render_mic_core(expected_armenian, widget_key)
+
+
+def _render_mic_core(expected_armenian: str, widget_key: str):
+    """
+    Core mic recording + Whisper analysis logic.
+    Called by both render_mic_button (expander) and render_mic_inline (no expander).
+    """
+    audio_data = st.audio_input("Record yourself:", key=widget_key)
+
+    if audio_data is not None:
+        audio_bytes = audio_data.getvalue()
+        duration = _get_wav_duration(audio_bytes)
+
+        # Safeguard: reject recordings that are too short or too long
+        if duration < MIN_RECORDING_SECONDS:
+            st.warning("Recording too short. Please try again.")
+            return
+        if duration > MAX_RECORDING_SECONDS:
+            st.warning(
+                f"Recording too long ({duration:.0f}s). "
+                f"Please keep recordings under {MAX_RECORDING_SECONDS}s."
+            )
+            return
+
+        result_key = f"result_{widget_key}"
+        audio_hash = hash(audio_bytes)
+        hash_key = f"hash_{widget_key}"
+
+        # Only call Whisper if this is a new recording
+        if st.session_state.get(hash_key) != audio_hash:
+            st.session_state[hash_key] = audio_hash
+            try:
+                api_key = st.secrets["OPENAI_API_KEY"]
+                result = analyze_pronunciation(
+                    audio_bytes,
+                    expected_armenian,
+                    api_key
                 )
-                return
+                st.session_state[result_key] = result
+            except SpeechAnalysisError as e:
+                st.session_state[result_key] = None
+                st.error(str(e))
+            except Exception as e:
+                st.session_state[result_key] = None
+                st.error(f"An error occurred: {str(e)}")
 
-            result_key = f"result_{widget_key}"
-            audio_hash = hash(audio_bytes)
-            hash_key = f"hash_{widget_key}"
-
-            # Only call Whisper if this is a new recording
-            if st.session_state.get(hash_key) != audio_hash:
-                st.session_state[hash_key] = audio_hash
-                try:
-                    api_key = st.secrets["OPENAI_API_KEY"]
-                    result = analyze_pronunciation(
-                        audio_bytes,
-                        expected_armenian,
-                        api_key
-                    )
-                    st.session_state[result_key] = result
-                except SpeechAnalysisError as e:
-                    st.session_state[result_key] = None
-                    st.error(str(e))
-                except Exception as e:
-                    st.session_state[result_key] = None
-                    st.error(f"An error occurred: {str(e)}")
-
-            # Display cached result
-            if st.session_state.get(result_key):
-                render_speech_feedback(st.session_state[result_key])
+        # Display cached result
+        if st.session_state.get(result_key):
+            render_speech_feedback(st.session_state[result_key])

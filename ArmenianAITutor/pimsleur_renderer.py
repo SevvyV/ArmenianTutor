@@ -19,8 +19,6 @@ Architecture:
 import json
 import streamlit as st
 import streamlit.components.v1 as components
-from dataclasses import dataclass, field
-from typing import List, Optional
 
 from pimsleur_data import PIMSLEUR_LESSONS, PIMSLEUR_UNITS
 from audio_manager import AudioManager
@@ -31,38 +29,36 @@ from config import (
 )
 
 if ENABLE_SPEECH_PRACTICE:
-    from speech_analysis import render_mic_button
+    from speech_analysis import render_mic_button, render_mic_inline
 
 
 # ============================================================================
-# SEGMENT DATA STRUCTURE
+# SEGMENT DATA STRUCTURE (plain dicts for session state compatibility)
 # ============================================================================
 
-@dataclass
-class LessonSegment:
-    """A group of lines that play continuously between pauses."""
-    index: int
-    lines: list                         # ConversationLine objects in this segment
-    audio_urls: list                    # Ordered list of audio URLs to play
-    pause_after: object = None          # The pause ConversationLine, if any
-    practice_text: str = ""             # Armenian text to practice at the pause
-    practice_phonetic: str = ""         # Phonetic guide for the practice text
-    practice_english: str = ""          # English translation for context
-
-
-def build_segments(lesson, voice: str) -> List[LessonSegment]:
+def build_segments(lesson, voice: str) -> list:
     """
     Split a lesson into playable segments at pause boundaries.
 
-    Each segment contains consecutive non-pause lines and their audio URLs.
-    When a pause line is reached, the current segment is finalized.
+    Each segment is a plain dict (not a dataclass) so it survives
+    Streamlit session state serialization across reruns.
+
+    Each segment contains:
+        index: int
+        lines: list of dicts with speaker/text/phonetic/english/audio_key
+        audio_urls: ordered list of audio URLs to play
+        pause_text: str - the pause line's text (e.g., "Practice (3s)")
+        has_pause: bool - whether this segment ends with a pause
+        practice_text: str - Armenian text to practice
+        practice_phonetic: str - phonetic guide
+        practice_english: str - English translation
 
     Args:
         lesson: ConversationLesson instance
         voice: "male" or "female" for Armenian audio
 
     Returns:
-        List of LessonSegment objects
+        List of segment dicts
     """
     segments = []
     current_lines = []
@@ -74,15 +70,16 @@ def build_segments(lesson, voice: str) -> List[LessonSegment]:
     for line in lesson.lines:
         if line.speaker == "pause":
             # Finalize current segment at this pause
-            segments.append(LessonSegment(
-                index=len(segments),
-                lines=list(current_lines),
-                audio_urls=list(current_urls),
-                pause_after=line,
-                practice_text=last_armenian_text,
-                practice_phonetic=last_armenian_phonetic,
-                practice_english=last_armenian_english,
-            ))
+            segments.append({
+                "index": len(segments),
+                "lines": [_line_to_dict(l) for l in current_lines],
+                "audio_urls": list(current_urls),
+                "has_pause": True,
+                "pause_text": line.text,
+                "practice_text": last_armenian_text,
+                "practice_phonetic": last_armenian_phonetic,
+                "practice_english": last_armenian_english,
+            })
             current_lines = []
             current_urls = []
         else:
@@ -105,15 +102,29 @@ def build_segments(lesson, voice: str) -> List[LessonSegment]:
 
     # Trailing segment after the last pause (closing lines)
     if current_lines:
-        segments.append(LessonSegment(
-            index=len(segments),
-            lines=list(current_lines),
-            audio_urls=list(current_urls),
-            pause_after=None,
-            practice_text="",
-        ))
+        segments.append({
+            "index": len(segments),
+            "lines": [_line_to_dict(l) for l in current_lines],
+            "audio_urls": list(current_urls),
+            "has_pause": False,
+            "pause_text": "",
+            "practice_text": "",
+            "practice_phonetic": "",
+            "practice_english": "",
+        })
 
     return segments
+
+
+def _line_to_dict(line) -> dict:
+    """Convert a ConversationLine to a plain dict for session state storage."""
+    return {
+        "speaker": line.speaker,
+        "text": line.text,
+        "phonetic": getattr(line, "phonetic", ""),
+        "english": getattr(line, "english", ""),
+        "audio_key": getattr(line, "audio_key", ""),
+    }
 
 
 # ============================================================================
@@ -301,26 +312,31 @@ def _build_audio_queue_html(audio_urls: list, segment_index: int) -> str:
 # ============================================================================
 
 def _render_line_transcript(line):
-    """Compact line rendering for the playing transcript."""
-    if line.speaker == "instructor":
+    """Compact line rendering for the playing transcript. Accepts dict or object."""
+    speaker = line.get("speaker", "") if isinstance(line, dict) else getattr(line, "speaker", "")
+    text = line.get("text", "") if isinstance(line, dict) else getattr(line, "text", "")
+    phonetic = line.get("phonetic", "") if isinstance(line, dict) else getattr(line, "phonetic", "")
+    english = line.get("english", "") if isinstance(line, dict) else getattr(line, "english", "")
+
+    if speaker == "instructor":
         st.markdown(
             f'<div style="padding: 6px 12px; margin: 4px 0; color: #555; '
             f'font-style: italic; font-size: 0.95em;">'
-            f'{line.text}</div>',
+            f'{text}</div>',
             unsafe_allow_html=True,
         )
-    elif line.speaker in ("male", "female"):
-        icon = "M" if line.speaker == "male" else "F"
-        color = "#1E88E5" if line.speaker == "male" else "#8E24AA"
+    elif speaker in ("male", "female"):
+        icon = "M" if speaker == "male" else "F"
+        color = "#1E88E5" if speaker == "male" else "#8E24AA"
         st.markdown(
             f'<div style="border-left: 3px solid {color}; padding: 6px 12px; margin: 4px 0;">'
-            f'<span style="font-size: 1.3em; font-weight: bold;">{line.text}</span>'
-            f'<br><span style="color: #888; font-size: 0.9em;">{line.phonetic}</span>'
-            f' &mdash; <span style="color: #666;">{line.english}</span>'
+            f'<span style="font-size: 1.3em; font-weight: bold;">{text}</span>'
+            f'<br><span style="color: #888; font-size: 0.9em;">{phonetic}</span>'
+            f' &mdash; <span style="color: #666;">{english}</span>'
             f'</div>',
             unsafe_allow_html=True,
         )
-    elif line.speaker == "sfx":
+    elif speaker == "sfx":
         pass  # Silent visual marker, skip in transcript
 
 
@@ -451,8 +467,8 @@ def _render_idle(voice: str):
 
     # Lesson stats
     segments = build_segments(lesson, voice)
-    total_audio = sum(len(s.audio_urls) for s in segments)
-    practice_points = sum(1 for s in segments if s.pause_after)
+    total_audio = sum(len(s["audio_urls"]) for s in segments)
+    practice_points = sum(1 for s in segments if s["has_pause"])
 
     st.caption(
         f"{len(lesson.lines)} steps | {len(segments)} segments | "
@@ -509,14 +525,14 @@ def _render_playing(voice: str):
 
     # Show transcript of current segment
     st.markdown("---")
-    for line in segment.lines:
+    for line in segment["lines"]:
         _render_line_transcript(line)
 
     # Audio queue player
     st.markdown("")
-    if segment.audio_urls:
+    if segment["audio_urls"]:
         components.html(
-            _build_audio_queue_html(segment.audio_urls, seg_idx),
+            _build_audio_queue_html(segment["audio_urls"], seg_idx),
             height=130,
         )
     else:
@@ -527,7 +543,7 @@ def _render_playing(voice: str):
     # Continue button — advances to practice or next segment
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        if segment.pause_after:
+        if segment["has_pause"]:
             btn_label = "Continue to Practice"
         elif seg_idx + 1 < total_segments:
             btn_label = "Continue"
@@ -540,7 +556,7 @@ def _render_playing(voice: str):
             use_container_width=True,
             key=f"continue_playing_{seg_idx}",
         ):
-            if segment.pause_after:
+            if segment["has_pause"]:
                 st.session_state.pimsleur_state = "PRACTICE"
             elif seg_idx + 1 < total_segments:
                 st.session_state.pimsleur_segment = seg_idx + 1
@@ -586,6 +602,7 @@ def _render_practice(voice: str):
     st.markdown("---")
 
     # Practice prompt
+    pause_text = segment.get("pause_text", "Practice") if isinstance(segment, dict) else "Practice"
     st.markdown(
         f"""<div style="
             background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
@@ -597,35 +614,51 @@ def _render_practice(voice: str):
         ">
             <h2 style="margin: 0 0 8px 0; color: #E65100;">Your Turn!</h2>
             <p style="margin: 0; color: #555; font-size: 1.1em;">
-                {segment.pause_after.text if segment.pause_after else "Practice"}
+                {pause_text}
             </p>
         </div>""",
         unsafe_allow_html=True,
     )
 
+    # Find the Armenian phrase to practice
+    p_text = segment.get("practice_text", "") or ""
+    p_phonetic = segment.get("practice_phonetic", "") or ""
+    p_english = segment.get("practice_english", "") or ""
+
+    # Fallback: scan this segment's lines for the last Armenian line
+    if not p_text:
+        for line in reversed(segment.get("lines", [])):
+            speaker = line.get("speaker", "") if isinstance(line, dict) else ""
+            text = line.get("text", "") if isinstance(line, dict) else ""
+            if speaker in ("male", "female") and text:
+                p_text = text
+                p_phonetic = line.get("phonetic", "")
+                p_english = line.get("english", "")
+                break
+
     # Show the Armenian phrase to practice
-    if segment.practice_text:
+    if p_text:
         st.markdown(
             f"""<div style="text-align: center; padding: 16px 0;">
                 <div style="font-size: 2.2em; font-weight: bold; margin-bottom: 8px;">
-                    {segment.practice_text}
+                    {p_text}
                 </div>
                 <div style="font-size: 1.2em; color: #888; font-style: italic;">
-                    {segment.practice_phonetic}
+                    {p_phonetic}
                 </div>
                 <div style="font-size: 1em; color: #666; margin-top: 4px;">
-                    {segment.practice_english}
+                    {p_english}
                 </div>
             </div>""",
             unsafe_allow_html=True,
         )
 
-        # Mic recorder with Whisper feedback
-        if ENABLE_SPEECH_PRACTICE:
-            render_mic_button(
-                segment.practice_text,
-                f"mic_pimsleur_{lesson_id}_seg_{seg_idx}"
-            )
+    # Mic recorder with Whisper feedback (inline, always visible)
+    if ENABLE_SPEECH_PRACTICE and p_text:
+        render_mic_inline(
+            p_text,
+            f"mic_pimsleur_{lesson_id}_seg_{seg_idx}"
+        )
 
     st.markdown("")
 
