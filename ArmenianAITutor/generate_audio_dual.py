@@ -25,6 +25,8 @@ from azure.keyvault.secrets import SecretClient
 from pathlib import Path
 from lessons import LESSONS
 from verb_conjugation import VERBS
+from alphabet import WESTERN_ALPHABET, EASTERN_ALPHABET
+from prayers import PRAYERS
 
 
 # ============================================================================
@@ -647,6 +649,155 @@ def generate_verb_audio(tts: DualVoiceTTS, voices: list, output_dir: str = "audi
     return stats
 
 
+def generate_alphabet_audio(tts: DualVoiceTTS, voices: list, output_dir: str = "audio_library"):
+    """
+    Generate audio for all 38 Armenian alphabet letters.
+
+    Produces both Western and Eastern pronunciation for each letter,
+    for each voice. Western uses apply_western_fixes() so Eastern TTS
+    produces Western sounds; Eastern uses no fixes.
+
+    Output structure:
+        audio_library/alphabet/{voice}/alphabet_{position:02d}w.mp3  (Western)
+        audio_library/alphabet/{voice}/alphabet_{position:02d}e.mp3  (Eastern)
+
+    Total files: 38 letters x 2 dialects x len(voices) = 152 for both voices.
+    """
+
+    print("\n" + "="*70)
+    print("🔤 GENERATING ALPHABET AUDIO")
+    print("="*70)
+
+    stats = {"total": 0, "success": 0, "failed": 0, "skipped": 0}
+
+    for voice in voices:
+        print(f"\n   Voice: {voice.capitalize()}")
+        voice_dir = f"{output_dir}/alphabet/{voice}"
+
+        # --- Western alphabet (suffix "w") ---
+        print("   Dialect: Western")
+        for letter in WESTERN_ALPHABET:
+            stats["total"] += 1
+            output_path = f"{voice_dir}/alphabet_{letter.position:02d}w.mp3"
+
+            if os.path.exists(output_path):
+                stats["skipped"] += 1
+                continue
+
+            # Use the Armenian letter name; apply Western fixes so
+            # Eastern TTS produces Western consonant sounds.
+            if tts.synthesize_to_file(letter.armenian_name, output_path, voice, apply_fixes=True):
+                print(f"      \u2705 alphabet_{letter.position:02d}w.mp3  ({letter.phonetic})")
+                stats["success"] += 1
+            else:
+                print(f"      \u274c alphabet_{letter.position:02d}w.mp3  FAILED")
+                stats["failed"] += 1
+
+        # --- Eastern alphabet (suffix "e") ---
+        print("   Dialect: Eastern")
+        for letter in EASTERN_ALPHABET:
+            stats["total"] += 1
+            output_path = f"{voice_dir}/alphabet_{letter.position:02d}e.mp3"
+
+            if os.path.exists(output_path):
+                stats["skipped"] += 1
+                continue
+
+            # Eastern letter names need NO pronunciation fixes —
+            # Azure TTS is already an Eastern Armenian engine.
+            if tts.synthesize_to_file(letter.armenian_name, output_path, voice, apply_fixes=False):
+                print(f"      \u2705 alphabet_{letter.position:02d}e.mp3  ({letter.phonetic})")
+                stats["success"] += 1
+            else:
+                print(f"      \u274c alphabet_{letter.position:02d}e.mp3  FAILED")
+                stats["failed"] += 1
+
+    return stats
+
+
+def generate_prayer_audio(tts: DualVoiceTTS, voices: list, output_dir: str = "audio_library"):
+    """
+    Generate audio for all prayers: line-by-line + full recitation.
+
+    Uses the PrayerLine.armenian_audio field (falls back to armenian)
+    so any TTS pronunciation hacks defined in prayers.py are honoured.
+
+    Full-prayer audio is built with SSML, adding 800ms pauses between
+    lines for a natural recitation cadence.
+
+    Output structure:
+        audio_library/prayers/{prayer_id}/{voice}/{audio_key}.mp3          (lines)
+        audio_library/prayers/{prayer_id}/{voice}/{prayer_id}_full.mp3     (full)
+
+    Total files: (Lord's Prayer 13 + Meal Prayer 4) x 2 voices = 34.
+    """
+
+    print("\n" + "="*70)
+    print("🙏 GENERATING PRAYER AUDIO")
+    print("="*70)
+
+    stats = {"total": 0, "success": 0, "failed": 0, "skipped": 0}
+
+    for prayer_id, prayer in PRAYERS.items():
+        print(f"\n   📿 {prayer.title}")
+        print(f"      Lines: {len(prayer.lines)}")
+
+        for voice in voices:
+            print(f"      Voice: {voice.capitalize()}")
+            voice_dir = f"{output_dir}/prayers/{prayer_id}/{voice}"
+
+            # --- Individual lines ---
+            for line in prayer.lines:
+                stats["total"] += 1
+                output_path = f"{voice_dir}/{line.audio_key}.mp3"
+
+                if os.path.exists(output_path):
+                    stats["skipped"] += 1
+                    continue
+
+                # Use armenian_audio (has TTS hacks) if set, else armenian
+                text = line.armenian_audio if line.armenian_audio else line.armenian
+
+                if tts.synthesize_to_file(text, output_path, voice):
+                    print(f"         \u2705 {line.audio_key}.mp3")
+                    stats["success"] += 1
+                else:
+                    print(f"         \u274c {line.audio_key}.mp3 FAILED")
+                    stats["failed"] += 1
+
+            # --- Full prayer recitation (SSML with pauses) ---
+            if prayer.full_audio_key:
+                stats["total"] += 1
+                output_path = f"{voice_dir}/{prayer.full_audio_key}.mp3"
+
+                if os.path.exists(output_path):
+                    stats["skipped"] += 1
+                    continue
+
+                # Build SSML: each line separated by a pause
+                ssml_parts = []
+                for line in prayer.lines:
+                    text = line.armenian_audio if line.armenian_audio else line.armenian
+                    fixed_text = apply_western_fixes(text)
+                    ssml_parts.append(fixed_text)
+
+                ssml_body = '<break time="800ms"/>'.join(ssml_parts)
+                voice_name = tts.VOICES[voice]
+
+                ssml_full = f'''<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="hy-AM">
+                    <voice name="{voice_name}">{ssml_body}</voice>
+                </speak>'''
+
+                if tts.synthesize_to_file_ssml(ssml_full, output_path, voice):
+                    print(f"         \u2705 {prayer.full_audio_key}.mp3  (full recitation)")
+                    stats["success"] += 1
+                else:
+                    print(f"         \u274c {prayer.full_audio_key}.mp3  FAILED")
+                    stats["failed"] += 1
+
+    return stats
+
+
 def generate_single_lesson(
     lesson_id: str, 
     tts: DualVoiceTTS, 
@@ -690,29 +841,53 @@ def generate_single_lesson(
     print_statistics(stats)
 
 
-def generate_all_audio(tts: DualVoiceTTS, voices: list, output_dir: str = "audio_library"):
-    """Generate ALL audio files."""
-    
+def generate_all_audio(
+    tts: DualVoiceTTS,
+    voices: list,
+    output_dir: str = "audio_library",
+    skip_verbs: bool = False,
+    skip_alphabet: bool = False,
+    skip_prayers: bool = False,
+):
+    """Generate ALL audio files (vocabulary, sentences, verbs, alphabet, prayers)."""
+
     print("\n" + "="*70)
     print("🎙️  ARMENIAN TUTOR - DUAL-VOICE AUDIO GENERATION")
     print("="*70)
     print(f"Output directory: {output_dir}/")
     print(f"Voices: {', '.join([v.capitalize() for v in voices])}")
+    skipping = []
+    if skip_verbs:
+        skipping.append("verbs")
+    if skip_alphabet:
+        skipping.append("alphabet")
+    if skip_prayers:
+        skipping.append("prayers")
+    if skipping:
+        print(f"Skipping: {', '.join(skipping)}")
     print("="*70)
-    
-    # Generate all types
-    vocab_stats = generate_vocabulary_audio(tts, voices, output_dir)
-    sentence_stats = generate_sentence_audio(tts, voices, output_dir)
-    verb_stats = generate_verb_audio(tts, voices, output_dir)
-    
+
+    # Collect stats from each generator
+    all_stats = []
+
+    all_stats.append(generate_vocabulary_audio(tts, voices, output_dir))
+    all_stats.append(generate_sentence_audio(tts, voices, output_dir))
+
+    if not skip_verbs:
+        all_stats.append(generate_verb_audio(tts, voices, output_dir))
+    if not skip_alphabet:
+        all_stats.append(generate_alphabet_audio(tts, voices, output_dir))
+    if not skip_prayers:
+        all_stats.append(generate_prayer_audio(tts, voices, output_dir))
+
     # Combine statistics
     total_stats = {
-        "total": vocab_stats["total"] + sentence_stats["total"] + verb_stats["total"],
-        "success": vocab_stats["success"] + sentence_stats["success"] + verb_stats["success"],
-        "failed": vocab_stats["failed"] + sentence_stats["failed"] + verb_stats["failed"],
-        "skipped": vocab_stats["skipped"] + sentence_stats["skipped"] + verb_stats["skipped"],
+        "total": sum(s["total"] for s in all_stats),
+        "success": sum(s["success"] for s in all_stats),
+        "failed": sum(s["failed"] for s in all_stats),
+        "skipped": sum(s["skipped"] for s in all_stats),
     }
-    
+
     print_statistics(total_stats)
 
 
@@ -764,28 +939,54 @@ def main():
         action="store_true",
         help="Skip verb conjugation generation"
     )
-    
+    parser.add_argument(
+        "--skip-alphabet",
+        action="store_true",
+        help="Skip alphabet audio generation"
+    )
+    parser.add_argument(
+        "--skip-prayers",
+        action="store_true",
+        help="Skip prayer audio generation"
+    )
+    parser.add_argument(
+        "--type",
+        choices=["alphabet", "prayers"],
+        help="Generate ONLY this audio type (alphabet or prayers)"
+    )
+
     args = parser.parse_args()
-    
+
     # Get Azure credentials from Key Vault
     api_key = get_speech_key_from_vault()
     region = os.getenv("AZURE_SPEECH_REGION", "eastus")
-    
+
     # Determine voices to generate
     voices = []
     if args.voice == "both":
         voices = ["male", "female"]
     else:
         voices = [args.voice]
-    
+
     # Initialize TTS
     tts = DualVoiceTTS(api_key, region)
-    
+
     # Generate audio
-    if args.lesson:
+    if args.type == "alphabet":
+        stats = generate_alphabet_audio(tts, voices, args.output)
+        print_statistics(stats)
+    elif args.type == "prayers":
+        stats = generate_prayer_audio(tts, voices, args.output)
+        print_statistics(stats)
+    elif args.lesson:
         generate_single_lesson(args.lesson, tts, voices, args.output)
     else:
-        generate_all_audio(tts, voices, args.output)
+        generate_all_audio(
+            tts, voices, args.output,
+            skip_verbs=args.skip_verbs,
+            skip_alphabet=args.skip_alphabet,
+            skip_prayers=args.skip_prayers,
+        )
 
 
 if __name__ == "__main__":

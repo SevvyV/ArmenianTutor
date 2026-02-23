@@ -152,6 +152,31 @@ When writing phonetic (Latin character) representations of Armenian words:
 - **Fuzzy matching thresholds:** 1-3 chars = 50%, 4-5 chars = 60%, 6+ chars = 70%
 - **Recording limits:** 0.3s minimum, 15s maximum
 
+### Audio Generation Functions (all in `generate_audio_dual.py`)
+
+| Function | Output path | Count | Notes |
+|----------|-------------|-------|-------|
+| `generate_vocabulary_audio()` | `vocabulary/{lesson_id}/{voice}/` | ~698 | Uses `armenian_audio` or `armenian_display` |
+| `generate_sentence_audio()` | `sentences/{lesson_id}/{voice}/` | ~300 | Same item field logic |
+| `generate_verb_audio()` | `verbs/{voice}/verb_to_{key}_{tense}.mp3` | ~300 | SSML with 750ms pauses between pronoun conjugations |
+| `generate_alphabet_audio()` | `alphabet/{voice}/alphabet_{pos:02d}{w\|e}.mp3` | 152 | Western: `apply_fixes=True`; Eastern: `apply_fixes=False` |
+| `generate_prayer_audio()` | `prayers/{id}/{voice}/{audio_key}.mp3` | 34 | Lines + full recitation via SSML with 800ms pauses |
+| `generate_all_audio()` | all of the above | ~1,484 | Master function; supports `--skip-verbs`, `--skip-alphabet`, `--skip-prayers` |
+
+**Alphabet audio key insight:** Western alphabet letter names are written in Western Armenian script (e.g., letter 2 name is "Pen" spelled with Western letters). Since Azure TTS is Eastern, we must apply `apply_western_fixes()` (including consonant swap) so TTS produces Western sounds. Eastern alphabet names need NO fixes — TTS natively speaks Eastern.
+
+**Prayer audio key insight:** Full prayer recitations use SSML with 800ms pauses between lines for natural cadence. Individual lines use `PrayerLine.armenian_audio` (falls back to `.armenian`) to honour any TTS pronunciation hacks defined in `prayers.py`.
+
+**CLI usage:**
+```
+python generate_audio_dual.py --voice both                    # everything
+python generate_audio_dual.py --type alphabet --voice both    # alphabet only
+python generate_audio_dual.py --type prayers --voice both     # prayers only
+python generate_audio_dual.py --skip-alphabet --skip-prayers  # vocab/sentences/verbs only
+```
+
+**Regeneration pattern:** To regenerate a category, delete its audio files first (the generators skip existing files), then run the appropriate command.
+
 ## 8. Speech Comparison Logic
 
 The comparison pipeline in `compare_armenian_text()`:
@@ -169,12 +194,14 @@ The comparison pipeline in `compare_armenian_text()`:
 | File | Contains |
 |------|----------|
 | `speech_analysis.py` | WESTERN_TO_EASTERN_SWAP, SOUNDS_ALIKE_MAP, _normalize_armenian(), compare_armenian_text(), render_mic_inline() |
-| `generate_audio_dual.py` | WESTERN_CONSONANT_SWAP, WESTERN_TO_EASTERN_FIXES, apply_western_fixes(), audio generation, -tyoon suffix fix |
+| `generate_audio_dual.py` | WESTERN_CONSONANT_SWAP, WESTERN_TO_EASTERN_FIXES, apply_western_fixes(), generate_alphabet_audio(), generate_prayer_audio(), all audio generation |
 | `config.py` | WHISPER_MODEL, SPEECH_ACCURACY_THRESHOLD, AZURE_VOICES, DEBUG_SPEECH, recording limits |
-| `alphabet.py` | 38 letters with Western phonetics, sounds, examples |
-| `lessons.py` | Vocabulary with Armenian script + phonetic + English |
+| `alphabet.py` | 38 letters x 2 dialects with Western/Eastern phonetics, sounds, examples |
+| `prayers.py` | PrayerLine/Prayer dataclasses, Lord's Prayer (12 lines), Meal Prayer (3 lines), PRAYERS registry |
+| `lessons.py` | 43 lessons — vocabulary with Armenian script + phonetic + English |
 | `verb_conjugation.py` | 50 verbs across present/past/future with pronouns |
-| `pimsleur_data.py` | Conversation-based lesson segments with phrases |
+| `pimsleur_data.py` | 20 conversation-based lesson segments with phrases |
+| `audio_manager.py` | AudioManager class — URL generation for all audio types (vocabulary, sentences, verbs, prayers, conversations) |
 
 ## 10. Common Pitfalls
 
@@ -190,6 +217,10 @@ The comparison pipeline in `compare_armenian_text()`:
 - **OpenAI key** for Whisper is in `.streamlit/secrets.toml` (gitignored), sourced from Key Vault → `OpenAI-HYE-Tutor`
 - **When adding new vocabulary/lessons**, check for TTS patterns (word-final silent Y, AW digraph, -tyoon suffix). See Section 3.
 - **Audio regeneration required** after TTS fix changes — code changes alone don't update the .mp3 files.
+- **Phonetic for word-initial Yi:** When Yi starts a word, the phonetic transliteration must use "H" not "Y". Examples: Hognadzadz (tired), Hajoghoutun (good luck), Hounvar (January). Pattern 6 fixes TTS, but phonetics in `lessons.py` must also be updated manually.
+- **Alphabet generator uses `apply_fixes=True` for Western, `apply_fixes=False` for Eastern.** This is intentional — Western letter names are written in Western script and need consonant swap. Eastern names are already native to the TTS engine.
+- **Prayer full recitation uses SSML.** The full prayer audio joins all lines with 800ms breaks. Each line's text goes through `apply_western_fixes()` before insertion into SSML.
+- **Generators skip existing files.** To force regeneration, delete the audio files first, then run the generator. This prevents accidental re-billing on Azure TTS.
 
 ## 11. Armenian Text in Chat and Files — Garbling Prevention
 
