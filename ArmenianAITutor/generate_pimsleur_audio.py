@@ -28,6 +28,7 @@ from generate_audio_dual import (
 )
 from pimsleur_data import PIMSLEUR_LESSONS
 from config import INSTRUCTOR_VOICE
+from syllable_drill_agent import apply_tts_fixes
 
 
 def generate_conversation_audio(
@@ -172,7 +173,11 @@ def generate_instructor_audio(
             # Clean text for TTS: remove trailing " ---" markers
             clean_text = text.rstrip().rstrip("-").rstrip()
 
-            # Generate audio using instructor voice (English, no fixes)
+            # Apply Armenian phonetic → English TTS pronunciation fixes
+            # e.g. "Say: tyoon" → "Say: tee-yoon" (English voice reads "ty" as "tie")
+            clean_text = apply_tts_fixes(clean_text)
+
+            # Generate audio using instructor voice (English, with phonetic fixes)
             if tts.synthesize_to_file_with_voice(
                 clean_text, output_path, INSTRUCTOR_VOICE
             ):
