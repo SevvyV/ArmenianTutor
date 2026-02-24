@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: transparent;
+        overflow: hidden;
+    }
+
+    /* ── Audio Player ── */
+    .player-container {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        color: white;
+        min-height: 80px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    .progress-bg {
+        width: 100%;
+        height: 6px;
+        background: rgba(255,255,255,0.15);
+        border-radius: 3px;
+        margin-bottom: 16px;
+        overflow: hidden;
+    }
+    .progress-bar {
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, #F2A900, #D90012);
+        border-radius: 3px;
+        transition: width 0.3s ease;
+    }
+    .status {
+        font-size: 1.1em;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+    .counter {
+        font-size: 0.85em;
+        color: rgba(255,255,255,0.6);
+    }
+    .play-btn {
+        display: none;
+        margin-top: 12px;
+        padding: 16px 48px;
+        font-size: 1.3em;
+        font-weight: 600;
+        background: linear-gradient(135deg, #F2A900, #D90012);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(242, 169, 0, 0.4);
+    }
+
+    /* ── Practice Prompt ── */
+    .practice-container {
+        display: none;
+        text-align: center;
+        padding: 16px 20px;
+    }
+    .practice-prompt {
+        background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+        border-left: 5px solid #F57C00;
+        padding: 20px;
+        border-radius: 0 12px 12px 0;
+        margin-bottom: 16px;
+    }
+    .practice-prompt h2 {
+        color: #E65100;
+        margin-bottom: 4px;
+        font-size: 1.3em;
+    }
+    .practice-text {
+        font-size: 2em;
+        font-weight: bold;
+        margin: 12px 0 4px;
+    }
+    .practice-phonetic {
+        font-size: 1.1em;
+        color: #888;
+        font-style: italic;
+    }
+    .practice-english {
+        font-size: 0.95em;
+        color: #666;
+        margin-top: 4px;
+    }
+
+    /* ── Recording Indicator ── */
+    .recording-indicator {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 12px;
+        margin-top: 8px;
+    }
+    .rec-dot {
+        width: 16px;
+        height: 16px;
+        background: #D90012;
+        border-radius: 50%;
+        animation: pulse 1s ease-in-out infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(0.8); }
+    }
+    .rec-label {
+        font-size: 1em;
+        color: #D90012;
+        font-weight: 600;
+    }
+    .countdown-num {
+        font-size: 2.5em;
+        font-weight: 700;
+        color: #E65100;
+        animation: countPop 0.8s ease-out;
+    }
+    .countdown-go {
+        font-size: 1.8em;
+        font-weight: 700;
+        color: #2E7D32;
+        animation: countPop 0.5s ease-out;
+    }
+    @keyframes countPop {
+        0% { transform: scale(1.5); opacity: 0.3; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .amplitude-bar {
+        width: 100px;
+        height: 8px;
+        background: #eee;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .amplitude-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #4CAF50, #F2A900, #D90012);
+        transition: width 0.05s;
+    }
+
+    /* ── Processing ── */
+    .processing {
+        display: none;
+        text-align: center;
+        padding: 20px;
+        color: #555;
+    }
+    .processing .spinner {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        border: 3px solid #ddd;
+        border-top-color: #F2A900;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-right: 8px;
+        vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Error ── */
+    .error-msg {
+        display: none;
+        text-align: center;
+        padding: 16px;
+        color: #D32F2F;
+        font-weight: 500;
+    }
+</style>
+</head>
+<body>
+
+<div class="player-container" id="playerContainer">
+    <div class="progress-bg">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="status" id="status">Preparing audio...</div>
+    <div class="counter" id="counter"></div>
+    <button class="play-btn" id="playBtn">Tap to Play</button>
+</div>
+
+<div class="practice-container" id="practiceContainer">
+    <div class="practice-prompt">
+        <h2>Your Turn!</h2>
+        <div class="practice-text" id="practiceText"></div>
+        <div class="practice-phonetic" id="practicePhonetic"></div>
+        <div class="practice-english" id="practiceEnglish"></div>
+    </div>
+    <div class="recording-indicator" id="recordingIndicator">
+        <div class="rec-dot"></div>
+        <span class="rec-label" id="recLabel">Listening...</span>
+        <div class="amplitude-bar">
+            <div class="amplitude-fill" id="amplitudeFill"></div>
+        </div>
+    </div>
+</div>
+
+<div class="processing" id="processing">
+    <span class="spinner"></span> Analyzing your pronunciation...
+</div>
+
+<div class="error-msg" id="errorMsg"></div>
+
+<script>
+// ── Minimal Streamlit Component Library ──
+// Implements the postMessage protocol for declare_component communication.
+// Based on the Streamlit component-template for vanilla JS.
+(function() {
+    var Streamlit = {
+        RENDER_EVENT: "streamlit:render",
+        _eventHandlers: {},
+        events: {
+            addEventListener: function(type, fn) {
+                if (!Streamlit._eventHandlers[type]) Streamlit._eventHandlers[type] = [];
+                Streamlit._eventHandlers[type].push(fn);
+            }
+        },
+        setComponentReady: function() {
+            window.parent.postMessage({
+                isStreamlitMessage: true,
+                type: "streamlit:componentReady",
+                apiVersion: 1
+            }, "*");
+        },
+        setComponentValue: function(value) {
+            window.parent.postMessage({
+                isStreamlitMessage: true,
+                type: "streamlit:setComponentValue",
+                value: value
+            }, "*");
+        },
+        setFrameHeight: function(height) {
+            window.parent.postMessage({
+                isStreamlitMessage: true,
+                type: "streamlit:setFrameHeight",
+                height: height
+            }, "*");
+        }
+    };
+
+    window.addEventListener("message", function(event) {
+        if (event.data.type === "streamlit:render") {
+            var handlers = Streamlit._eventHandlers[Streamlit.RENDER_EVENT] || [];
+            for (var i = 0; i < handlers.length; i++) {
+                handlers[i]({ detail: { args: event.data.args || {} } });
+            }
+        }
+    });
+
+    window.Streamlit = Streamlit;
+})();
+
+(function() {
+    var Streamlit = window.Streamlit;
+
+    (function initComponent() {
+        // ── State ──
+        let phase = 'IDLE';        // IDLE | PLAYING | PROMPTING | CALIBRATING | RECORDING | PROCESSING | DONE
+        let lastSegmentIndex = -1;
+        let audioContext = null;
+        let analyser = null;
+        let micStream = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let silenceStart = null;
+        let recordingStart = null;
+        let speechDetected = false;
+        let ambientDb = -60;        // calibrated ambient noise level
+        let silenceThresholdDb = -45;
+        let animFrameId = null;
+        let wakeLock = null;
+
+        // ── DOM refs ──
+        const playerEl = document.getElementById('playerContainer');
+        const progressBar = document.getElementById('progressBar');
+        const statusEl = document.getElementById('status');
+        const counterEl = document.getElementById('counter');
+        const playBtn = document.getElementById('playBtn');
+        const practiceEl = document.getElementById('practiceContainer');
+        const practiceText = document.getElementById('practiceText');
+        const practicePhonetic = document.getElementById('practicePhonetic');
+        const practiceEnglish = document.getElementById('practiceEnglish');
+        const recordingIndicator = document.getElementById('recordingIndicator');
+        const recLabel = document.getElementById('recLabel');
+        const amplitudeFill = document.getElementById('amplitudeFill');
+        const processingEl = document.getElementById('processing');
+        const errorEl = document.getElementById('errorMsg');
+
+        // ── Streamlit render handler ──
+        Streamlit.events.addEventListener(Streamlit.RENDER_EVENT, function(event) {
+            const args = event.detail.args;
+            const segIdx = args.segment_index;
+
+            // Guard: only initialize once per segment
+            if (segIdx === lastSegmentIndex && phase !== 'IDLE') return;
+            lastSegmentIndex = segIdx;
+
+            // Store config
+            silenceThresholdDb = args.silence_threshold_db || -45;
+            const silenceDurationMs = args.silence_duration_ms || 1000;
+            const recordingDelayMs = args.recording_delay_ms || 800;
+            const audioGapMs = args.audio_gap_ms || 400;
+            const audioUrls = args.audio_urls || [];
+            const hasPause = args.has_pause || false;
+
+            // Reset UI
+            playerEl.style.display = 'flex';
+            practiceEl.style.display = 'none';
+            recordingIndicator.style.display = 'none';
+            processingEl.style.display = 'none';
+            errorEl.style.display = 'none';
+            progressBar.style.width = '0%';
+
+            Streamlit.setFrameHeight(160);
+
+            // ── Phase 1: PLAYING ──
+            phase = 'PLAYING';
+
+            // skip_audio: retry mode — jump straight to recording
+            if (args.skip_audio && hasPause) {
+                startPrompting(args, recordingDelayMs, silenceDurationMs);
+                return;
+            }
+
+            if (audioUrls.length === 0) {
+                // No audio — skip to practice or complete
+                if (hasPause) {
+                    startPrompting(args, recordingDelayMs, silenceDurationMs);
+                } else {
+                    fireComplete();
+                }
+                return;
+            }
+
+            // Request wake lock
+            requestWakeLock();
+
+            // Preload first few files
+            preload(audioUrls, 0, 3);
+
+            let currentIdx = 0;
+
+            function playNext() {
+                if (currentIdx >= audioUrls.length) {
+                    // All audio done
+                    progressBar.style.width = '100%';
+                    if (hasPause) {
+                        startPrompting(args, recordingDelayMs, silenceDurationMs);
+                    } else {
+                        statusEl.innerHTML = '<span style="color:#4CAF50;">&#10003;</span> Segment complete';
+                        counterEl.textContent = '';
+                        fireComplete();
+                    }
+                    return;
+                }
+
+                // Update UI
+                const pct = (currentIdx / audioUrls.length) * 100;
+                progressBar.style.width = pct + '%';
+                statusEl.textContent = 'Playing ' + (currentIdx + 1) + ' of ' + audioUrls.length + '...';
+                counterEl.textContent = currentIdx + ' of ' + audioUrls.length + ' clips';
+
+                preload(audioUrls, currentIdx + 1, 2);
+
+                const audio = new Audio(audioUrls[currentIdx]);
+                audio.addEventListener('ended', function() {
+                    currentIdx++;
+                    if (audioGapMs > 0 && currentIdx < audioUrls.length) {
+                        setTimeout(playNext, audioGapMs);
+                    } else {
+                        playNext();
+                    }
+                });
+                audio.addEventListener('error', function() {
+                    currentIdx++;
+                    playNext();
+                });
+                audio.play().catch(function() {
+                    // Autoplay blocked — show tap button
+                    playBtn.style.display = 'inline-block';
+                    statusEl.textContent = 'Tap the button to start';
+                    counterEl.textContent = '';
+                    playBtn.onclick = function() {
+                        playBtn.style.display = 'none';
+                        audio.play().then(function() {}).catch(function() {
+                            // Still blocked — skip this clip
+                            currentIdx++;
+                            playNext();
+                        });
+                    };
+                });
+            }
+
+            playNext();
+
+            // ── Phase 2: PROMPTING → COUNTDOWN → CALIBRATING → RECORDING ──
+            function startPrompting(args, delayMs, silDurationMs) {
+                phase = 'PROMPTING';
+
+                // Switch UI
+                playerEl.style.display = 'none';
+                practiceEl.style.display = 'block';
+                practiceText.textContent = args.practice_text || '';
+                practicePhonetic.textContent = args.practice_phonetic || '';
+                practiceEnglish.textContent = args.practice_english || '';
+                recordingIndicator.style.display = 'flex';
+                amplitudeFill.style.width = '0%';
+
+                Streamlit.setFrameHeight(280);
+
+                // Start mic + calibration in background while countdown runs
+                phase = 'CALIBRATING';
+                let calibrationSamples = [];
+                let micReady = false;
+                let micStreamRef = null;
+
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(function(stream) {
+                        micStream = stream;
+                        micStreamRef = stream;
+
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        const source = audioContext.createMediaStreamSource(stream);
+                        analyser = audioContext.createAnalyser();
+                        analyser.fftSize = 2048;
+                        analyser.smoothingTimeConstant = 0.3;
+                        source.connect(analyser);
+
+                        // Calibrate ambient noise during countdown
+                        const dataArray = new Float32Array(analyser.fftSize);
+                        const calibrationInterval = setInterval(function() {
+                            if (micReady) { clearInterval(calibrationInterval); return; }
+                            analyser.getFloatTimeDomainData(dataArray);
+                            let sum = 0;
+                            for (let i = 0; i < dataArray.length; i++) {
+                                sum += dataArray[i] * dataArray[i];
+                            }
+                            const rms = Math.sqrt(sum / dataArray.length);
+                            const db = 20 * Math.log10(Math.max(rms, 1e-10));
+                            calibrationSamples.push(db);
+                        }, 50);
+                    })
+                    .catch(function(err) {
+                        fireError('Microphone access denied. Please allow mic access and try again.');
+                    });
+
+                // Visual countdown: 3... 2... 1... Say it!
+                var countSteps = [
+                    { text: '3', cls: 'countdown-num', delay: 470 },
+                    { text: '2', cls: 'countdown-num', delay: 470 },
+                    { text: '1', cls: 'countdown-num', delay: 470 },
+                    { text: 'Go!', cls: 'countdown-go', delay: 0 }
+                ];
+                var stepIdx = 0;
+
+                function showStep() {
+                    if (stepIdx >= countSteps.length) {
+                        // Countdown done — finalize calibration and start recording
+                        micReady = true;
+                        if (calibrationSamples.length > 0) {
+                            calibrationSamples.sort(function(a, b) { return a - b; });
+                            var median = calibrationSamples[Math.floor(calibrationSamples.length / 2)];
+                            ambientDb = median;
+                            silenceThresholdDb = Math.max(ambientDb + 6, args.silence_threshold_db || -45);
+                        }
+                        if (micStream) {
+                            startRecording(micStream, silDurationMs);
+                        }
+                        return;
+                    }
+                    var step = countSteps[stepIdx];
+                    recLabel.innerHTML = '<span class="' + step.cls + '">' + step.text + '</span>';
+                    stepIdx++;
+                    if (step.delay > 0) {
+                        setTimeout(showStep, step.delay);
+                    } else {
+                        // "Say it!" stays briefly, then start recording
+                        setTimeout(showStep, 400);
+                    }
+                }
+
+                // Start countdown immediately
+                showStep();
+            }
+
+            // ── Phase 3: RECORDING with silence detection ──
+            function startRecording(stream, silDurationMs) {
+                phase = 'RECORDING';
+                recLabel.textContent = 'Listening...';
+                audioChunks = [];
+                silenceStart = null;
+                recordingStart = Date.now();
+                speechDetected = false;
+
+                // Choose MIME type
+                let mimeType = 'audio/webm;codecs=opus';
+                if (!MediaRecorder.isTypeSupported(mimeType)) {
+                    mimeType = 'audio/webm';
+                    if (!MediaRecorder.isTypeSupported(mimeType)) {
+                        mimeType = 'audio/ogg;codecs=opus';
+                        if (!MediaRecorder.isTypeSupported(mimeType)) {
+                            mimeType = '';  // Let browser pick default
+                        }
+                    }
+                }
+
+                const options = mimeType ? { mimeType: mimeType } : {};
+                mediaRecorder = new MediaRecorder(stream, options);
+
+                mediaRecorder.ondataavailable = function(e) {
+                    if (e.data.size > 0) audioChunks.push(e.data);
+                };
+
+                mediaRecorder.onstop = function() {
+                    phase = 'PROCESSING';
+                    recordingIndicator.style.display = 'none';
+                    processingEl.style.display = 'block';
+                    Streamlit.setFrameHeight(80);
+
+                    // Cancel animation loop
+                    if (animFrameId) cancelAnimationFrame(animFrameId);
+
+                    if (!speechDetected) {
+                        fireError('No speech detected. Please try again.');
+                        return;
+                    }
+
+                    // Encode to base64
+                    const blob = new Blob(audioChunks, { type: mimeType || 'audio/webm' });
+                    const reader = new FileReader();
+                    reader.onloadend = function() {
+                        const base64 = reader.result.split(',')[1];
+                        const duration = (Date.now() - recordingStart) / 1000;
+                        phase = 'DONE';
+                        releaseWakeLock();
+                        cleanupMic();
+                        Streamlit.setComponentValue({
+                            type: 'practice_audio',
+                            audio_b64: base64,
+                            duration: duration
+                        });
+                    };
+                    reader.readAsDataURL(blob);
+                };
+
+                mediaRecorder.start(100);  // Collect data every 100ms
+
+                // Silence detection loop
+                const dataArray = new Float32Array(analyser.fftSize);
+                const MIN_RECORDING_MS = 500;
+                const MAX_RECORDING_MS = 10000;
+                // Speech is "above noise floor" if 8dB above ambient
+                const speechThresholdDb = ambientDb + 8;
+
+                function checkSilence() {
+                    if (phase !== 'RECORDING') return;
+
+                    analyser.getFloatTimeDomainData(dataArray);
+                    let sum = 0;
+                    for (let i = 0; i < dataArray.length; i++) {
+                        sum += dataArray[i] * dataArray[i];
+                    }
+                    const rms = Math.sqrt(sum / dataArray.length);
+                    const db = 20 * Math.log10(Math.max(rms, 1e-10));
+
+                    // Update amplitude bar (normalize -80dB to 0dB → 0-100%)
+                    const ampPct = Math.max(0, Math.min(100, ((db + 80) / 80) * 100));
+                    amplitudeFill.style.width = ampPct + '%';
+
+                    const elapsed = Date.now() - recordingStart;
+
+                    // Track if speech was detected
+                    if (db > speechThresholdDb) {
+                        speechDetected = true;
+                    }
+
+                    // Only check silence after minimum recording time
+                    if (elapsed > MIN_RECORDING_MS) {
+                        if (db < silenceThresholdDb) {
+                            if (!silenceStart) {
+                                silenceStart = Date.now();
+                            } else if (Date.now() - silenceStart >= silDurationMs) {
+                                // Silence detected — stop recording
+                                mediaRecorder.stop();
+                                return;
+                            }
+                        } else {
+                            silenceStart = null;
+                        }
+                    }
+
+                    // Safety timeout
+                    if (elapsed > MAX_RECORDING_MS) {
+                        recLabel.textContent = 'Time limit reached';
+                        mediaRecorder.stop();
+                        return;
+                    }
+
+                    animFrameId = requestAnimationFrame(checkSilence);
+                }
+
+                animFrameId = requestAnimationFrame(checkSilence);
+            }
+        });
+
+        // ── Helpers ──
+        function fireComplete() {
+            phase = 'DONE';
+            releaseWakeLock();
+            cleanupMic();
+            Streamlit.setComponentValue({ type: 'segment_complete' });
+        }
+
+        function fireError(msg) {
+            phase = 'DONE';
+            releaseWakeLock();
+            cleanupMic();
+            practiceEl.style.display = 'none';
+            playerEl.style.display = 'none';
+            processingEl.style.display = 'none';
+            errorEl.style.display = 'block';
+            errorEl.textContent = msg;
+            Streamlit.setFrameHeight(60);
+            Streamlit.setComponentValue({ type: 'error', message: msg });
+        }
+
+        function preload(urls, startIdx, count) {
+            for (let j = startIdx; j < Math.min(startIdx + count, urls.length); j++) {
+                const a = new Audio(urls[j]);
+                a.preload = 'auto';
+            }
+        }
+
+        function requestWakeLock() {
+            if ('wakeLock' in navigator) {
+                navigator.wakeLock.request('screen')
+                    .then(function(wl) { wakeLock = wl; })
+                    .catch(function() {});
+            }
+        }
+
+        function releaseWakeLock() {
+            if (wakeLock) {
+                try { wakeLock.release(); } catch(e) {}
+                wakeLock = null;
+            }
+        }
+
+        function cleanupMic() {
+            if (micStream) {
+                micStream.getTracks().forEach(function(t) { t.stop(); });
+                micStream = null;
+            }
+            if (audioContext && audioContext.state !== 'closed') {
+                try { audioContext.close(); } catch(e) {}
+                audioContext = null;
+            }
+            analyser = null;
+        }
+
+        // ── Init ──
+        Streamlit.setComponentReady();
+        Streamlit.setFrameHeight(160);
+    })();
+})();
+</script>
+
+</body>
+</html>
