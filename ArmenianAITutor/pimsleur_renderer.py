@@ -72,18 +72,55 @@ def build_segments(lesson, voice: str) -> list:
     instructor_english_prompt = ""
 
     # Build English→Armenian lookup from all speaker lines in this lesson
+    # Includes synonym expansion for common informal/formal pairs
+    SYNONYMS = {
+        "mom": "mother", "mother": "mom",
+        "dad": "father", "father": "dad",
+        "my mom": "my mother", "my mother": "my mom",
+        "my dad": "my father", "my father": "my dad",
+        "big": "large", "small": "little",
+        "where is": "where is?", "where is?": "where is",
+    }
     english_to_armenian = {}
+    phonetic_to_armenian = {}  # Phonetic fallback: "medz" → {text, phonetic, english}
     for line in lesson.lines:
         if line.speaker in ("male", "female") and getattr(line, "english", ""):
             eng_key = line.english.strip().lower().rstrip(".!?")
+            entry = {
+                "text": line.text,
+                "phonetic": getattr(line, "phonetic", ""),
+                "english": line.english,
+            }
             if eng_key not in english_to_armenian:
-                english_to_armenian[eng_key] = {
-                    "text": line.text,
-                    "phonetic": getattr(line, "phonetic", ""),
-                    "english": line.english,
-                }
+                english_to_armenian[eng_key] = entry
+            # Also register synonyms
+            syn = SYNONYMS.get(eng_key)
+            if syn and syn not in english_to_armenian:
+                english_to_armenian[syn] = entry
+            # Register phonetic form for fallback (e.g. Say "medz." → Մեծ)
+            phon = getattr(line, "phonetic", "")
+            if phon:
+                phon_key = phon.strip().lower().rstrip(".!?")
+                if phon_key not in phonetic_to_armenian:
+                    phonetic_to_armenian[phon_key] = entry
 
-    for line in lesson.lines:
+    # Build index of answer lines (male/female right after each pause)
+    # for look-ahead fallback when no prior Armenian context exists
+    answer_after_pause = {}
+    for idx, line in enumerate(lesson.lines):
+        if line.speaker == "pause":
+            # Find next male/female line after this pause
+            for j in range(idx + 1, min(idx + 4, len(lesson.lines))):
+                nxt = lesson.lines[j]
+                if nxt.speaker in ("male", "female") and getattr(nxt, "audio_key", ""):
+                    answer_after_pause[idx] = {
+                        "text": nxt.text,
+                        "phonetic": getattr(nxt, "phonetic", ""),
+                        "english": getattr(nxt, "english", ""),
+                    }
+                    break
+
+    for line_idx, line in enumerate(lesson.lines):
         if line.speaker == "pause":
             # Priority 1: instructor "Say: tyoon" overrides (partial drills)
             if instructor_say_override:
@@ -99,6 +136,9 @@ def build_segments(lesson, voice: str) -> list:
             # Priority 2: instructor "how do you say hello?" prompts
             elif instructor_english_prompt:
                 lookup = english_to_armenian.get(instructor_english_prompt)
+                if not lookup:
+                    # Phonetic fallback: Say "medz." → look up phonetic form
+                    lookup = phonetic_to_armenian.get(instructor_english_prompt)
                 if lookup:
                     practice_text = lookup["text"]
                     practice_phonetic = lookup["phonetic"]
@@ -115,6 +155,15 @@ def build_segments(lesson, voice: str) -> list:
                 practice_phonetic = last_armenian_phonetic
                 practice_english = last_armenian_english
                 whisper_expected = last_armenian_text
+
+            # Fallback: if still empty, look ahead to the answer line after pause
+            if not practice_text.strip() and line_idx in answer_after_pause:
+                answer = answer_after_pause[line_idx]
+                practice_text = answer["text"]
+                practice_phonetic = answer["phonetic"]
+                practice_english = answer["english"]
+                whisper_expected = answer["text"]
+
             segments.append({
                 "index": len(segments),
                 "lines": [_line_to_dict(l) for l in current_lines],
@@ -147,15 +196,37 @@ def build_segments(lesson, voice: str) -> list:
                     instructor_say_override = say_match.group(1).strip().rstrip('.')
 
                 # Detect "how do you say X?" / "say X." / "Now say X."
-                # patterns that reference an English word
-                eng_match = re.search(
-                    r'(?:how do you say|(?:now )?say)\s+"?([^"?.]+)"?',
-                    line.text, re.IGNORECASE
-                )
-                if eng_match and not say_match:
-                    eng_word = eng_match.group(1).strip().lower().rstrip(".!?")
-                    if eng_word in english_to_armenian:
-                        instructor_english_prompt = eng_word
+                # Also handles "Ask X" for question patterns
+                # Use finditer to get ALL matches — a line like
+                # 'ask "Ov e?" ... Say "she is my mother."' has two;
+                # we try English lookups first across ALL matches,
+                # then fall back to phonetic lookup only if none resolved.
+                if not say_match:
+                    quoted_words = [
+                        m.group(1).strip().lower().rstrip(".!?,")
+                        for m in re.finditer(
+                            r'(?:how do you (?:say|ask)|(?:now )?say|ask)\s+"([^"]+)"',
+                            line.text, re.IGNORECASE
+                        )
+                    ]
+                    # Pass 1: try English direct + prefix match
+                    for eng_word in quoted_words:
+                        if eng_word in english_to_armenian:
+                            instructor_english_prompt = eng_word
+                            break
+                        # Prefix match: "my name is" matches "my name is aram"
+                        for key in english_to_armenian:
+                            if key.startswith(eng_word):
+                                instructor_english_prompt = key
+                                break
+                        if instructor_english_prompt:
+                            break
+                    # Pass 2: phonetic fallback (e.g. Say "medz." → Մեծ)
+                    if not instructor_english_prompt:
+                        for eng_word in quoted_words:
+                            if eng_word in phonetic_to_armenian:
+                                instructor_english_prompt = eng_word
+                                break
             elif line.speaker in ("male", "female") and line.audio_key:
                 current_urls.append(
                     AudioManager.get_conversation_url(
