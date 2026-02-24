@@ -189,7 +189,7 @@ def build_segments(lesson, voice: str) -> list:
                 # Must have colon (not quotes) — "Say: tyoon" is phonetic,
                 # but 'Say "hello"' is an English prompt handled below
                 say_match = re.match(
-                    r'^(?:Say|Now (?:say|the whole word)):\s*(.+)',
+                    r'^(?:Say|Now (?:say|the whole (?:word|phrase))):\s*(.+)',
                     line.text, re.IGNORECASE
                 )
                 if say_match:
