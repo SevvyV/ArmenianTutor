@@ -494,7 +494,7 @@ def main():
         with tab_map["conversations"]:
             try:
                 from pimsleur_renderer import render_conversations
-                render_conversations(st.session_state.voice)
+                render_conversations("female")
             except ImportError:
                 st.warning("Conversations module unavailable.")
 

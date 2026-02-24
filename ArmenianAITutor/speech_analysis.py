@@ -367,6 +367,66 @@ def analyze_pronunciation(
 
 
 # ============================================================================
+# WEBM TRANSCRIPTION (for auto-record segment player component)
+# ============================================================================
+
+def transcribe_audio_webm(audio_bytes: bytes, api_key: str) -> str:
+    """
+    Send WebM/Opus audio to OpenAI Whisper and return Armenian transcription.
+
+    The segment_player component captures audio as WebM/Opus via MediaRecorder.
+    Whisper accepts WebM natively — no conversion needed.
+    """
+    try:
+        client = OpenAI(api_key=api_key)
+        audio_file = io.BytesIO(audio_bytes)
+        audio_file.name = "recording.webm"
+
+        response = client.audio.transcriptions.create(
+            model=WHISPER_MODEL,
+            file=audio_file,
+            language=WHISPER_LANGUAGE
+        )
+        return response.text
+    except Exception as e:
+        error_type = type(e).__name__
+        if "AuthenticationError" in error_type:
+            raise SpeechAnalysisError("Invalid OpenAI API key.")
+        elif "RateLimitError" in error_type:
+            raise SpeechAnalysisError("API rate limit reached. Please wait and try again.")
+        elif "APIConnectionError" in error_type:
+            raise SpeechAnalysisError("Could not connect to OpenAI. Check your internet.")
+        else:
+            raise SpeechAnalysisError(f"Transcription failed: {str(e)}")
+
+
+def analyze_pronunciation_b64(
+    audio_b64: str,
+    expected_armenian: str,
+    api_key: str
+) -> ComparisonResult:
+    """
+    Decode base64 WebM audio, transcribe, and compare against expected text.
+
+    Used by the Pimsleur segment_player component which returns audio as base64.
+    """
+    import base64
+    audio_bytes = base64.b64decode(audio_b64)
+    transcribed = transcribe_audio_webm(audio_bytes, api_key)
+
+    if not transcribed.strip():
+        raise SpeechAnalysisError("No speech detected. Please try again.")
+
+    if not _contains_armenian(transcribed):
+        raise SpeechAnalysisError(
+            "Could not recognize Armenian speech. "
+            "Try speaking more clearly or closer to the microphone."
+        )
+
+    return compare_armenian_text(transcribed, expected_armenian)
+
+
+# ============================================================================
 # UI RENDERING
 # ============================================================================
 

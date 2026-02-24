@@ -85,6 +85,12 @@ ENABLE_CONVERSATIONS = True
 AUTO_CONTINUE_SECONDS = 5    # Auto-resume after practice (0 = disabled)
 AUDIO_GAP_MS = 400           # Silence between audio clips (ms)
 
+# Auto-record silence detection
+SILENCE_THRESHOLD_DB = -45   # Fallback dB level if adaptive calibration fails
+SILENCE_DURATION_MS = 1000   # ms of continuous silence before auto-stop
+RECORDING_DELAY_MS = 800     # ms delay between audio end and recording start
+AUTO_ADVANCE_SECONDS = 3     # seconds to show feedback before auto-advancing
+
 
 # ============================================================================
 # SPEECH PRACTICE CONFIGURATION (OpenAI Whisper)
