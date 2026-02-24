@@ -136,13 +136,15 @@ def build_segments(lesson, voice: str) -> list:
                 current_urls.append(
                     AudioManager.get_instructor_url(line.audio_key, lesson.id)
                 )
-                # Detect "Say: X" or "Now the whole word: X" patterns
+                # Detect phonetic drills: "Say: tyoon" / "Now the whole word: X"
+                # Must have colon (not quotes) — "Say: tyoon" is phonetic,
+                # but 'Say "hello"' is an English prompt handled below
                 say_match = re.match(
-                    r'^(?:Say|Now (?:say|the whole word))[:\s]+(.+)',
+                    r'^(?:Say|Now (?:say|the whole word)):\s*(.+)',
                     line.text, re.IGNORECASE
                 )
                 if say_match:
-                    instructor_say_override = say_match.group(1).strip()
+                    instructor_say_override = say_match.group(1).strip().rstrip('.')
 
                 # Detect "how do you say X?" / "say X." / "Now say X."
                 # patterns that reference an English word
