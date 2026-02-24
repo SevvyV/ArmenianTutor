@@ -70,8 +70,12 @@ TTS_OVERRIDES: Dict[str, str] = {
 
 # Regex patterns for dynamic TTS fixes (applied in order)
 TTS_FIX_PATTERNS: List[Tuple[str, str]] = [
-    # "ty" before a vowel → "tee-y" + vowel
-    (r'\bty([aeiou])', r'tee-y\1'),
+    # "ty" before a vowel → "tee-y" + vowel  (word-start: "tyoon")
+    # (?!ng\b) protects English "tying" from false-positive
+    (r'\bty([aeiou])(?!ng\b)', r'tee-y\1'),
+    # "ty" before a vowel mid-word → insert hyphen break  ("Tsedesutyoon")
+    # Safe: no common English word has consonant+"ty"+vowel mid-word
+    (r'([a-zA-Z])ty([aeiou])', r'\1-tee-y\2'),
     # "Bz" at word start → "Buhz"
     (r'\bBz', 'Buhz'),
     (r'\bbz', 'buhz'),
@@ -90,9 +94,9 @@ def apply_tts_fixes(text: str) -> str:
     Converts Armenian phonetic clusters that English TTS mispronounces
     into English-friendly spellings.
 
-    The regex patterns use word boundaries (\\b) so they only match
-    Armenian phonetic fragments, not English words:
-      - "tyoon" → "tee-yoon"  (but "type" is untouched — no vowel after "ty")
+    Handles both word-start and mid-word Armenian phonetic clusters:
+      - "tyoon" → "tee-yoon"  (word-start, \b match)
+      - "Tsedesutyoon" → "Tsedsu-tee-yoon"  (mid-word, consonant+ty+vowel)
       - "Bz-dik" → "Buhz-dik" (no English word starts with "Bz")
 
     Args:

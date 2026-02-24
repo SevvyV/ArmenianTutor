@@ -152,6 +152,59 @@ When writing phonetic (Latin character) representations of Armenian words:
 - **Fuzzy matching thresholds:** 1-3 chars = 50%, 4-5 chars = 60%, 6+ chars = 70%
 - **Recording limits:** 0.3s minimum, 15s maximum
 
+### Instructor TTS Pronunciation Fix Pipeline
+
+Pimsleur instructor audio uses an **English voice** (en-US-JennyNeural) to narrate Armenian phonetic fragments. English TTS mispronounces certain Armenian phonetic clusters. The fix pipeline in `syllable_drill_agent.py` → `apply_tts_fixes()` transforms text before sending to TTS.
+
+**Known problem patterns and their fixes:**
+
+| Pattern | English TTS says | Fix | Example |
+|---------|-----------------|-----|---------|
+| `ty` + vowel (word start) | "tie-oon" | `tee-y` + vowel | tyoon → tee-yoon |
+| `ty` + vowel (mid-word) | "tie-oon" | insert hyphen break | Tsedesutyoon → Tsedesu-tee-yoon |
+| `Bz` at word start | splits "b-z" | `Buhz` | Bz-dik → Buhz-dik |
+
+**How it works:**
+1. `TTS_OVERRIDES` dict: exact word → replacement (checked first, case-insensitive with word boundaries)
+2. `TTS_FIX_PATTERNS` list: regex patterns applied in order for dynamic matching
+3. Word-start `ty` regex uses `(?!ng\b)` negative lookahead to protect English "tying"
+4. Mid-word `ty` regex uses `([a-zA-Z])ty([aeiou])` to catch non-hyphenated compounds
+
+**Integration points:**
+- `generate_pimsleur_audio.py` calls `apply_tts_fixes()` on every instructor line before TTS synthesis
+- `pimsleur_renderer.py` does NOT apply TTS fixes — it uses the original phonetic text for display and Whisper matching
+
+**When adding new lessons or drill text:**
+1. Write phonetic text naturally (e.g., "tyoon", "Bzdik") — this is what the student SEES
+2. The `apply_tts_fixes()` pipeline automatically converts for TTS at audio generation time
+3. Run `python regenerate_instructor_audio.py --scan` to verify all patterns are caught
+4. Run `python regenerate_instructor_audio.py` to regenerate affected audio files
+5. To add new fix patterns: update `TTS_OVERRIDES` or `TTS_FIX_PATTERNS` in `syllable_drill_agent.py`, then regenerate
+
+**Regeneration script** (`regenerate_instructor_audio.py`):
+```
+python regenerate_instructor_audio.py --scan              # dry run — show affected files
+python regenerate_instructor_audio.py                     # delete + regenerate affected only
+python regenerate_instructor_audio.py --lesson pimsleur_01  # specific lesson
+python regenerate_instructor_audio.py --force             # ALL instructor audio
+```
+
+### Syllable Drill Agent (`syllable_drill_agent.py`)
+
+Audits and generates Pimsleur-style syllable breakdown drills. Ensures three-layer alignment:
+1. **display_text**: What the student SEES ("tyoon")
+2. **tts_text**: What the English TTS SAYS ("tee-yoon") — via `apply_tts_fixes()`
+3. **whisper_expected**: What Whisper CHECKS — Armenian script from the preceding speaker line
+
+**Audit checks:** TTS mismatches, orphaned drills, fragment mismatches, progression errors, missing full-word steps.
+
+**CLI usage:**
+```
+python syllable_drill_agent.py --audit                # audit all lessons
+python syllable_drill_agent.py --audit pimsleur_01    # audit specific lesson
+python syllable_drill_agent.py --report               # full drill report
+```
+
 ### Audio Generation Functions (all in `generate_audio_dual.py`)
 
 | Function | Output path | Count | Notes |
@@ -201,6 +254,10 @@ The comparison pipeline in `compare_armenian_text()`:
 | `lessons.py` | 43 lessons — vocabulary with Armenian script + phonetic + English |
 | `verb_conjugation.py` | 50 verbs across present/past/future with pronouns |
 | `pimsleur_data.py` | 20 conversation-based lesson segments with phrases |
+| `syllable_drill_agent.py` | SyllableDrillAgent, apply_tts_fixes(), TTS_OVERRIDES, TTS_FIX_PATTERNS, drill auditing/generation |
+| `regenerate_instructor_audio.py` | Scan + delete + regenerate instructor audio affected by TTS fixes |
+| `generate_pimsleur_audio.py` | Pimsleur conversation + instructor audio generation (calls apply_tts_fixes) |
+| `pimsleur_renderer.py` | Streamlit renderer for Pimsleur lessons — drill classification, Whisper evaluation |
 | `audio_manager.py` | AudioManager class — URL generation for all audio types (vocabulary, sentences, verbs, prayers, conversations) |
 
 ## 10. Common Pitfalls
@@ -221,6 +278,10 @@ The comparison pipeline in `compare_armenian_text()`:
 - **Alphabet generator uses `apply_fixes=True` for Western, `apply_fixes=False` for Eastern.** This is intentional — Western letter names are written in Western script and need consonant swap. Eastern names are already native to the TTS engine.
 - **Prayer full recitation uses SSML.** The full prayer audio joins all lines with 800ms breaks. Each line's text goes through `apply_western_fixes()` before insertion into SSML.
 - **Generators skip existing files.** To force regeneration, delete the audio files first, then run the generator. This prevents accidental re-billing on Azure TTS.
+- **Instructor audio uses an English voice (en-US-JennyNeural).** Armenian phonetic clusters like "ty" + vowel and word-initial "Bz" are mispronounced by this voice. Always use `apply_tts_fixes()` from `syllable_drill_agent.py` before sending instructor text to TTS. The fix is already integrated into `generate_pimsleur_audio.py`.
+- **After adding TTS fix patterns**, run `python regenerate_instructor_audio.py` to find and regenerate all affected audio. Don't manually guess which files need updating — the script scans every instructor line automatically.
+- **Pimsleur drill text stays human-readable.** Write "tyoon" in pimsleur_data.py (what the student sees), NOT "tee-yoon". The TTS fix pipeline handles the conversion at audio generation time. The display text and the TTS text are intentionally different.
+- **Three-layer alignment in Pimsleur drills:** (1) display_text = what user sees, (2) tts_text = what TTS says (after apply_tts_fixes), (3) whisper_expected = Armenian script from preceding speaker line. Run `python syllable_drill_agent.py --audit` to verify all three layers are consistent.
 
 ## 11. Armenian Text in Chat and Files — Garbling Prevention
 
