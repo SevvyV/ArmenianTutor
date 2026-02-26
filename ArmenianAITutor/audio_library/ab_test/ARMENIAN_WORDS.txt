@@ -1,0 +1,16 @@
+A/B Test Words — Armenian Script Reference
+==================================================
+
+Phonetic             Armenian         English          IPA
+──────────────────── ──────────────── ──────────────── ────────────────────
+Tsedesutyoon         Ցտեսութիւն       Goodbye          tsɛdɛsʌtjun
+Agheg                Աղէկ             I'm well         ɑgɛk
+Khntrem              Խնդրեմ           Please           kəntɹɛm
+Tsakh                Ձախ              Left             tsɑk
+Inknasharzh          Ինքնաշառժ        Car              ɪnknəʃɑɹʒ
+Bdegh                Պտեղ             Fruit            bdɛg
+Yeghpayr             Եղբայր           Brother          jɛgpaɪɹ
+Bzdik                Պզտիկ            Small/Young      bəzdɪk
+Sksel                (not in lessons) To begin         skəsɛl
+
+Files: audio_library/ab_test/{Token}_regex.mp3 vs {Token}_ssml.mp3

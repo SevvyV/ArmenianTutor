@@ -2,11 +2,13 @@
 Regenerate Instructor Audio with TTS Pronunciation Fixes.
 
 Scans all Pimsleur instructor lines, identifies those where apply_tts_fixes()
-would change the text (meaning the English TTS voice would mispronounce the
-original), deletes the old audio files, and regenerates them.
+would change the text OR where SSML IPA phonemes would be applied (meaning
+the English TTS voice would mispronounce the original), deletes the old audio
+files, and regenerates them.
 
 This is the go-to script whenever:
   - A new TTS fix pattern is added to syllable_drill_agent.py
+  - A new IPA entry is added to ipa_phoneme_map.py
   - Instructor drill text is corrected in pimsleur_data.py
   - You suspect instructor audio doesn't match the current data
 
@@ -22,6 +24,7 @@ import argparse
 
 from pimsleur_data import PIMSLEUR_LESSONS
 from syllable_drill_agent import apply_tts_fixes
+from ipa_phoneme_map import wrap_instructor_text_ssml
 from generate_audio_dual import (
     DualVoiceTTS,
     get_speech_key_from_vault,
@@ -36,10 +39,11 @@ OUTPUT_DIR = "audio_library"
 def scan_affected_lines(lesson_filter=None):
     """
     Scan all instructor lines and return those where apply_tts_fixes()
-    changes the text — meaning the audio needs regeneration.
+    changes the text OR where SSML IPA phonemes will be applied.
 
     Returns:
-        List of (lesson_id, audio_key, original_text, fixed_text) tuples
+        List of (lesson_id, audio_key, original_text, fixed_text, method) tuples
+        where method is "ssml" or "regex"
     """
     affected = []
 
@@ -61,10 +65,17 @@ def scan_affected_lines(lesson_filter=None):
 
             # Clean text exactly like generate_pimsleur_audio.py does
             clean = line.text.rstrip().rstrip("-").rstrip()
-            fixed = apply_tts_fixes(clean)
 
+            # Check SSML IPA path first (same priority as pipeline)
+            ssml = wrap_instructor_text_ssml(clean)
+            if ssml:
+                affected.append((lesson_id, line.audio_key, clean, ssml[:80], "ssml"))
+                continue
+
+            # Then check regex path
+            fixed = apply_tts_fixes(clean)
             if clean != fixed:
-                affected.append((lesson_id, line.audio_key, clean, fixed))
+                affected.append((lesson_id, line.audio_key, clean, fixed, "regex"))
 
     return affected
 
@@ -105,7 +116,7 @@ def scan_missing_audio(lesson_filter=None):
 def delete_audio_files(affected):
     """Delete audio files for affected lines so they get regenerated."""
     deleted = 0
-    for lesson_id, audio_key, _, _ in affected:
+    for lesson_id, audio_key, *_ in affected:
         path = os.path.join(
             OUTPUT_DIR, "conversations", lesson_id, "instructor",
             f"{audio_key}.mp3"
@@ -186,16 +197,23 @@ def main():
     missing = scan_missing_audio(args.lesson)
 
     if affected:
-        print(f"\n  {len(affected)} lines where TTS fix changes pronunciation:\n")
-        for lesson_id, audio_key, original, fixed in affected:
+        ssml_count = sum(1 for *_, method in affected if method == "ssml")
+        regex_count = sum(1 for *_, method in affected if method == "regex")
+        print(f"\n  {len(affected)} lines need pronunciation fixes"
+              f" ({ssml_count} SSML IPA, {regex_count} regex):\n")
+        for lesson_id, audio_key, original, fixed, method in affected:
             path = os.path.join(
                 OUTPUT_DIR, "conversations", lesson_id, "instructor",
                 f"{audio_key}.mp3"
             )
             exists = "EXISTS" if os.path.exists(path) else "MISSING"
-            print(f"  [{exists}] {lesson_id}/{audio_key}")
+            tag = "SSML" if method == "ssml" else "REGEX"
+            print(f"  [{exists}] [{tag:5s}] {lesson_id}/{audio_key}")
             print(f"           Original: {original[:80]}")
-            print(f"           Fixed:    {fixed[:80]}")
+            if method == "regex":
+                print(f"           Fixed:    {fixed[:80]}")
+            else:
+                print(f"           SSML:     (IPA phoneme tags applied)")
             print()
     else:
         print("\n  No TTS-affected instructor lines found.\n")

@@ -154,40 +154,91 @@ When writing phonetic (Latin character) representations of Armenian words:
 
 ### Instructor TTS Pronunciation Fix Pipeline
 
-Pimsleur instructor audio uses an **English voice** (en-US-JennyNeural) to narrate Armenian phonetic fragments. English TTS mispronounces certain Armenian phonetic clusters. The fix pipeline in `syllable_drill_agent.py` → `apply_tts_fixes()` transforms text before sending to TTS.
+Pimsleur instructor audio uses an **English voice** (en-US-JennyNeural) to narrate Armenian phonetic fragments. English TTS mispronounces certain Armenian phonetic clusters. Two fix mechanisms exist, tried in priority order:
 
-**Known problem patterns and their fixes:**
+**Priority 1 — SSML IPA Phonemes** (`ipa_phoneme_map.py`):
+Armenian phonetic tokens are wrapped in `<phoneme alphabet="ipa" ph="...">` SSML tags, giving the TTS engine exact pronunciation via IPA transcription. The pipeline uses `wrap_instructor_text_ssml()` which scans instructor text for tokens in `ARMENIAN_IPA_MAP` and returns a complete SSML envelope, or `None` if no tokens match.
+
+**Priority 2 — Regex Text Fixes** (`syllable_drill_agent.py`):
+Fallback for instructor lines with no IPA-mapped tokens. Regex patterns in `apply_tts_fixes()` transform text (e.g., "tyoon" to "tee-yoon") before sending as plain text.
+
+**en-US IPA Phone Set Limitations:**
+Azure's en-US voice does NOT support all IPA symbols. Key gaps and approximations:
+
+| Armenian Sound | True IPA | en-US Approximation | Strategy |
+|---------------|----------|-------------------|----------|
+| ts (affricate) | /ts/ | `ts` (two phones) | Sequential t+s |
+| gh (uvular) | /ɣ/ | `g` | Closest voiced stop |
+| kh (velar fricative) | /x/ | `k` | Closest voiceless stop |
+| Aspirated t | /tʰ/ | `t` | Plain t (no aspiration marker) |
+| zh (postalveolar) | /ʒ/ | `ʒ` | Natively supported |
+| sh (postalveolar) | /ʃ/ | `ʃ` | Natively supported |
+
+Supported en-US consonants: `b d f g h j k l m n ŋ p ɹ s ʃ t θ ð v w z ʒ tʃ dʒ`
+
+**SSML structure** (same pattern as verb/prayer SSML in `generate_audio_dual.py`):
+```xml
+<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">
+  <voice name="en-US-JennyNeural">
+    Say: <phoneme alphabet="ipa" ph="tjun">tyoon</phoneme>
+  </voice>
+</speak>
+```
+The `<voice>` tag in SSML overrides the voice set in SpeechConfig, so `synthesize_to_file_ssml()` can be called with a dummy voice key.
+
+**Known IPA-mapped tokens** (in `ARMENIAN_IPA_MAP`):
+
+| Token | IPA | Problem solved |
+|-------|-----|---------------|
+| tyoon | `tjun` | ty+vowel English "tie" |
+| Tsedesutyoon | `tsɛdɛsʌtjun` | Ts onset + ty mid-word |
+| Bzdik / Bz-dik | `bəzdɪk` | Bz impossible onset |
+| Bdegh | `bdɛg` | Bd onset + uvular ending |
+| Khntrem | `kəntɹɛm` | Khn triple consonant |
+| Tsakh | `tsɑk` | Ts word-initial |
+| Agheg / Agh-eg | `ɑgɛk` | gh uvular fricative |
+| Yeghpayr | `jɛgpaɪɹ` | gh between vowels |
+| Inknasharzh | `ɪnknəʃɑɹʒ` | zh ending + clusters |
+| Sksel | `skəsɛl` | Sks onset |
+
+**Regex fallback patterns** (in `syllable_drill_agent.py`):
 
 | Pattern | English TTS says | Fix | Example |
 |---------|-----------------|-----|---------|
-| `ty` + vowel (word start) | "tie-oon" | `tee-y` + vowel | tyoon → tee-yoon |
-| `ty` + vowel (mid-word) | "tie-oon" | insert hyphen break | Tsedesutyoon → Tsedesu-tee-yoon |
-| `Bz` at word start | splits "b-z" | `Buhz` | Bz-dik → Buhz-dik |
+| `ty` + vowel (word start) | "tie-oon" | `tee-y` + vowel | tyoon to tee-yoon |
+| `ty` + vowel (mid-word) | "tie-oon" | insert hyphen break | Tsedesutyoon to Tsedesu-tee-yoon |
+| `Bz` at word start | splits "b-z" | `Buhz` | Bz-dik to Buhz-dik |
 
-**How it works:**
-1. `TTS_OVERRIDES` dict: exact word → replacement (checked first, case-insensitive with word boundaries)
-2. `TTS_FIX_PATTERNS` list: regex patterns applied in order for dynamic matching
-3. Word-start `ty` regex uses `(?!ng\b)` negative lookahead to protect English "tying"
-4. Mid-word `ty` regex uses `([a-zA-Z])ty([aeiou])` to catch non-hyphenated compounds
-
-**Integration points:**
-- `generate_pimsleur_audio.py` calls `apply_tts_fixes()` on every instructor line before TTS synthesis
-- `pimsleur_renderer.py` does NOT apply TTS fixes — it uses the original phonetic text for display and Whisper matching
+**Integration flow in `generate_pimsleur_audio.py`:**
+1. Clean instructor text (strip trailing markers)
+2. Try `wrap_instructor_text_ssml(clean_text, INSTRUCTOR_VOICE)` — returns SSML or None
+3. If SSML: call `synthesize_to_file_ssml(ssml, path, "male")` (voice tag overrides)
+4. If None: apply `apply_tts_fixes()` regex, then `synthesize_to_file_with_voice()`
 
 **When adding new lessons or drill text:**
 1. Write phonetic text naturally (e.g., "tyoon", "Bzdik") — this is what the student SEES
-2. The `apply_tts_fixes()` pipeline automatically converts for TTS at audio generation time
-3. Run `python regenerate_instructor_audio.py --scan` to verify all patterns are caught
-4. Run `python regenerate_instructor_audio.py` to regenerate affected audio files
-5. To add new fix patterns: update `TTS_OVERRIDES` or `TTS_FIX_PATTERNS` in `syllable_drill_agent.py`, then regenerate
+2. Check if the token needs IPA: add to `ARMENIAN_IPA_MAP` in `ipa_phoneme_map.py`
+3. Run `python ipa_phoneme_map.py` to validate IPA entries use valid en-US phones
+4. A/B test new entries: `python test_ipa_phonemes.py --word <token>`
+5. Run `python regenerate_instructor_audio.py --scan` to see which lines use SSML vs regex
+6. Run `python regenerate_instructor_audio.py` to regenerate affected audio files
 
 **Regeneration script** (`regenerate_instructor_audio.py`):
 ```
-python regenerate_instructor_audio.py --scan              # dry run — show affected files
+python regenerate_instructor_audio.py --scan              # dry run — show SSML/regex per line
 python regenerate_instructor_audio.py                     # delete + regenerate affected only
 python regenerate_instructor_audio.py --lesson pimsleur_01  # specific lesson
 python regenerate_instructor_audio.py --force             # ALL instructor audio
 ```
+
+**A/B test script** (`test_ipa_phonemes.py`):
+```
+python test_ipa_phonemes.py                  # generate all A/B pairs
+python test_ipa_phonemes.py --word tyoon     # one word only
+python test_ipa_phonemes.py --list           # show test words + IPA
+python test_ipa_phonemes.py --ssml-only      # SSML variants only
+```
+Output: `audio_library/ab_test/{token}_regex.mp3` and `{token}_ssml.mp3`
 
 ### Syllable Drill Agent (`syllable_drill_agent.py`)
 
@@ -255,8 +306,10 @@ The comparison pipeline in `compare_armenian_text()`:
 | `verb_conjugation.py` | 50 verbs across present/past/future with pronouns |
 | `pimsleur_data.py` | 20 conversation-based lesson segments with phrases |
 | `syllable_drill_agent.py` | SyllableDrillAgent, apply_tts_fixes(), TTS_OVERRIDES, TTS_FIX_PATTERNS, drill auditing/generation |
-| `regenerate_instructor_audio.py` | Scan + delete + regenerate instructor audio affected by TTS fixes |
-| `generate_pimsleur_audio.py` | Pimsleur conversation + instructor audio generation (calls apply_tts_fixes) |
+| `ipa_phoneme_map.py` | ARMENIAN_IPA_MAP, wrap_instructor_text_ssml(), validate_ipa_phones() — SSML IPA phoneme pipeline |
+| `test_ipa_phonemes.py` | A/B test script — generates regex vs SSML audio pairs in audio_library/ab_test/ |
+| `regenerate_instructor_audio.py` | Scan + delete + regenerate instructor audio (IPA-aware: shows SSML vs regex per line) |
+| `generate_pimsleur_audio.py` | Pimsleur conversation + instructor audio generation (SSML-first, regex fallback) |
 | `pimsleur_renderer.py` | Streamlit renderer for Pimsleur lessons — drill classification, Whisper evaluation |
 | `audio_manager.py` | AudioManager class — URL generation for all audio types (vocabulary, sentences, verbs, prayers, conversations) |
 
@@ -282,6 +335,12 @@ The comparison pipeline in `compare_armenian_text()`:
 - **After adding TTS fix patterns**, run `python regenerate_instructor_audio.py` to find and regenerate all affected audio. Don't manually guess which files need updating — the script scans every instructor line automatically.
 - **Pimsleur drill text stays human-readable.** Write "tyoon" in pimsleur_data.py (what the student sees), NOT "tee-yoon". The TTS fix pipeline handles the conversion at audio generation time. The display text and the TTS text are intentionally different.
 - **Three-layer alignment in Pimsleur drills:** (1) display_text = what user sees, (2) tts_text = what TTS says (after apply_tts_fixes), (3) whisper_expected = Armenian script from preceding speaker line. Run `python syllable_drill_agent.py --audit` to verify all three layers are consistent.
+- **SSML IPA phonemes take priority over regex fixes.** If a token is in `ARMENIAN_IPA_MAP`, the SSML path is used; regex `apply_tts_fixes()` only runs when `wrap_instructor_text_ssml()` returns None. Do not add the same token to both systems.
+- **en-US IPA does NOT support ts, gh, kh, or aspirated t.** These must be approximated: ts as two separate phones `t`+`s`, gh/kh as `g`/`k`, aspirated t as plain `t`. Run `python ipa_phoneme_map.py` to validate entries.
+- **SSML voice override pattern:** The `<voice name="en-US-JennyNeural">` tag in SSML overrides the voice set in SpeechConfig. This lets us call `synthesize_to_file_ssml(ssml, path, "male")` where "male" is a dummy — the SSML voice tag wins. Same pattern used for verb/prayer SSML.
+- **XML escaping in SSML:** Instructor text may contain `&`, `<`, `>`, quotes, apostrophes (e.g., "Let's", "Hello & goodbye"). The `wrap_instructor_text_ssml()` function handles this via `xml.sax.saxutils.escape()` on non-phoneme text segments.
+- **A/B test before deploying IPA changes.** Run `python test_ipa_phonemes.py` to generate regex vs SSML audio pairs in `audio_library/ab_test/`. Listen before running `regenerate_instructor_audio.py`.
+- **Windows cp1252 cannot print IPA characters.** Use `_safe_print()` (UTF-8 buffer write) in any script that outputs IPA symbols. Both `ipa_phoneme_map.py` and `test_ipa_phonemes.py` handle this.
 
 ## 11. Armenian Text in Chat and Files — Garbling Prevention
 

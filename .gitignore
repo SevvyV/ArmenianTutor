@@ -1,5 +1,6 @@
 # Streamlit secrets (API keys - never commit)
-.streamlit/secrets.toml
+**/.streamlit/secrets.toml
+**/secrets.toml
 
 # Python cache
 __pycache__/

@@ -29,6 +29,7 @@ from generate_audio_dual import (
 from pimsleur_data import PIMSLEUR_LESSONS
 from config import INSTRUCTOR_VOICE
 from syllable_drill_agent import apply_tts_fixes
+from ipa_phoneme_map import wrap_instructor_text_ssml
 
 
 def generate_conversation_audio(
@@ -173,14 +174,21 @@ def generate_instructor_audio(
             # Clean text for TTS: remove trailing " ---" markers
             clean_text = text.rstrip().rstrip("-").rstrip()
 
-            # Apply Armenian phonetic → English TTS pronunciation fixes
-            # e.g. "Say: tyoon" → "Say: tee-yoon" (English voice reads "ty" as "tie")
-            clean_text = apply_tts_fixes(clean_text)
+            # Try SSML IPA phoneme path first (precise pronunciation control)
+            ssml = wrap_instructor_text_ssml(clean_text, INSTRUCTOR_VOICE)
+            if ssml:
+                # SSML with <phoneme> tags — <voice> tag overrides config voice
+                success = tts.synthesize_to_file_ssml(
+                    ssml, output_path, "male"  # "male" is dummy; SSML voice overrides
+                )
+            else:
+                # Fallback: regex-based text fixes for tokens not in IPA map
+                clean_text = apply_tts_fixes(clean_text)
+                success = tts.synthesize_to_file_with_voice(
+                    clean_text, output_path, INSTRUCTOR_VOICE
+                )
 
-            # Generate audio using instructor voice (English, with phonetic fixes)
-            if tts.synthesize_to_file_with_voice(
-                clean_text, output_path, INSTRUCTOR_VOICE
-            ):
+            if success:
                 print(f"    OK {line.audio_key}.mp3")
                 stats["success"] += 1
             else:

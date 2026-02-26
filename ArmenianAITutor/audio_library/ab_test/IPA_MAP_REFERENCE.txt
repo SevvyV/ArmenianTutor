@@ -1,0 +1,22 @@
+SSML IPA Phoneme Map — A/B Test Reference
+==========================================
+
+Token               Armenian        IPA              Strategy
+─────────────────── ─────────────── ──────────────── ────────────────────────
+tyoon               Ցdelays (syl)  tjun             t+j glide for aspirated-t
+su-tyoon            (drill)         sʌtjun           prefix + same
+de-su-tyoon         (drill)         dɛsʌtjun         prefix chain
+Tse-de-su-tyoon     (drill)         tsɛdɛsʌtjun      full word drill
+Tsedesutyoon        Ցdelays         tsɛdɛsʌtjun      t+s as two phones
+Bzdik / Bz-dik      Պdelays         bəzdɪk           schwa for Bz onset
+Bdegh               Պdelays         bdɛg             g approximates uvular
+Khntrem / Khntre-m  Խdelays         kəntɹɛm          k+schwa for kh cluster
+Tsakh               Ձdelays         tsɑk             t+s, k for kh
+Agheg / Agh-eg      Աdelays         ɑgɛk             g for gh uvular
+Yeghpayr / Yegh-payr Եdelays        jɛgpaɪɹ          g for gh between vowels
+Inknasharzh          Delays          ɪnknəʃɑɹʒ        ʒ natively supported
+sharzh              (partial)       ʃɑɹʒ             drill fragment
+na-sharzh           (partial)       nəʃɑɹʒ           drill fragment
+Sksel               Սdelays         skəsɛl           schwa in sks cluster
+
+Files: audio_library/ab_test/{Token}_regex.mp3 vs {Token}_ssml.mp3

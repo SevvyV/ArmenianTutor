@@ -313,7 +313,7 @@ class DualVoiceTTS:
         
         # Verify directory was created
         if not os.path.exists(os.path.dirname(output_path)):
-            print(f"   ❌ Failed to create directory: {os.path.dirname(output_path)}")
+            print(f"   [FAIL] Failed to create directory: {os.path.dirname(output_path)}")
             return False
         
         # Configure voice
@@ -333,7 +333,7 @@ class DualVoiceTTS:
                 audio_config=audio_config
             )
         except Exception as e:
-            print(f"   ❌ Synthesizer creation failed: {str(e)}")
+            print(f"   [FAIL] Synthesizer creation failed: {str(e)}")
             return False
         
         # Synthesize using SSML
@@ -347,7 +347,7 @@ class DualVoiceTTS:
             return True
         elif result.reason == speechsdk.ResultReason.Canceled:
             cancellation = result.cancellation_details
-            print(f"   ❌ Failed: {cancellation.reason}")
+            print(f"   [FAIL] Failed: {cancellation.reason}")
             if cancellation.error_details:
                 print(f"      Error: {cancellation.error_details}")
             return False
@@ -389,7 +389,7 @@ class DualVoiceTTS:
         
         # Verify directory was created
         if not os.path.exists(os.path.dirname(output_path)):
-            print(f"   ❌ Failed to create directory: {os.path.dirname(output_path)}")
+            print(f"   [FAIL] Failed to create directory: {os.path.dirname(output_path)}")
             return False
         
         # Configure voice
@@ -409,7 +409,7 @@ class DualVoiceTTS:
                 audio_config=audio_config
             )
         except Exception as e:
-            print(f"   ❌ Synthesizer creation failed: {str(e)}")
+            print(f"   [FAIL] Synthesizer creation failed: {str(e)}")
             return False
         
         # Synthesize
@@ -423,7 +423,7 @@ class DualVoiceTTS:
             return True
         elif result.reason == speechsdk.ResultReason.Canceled:
             cancellation = result.cancellation_details
-            print(f"   ❌ Failed: {cancellation.reason}")
+            print(f"   [FAIL] Failed: {cancellation.reason}")
             if cancellation.error_details:
                 print(f"      Error: {cancellation.error_details}")
             return False
@@ -536,7 +536,7 @@ def generate_vocabulary_audio(tts: DualVoiceTTS, voices: list, output_dir: str =
                     print(f"      ✅ {item.audio_key}.mp3")
                     stats["success"] += 1
                 else:
-                    print(f"      ❌ {item.audio_key}.mp3 FAILED")
+                    print(f"      [FAIL] {item.audio_key}.mp3 FAILED")
                     stats["failed"] += 1
     
     return stats
@@ -582,7 +582,7 @@ def generate_sentence_audio(tts: DualVoiceTTS, voices: list, output_dir: str = "
                     print(f"      ✅ {item.audio_key}.mp3")
                     stats["success"] += 1
                 else:
-                    print(f"      ❌ {item.audio_key}.mp3 FAILED")
+                    print(f"      [FAIL] {item.audio_key}.mp3 FAILED")
                     stats["failed"] += 1
     
     return stats
@@ -643,7 +643,7 @@ def generate_verb_audio(tts: DualVoiceTTS, voices: list, output_dir: str = "audi
                     print(f"      ✅ verb_to_{verb.verb_key}_{tense}.mp3")
                     stats["success"] += 1
                 else:
-                    print(f"      ❌ verb_to_{verb.verb_key}_{tense}.mp3 FAILED")
+                    print(f"      [FAIL] verb_to_{verb.verb_key}_{tense}.mp3 FAILED")
                     stats["failed"] += 1
     
     return stats
@@ -807,7 +807,7 @@ def generate_single_lesson(
     """Generate audio for a single lesson only."""
     
     if lesson_id not in LESSONS:
-        print(f"❌ Lesson '{lesson_id}' not found!")
+        print(f"[FAIL] Lesson '{lesson_id}' not found!")
         print(f"Available lessons: {', '.join(LESSONS.keys())}")
         return
     
@@ -899,7 +899,7 @@ def print_statistics(stats: dict):
     print(f"Total files:    {stats['total']}")
     print(f"✅ Generated:   {stats['success']}")
     print(f"⏭️  Skipped:     {stats['skipped']} (already exist)")
-    print(f"❌ Failed:      {stats['failed']}")
+    print(f"[FAIL] Failed:      {stats['failed']}")
     
     if stats['success'] > 0:
         print(f"\n💡 Next steps:")
